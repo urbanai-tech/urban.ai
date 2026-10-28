@@ -19,11 +19,31 @@ async function loadModule() {
 
 const mod = await loadModule();
 
-test("sha256Hex gera o mesmo hash do login (hex de 64 caracteres)", async () => {
-  assert.equal(
-    await mod.sha256Hex("abc"),
-    "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
-  );
+test("safeErrorSummary loga só status e mensagem, nunca o corpo da requisição", () => {
+  const axiosLike = Object.assign(new Error("Request failed with status code 400"), {
+    response: { status: 400 },
+    config: { data: JSON.stringify({ password: "Senha#Secreta1" }) },
+  });
+  const summary = mod.safeErrorSummary(axiosLike);
+  assert.equal(summary, "HTTP 400: Request failed with status code 400");
+  assert.doesNotMatch(summary, /Senha#Secreta1/);
+  assert.equal(mod.safeErrorSummary("x"), "erro desconhecido");
+});
+
+test("nenhum fluxo de senha faz hash no navegador (senha em claro sob TLS; ADR 0025)", () => {
+  const files = [
+    "src/app/(home)/page.tsx",
+    "src/app/create/page.tsx",
+    "src/app/reset-password/page.tsx",
+    "src/app/waitlist/aceitar/page.tsx",
+    "src/app/profile/page.tsx",
+    "src/app/service/api/auth.ts",
+    "src/app/lib/account-privacy.ts",
+  ];
+  for (const file of files) {
+    const source = readFileSync(resolve(process.cwd(), file), "utf8");
+    assert.doesNotMatch(source, /crypto\.subtle|sha256|SHA-256|hashedPassword/i, file);
+  }
 });
 
 test("nome do arquivo de exportação usa a data ISO", () => {
@@ -49,7 +69,7 @@ test("mensagens de erro da exclusão seguem o code do backend", () => {
 
 test("API da exclusão envia a senha no corpo do DELETE e a exportação usa GET /auth/me/export", () => {
   const auth = readFileSync(resolve(process.cwd(), "src/app/service/api/auth.ts"), "utf8");
-  assert.match(auth, /api\.delete\("\/auth\/me", \{ data: \{ password: await sha256Hex\(password\) \} \}\)/);
+  assert.match(auth, /api\.delete\("\/auth\/me", \{ data: \{ password \} \}\)/);
   assert.match(auth, /api\.get<Record<string, unknown>>\("\/auth\/me\/export"\)/);
 });
 

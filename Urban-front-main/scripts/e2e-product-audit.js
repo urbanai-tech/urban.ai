@@ -1,5 +1,4 @@
 const { chromium } = require('@playwright/test');
-const crypto = require('crypto');
 const fs = require('fs/promises');
 const path = require('path');
 
@@ -71,10 +70,6 @@ const visualErrorPatterns = [
   /Faça login novamente/i,
 ];
 
-function sha256(value) {
-  return crypto.createHash('sha256').update(value).digest('hex');
-}
-
 function requiredEnv(key) {
   const value = String(process.env[key] || '').trim();
   if (!value) {
@@ -109,7 +104,8 @@ async function apiLogin(request) {
     throw new Error('Set E2E_EMAIL/E2E_PASSWORD or E2E_AUTH_EMAIL/E2E_AUTH_PASSWORD before running the audit.');
   }
   const response = await request.post(`${API_URL}/auth/login`, {
-    data: { email: EMAIL, password: sha256(PASSWORD) },
+    // Senha em texto puro sob TLS, como o front (ADR 0025).
+    data: { email: EMAIL, password: PASSWORD },
   });
   // O token vem só no cookie httpOnly (Set-Cookie); o corpo não o carrega mais.
   const setCookie = response.headers()['set-cookie'] || '';

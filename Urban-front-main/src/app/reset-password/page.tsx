@@ -32,15 +32,6 @@ type PasswordChecks = {
   match: boolean;
 };
 
-async function sha256(message: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(message);
-  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-  return Array.from(new Uint8Array(hashBuffer))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-}
-
 export default function PasswordConfirmation() {
   const router = useRouter();
   const toast = useAppToast();
@@ -105,8 +96,8 @@ export default function PasswordConfirmation() {
 
     try {
       setLoading(true);
-      const hashedPassword = await sha256(password);
-      const res = await updatePassword(token, hashedPassword);
+      // Senha em texto puro sob TLS; o hash é feito só no servidor (ADR 0025).
+      const res = await updatePassword(token, password);
 
       if (!res.enviado) {
         throw new Error(res.motivo || "Erro ao confirmar redefinicao de senha");

@@ -3,12 +3,15 @@
  * Funções puras, cobertas por scripts/account-privacy.test.mjs.
  */
 
-export async function sha256Hex(message: string): Promise<string> {
-  const data = new TextEncoder().encode(message);
-  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-  return Array.from(new Uint8Array(hashBuffer))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
+/**
+ * Resumo de erro seguro para log: só status HTTP e mensagem. Nunca o objeto do
+ * axios inteiro, cujo `config.data` carrega o corpo da requisição (senha em claro
+ * nos fluxos de login, reset, troca de e-mail e exclusão de conta).
+ */
+export function safeErrorSummary(error: unknown): string {
+  const status = (error as { response?: { status?: number } } | null)?.response?.status;
+  const message = error instanceof Error ? error.message : "erro desconhecido";
+  return status ? `HTTP ${status}: ${message}` : message;
 }
 
 export function exportFileName(now: Date = new Date()): string {

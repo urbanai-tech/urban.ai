@@ -23,14 +23,6 @@ import { stashPendingEmail } from "@/app/lib/auth-links";
  *  - Primeira impressao do produto = manifesto direto, sem SaaS genérico.
  */
 
-async function sha256(message: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(message);
-  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
-}
-
 export default function Login() {
   const router = useRouter();
   const { t } = useTranslation();
@@ -62,11 +54,11 @@ export default function Login() {
 
     setLoading(true);
     try {
-      const hashedPassword = await sha256(password);
+      // Senha em texto puro sob TLS; o hash é feito só no servidor (ADR 0025).
       // A sessão fica só nos cookies httpOnly definidos pela resposta.
       await api.post("/auth/login", {
         email,
-        password: hashedPassword,
+        password,
       });
 
       try {

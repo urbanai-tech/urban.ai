@@ -93,8 +93,8 @@ test.describe('F8 legado: convite emitido -> aceite -> dashboard', () => {
       token: 'MOCK_TOKEN_123',
       username: 'Teste E2E',
     });
-    expect(String(acceptPayload?.password)).toMatch(/^[a-f0-9]{64}$/);
-    expect(acceptPayload?.password).not.toBe('UrbanE2E@123');
+    // Senha em texto puro sob TLS: o hash é só do servidor (ADR 0025).
+    expect(acceptPayload?.password).toBe('UrbanE2E@123');
 
     await page.waitForURL('**/dashboard');
     await expect(page.getByRole('heading', { name: /Calend.rio/i })).toBeVisible();

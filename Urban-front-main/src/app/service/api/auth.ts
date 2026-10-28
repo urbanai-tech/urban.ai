@@ -1,5 +1,5 @@
 import { api } from "./client";
-import { sha256Hex } from "../../lib/account-privacy";
+import { safeErrorSummary } from "../../lib/account-privacy";
 
 /** LGPD: pacote JSON com os dados do próprio titular (GET /auth/me/export). */
 export async function exportMyData(): Promise<Record<string, unknown>> {
@@ -8,11 +8,12 @@ export async function exportMyData(): Promise<Record<string, unknown>> {
 }
 
 /**
- * LGPD: exclui a própria conta (DELETE /auth/me). Exige a senha atual, no mesmo
- * formato do login (SHA-256 hex). O backend cancela a assinatura Stripe antes.
+ * LGPD: exclui a própria conta (DELETE /auth/me). Exige a senha atual, em texto
+ * puro como no login (só sob TLS; o hash é do servidor). O backend cancela a
+ * assinatura Stripe antes.
  */
 export async function deleteMyAccount(password: string): Promise<void> {
-  await api.delete("/auth/me", { data: { password: await sha256Hex(password) } });
+  await api.delete("/auth/me", { data: { password } });
 }
 
 
@@ -123,7 +124,7 @@ export const updatePassword = async (
     });
     return response.data;
   } catch (error) {
-    console.error('Erro ao atualizar a senha:', error);
+    console.error('Erro ao atualizar a senha:', safeErrorSummary(error));
     throw error;
   }
 };
@@ -137,7 +138,7 @@ export const updatePassword = async (
 export type UpdateProfilePayload = {
   username?: string;
   email?: string;
-  /** Senha atual (SHA-256 hex, igual ao login): obrigatória só quando o e-mail muda. */
+  /** Senha atual em texto puro (igual ao login): obrigatória só quando o e-mail muda. */
   currentPassword?: string;
   phone?: string;
   company?: string;
@@ -202,7 +203,7 @@ export async function updateProfileById(
       },
     };
   } catch (error) {
-    console.error("Erro ao atualizar perfil:", error);
+    console.error("Erro ao atualizar perfil:", safeErrorSummary(error));
     throw error;
   }
 }

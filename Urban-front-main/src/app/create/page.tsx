@@ -27,15 +27,6 @@ import {
 import { stashPendingEmail } from "@/app/lib/auth-links";
 import styles from "./create.module.css";
 
-// Função de hash
-async function sha256(message: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(message);
-  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
-}
-
 /**
  * /create — tela de signup do anfitrião Urban AI.
  *
@@ -153,12 +144,11 @@ const Register = () => {
     if (!canSubmit) return;
     try {
       setLoading(true);
-      const hashedPassword = await sha256(password);
-
+      // Senha em texto puro sob TLS; o hash é feito só no servidor (ADR 0025).
       const { data: registerData } = await api.post<{ mode?: string }>("/auth/register", {
         email,
         username,
-        password: hashedPassword,
+        password,
         termsAccepted: true,
         termsVersion: TERMS_VERSION,
       });
@@ -170,7 +160,7 @@ const Register = () => {
       // A sessão fica só nos cookies httpOnly definidos pela resposta.
       await api.post("/auth/login", {
         email,
-        password: hashedPassword,
+        password,
       });
 
       toast("Conta criada! Falta confirmar seu e-mail para continuar.", {
