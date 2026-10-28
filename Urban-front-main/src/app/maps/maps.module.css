@@ -1,0 +1,138 @@
+.grid.grid {
+  height: 40px;
+  display: grid;
+  place-items: center;
+}
+
+.gridH500px.gridH500px {
+  height: 500px;
+  display: grid;
+  place-items: center;
+}
+
+.mapsRow.mapsRow {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.mapsBox.mapsBox {
+  flex: 1 1 260px;
+  max-width: 320px;
+  position: relative;
+  z-index: 1000;
+}
+
+.mapsLabel.mapsLabel {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--app-text-muted);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.mapsBox2.mapsBox2 {
+  position: relative;
+  z-index: 1001;
+}
+
+.mapsBox3.mapsBox3 {
+  flex: 0 0 160px;
+  max-width: 160px;
+}
+
+.mapsBox4.mapsBox4 {
+  flex: 0 0 180px;
+  max-width: 180px;
+}
+
+.mapsRowDanger.mapsRowDanger {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--app-danger);
+}
+
+.mapsText.mapsText {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.mapsOpportunityLayout.mapsOpportunityLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(340px, 420px);
+  gap: 20px;
+  align-items: start;
+}
+
+.mapsBox5.mapsBox5 {
+  min-width: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.mapsBox6.mapsBox6 {
+  position: relative;
+}
+
+.mapsAbs.mapsAbs {
+  position: absolute;
+  inset: 12px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  pointer-events: none;
+}
+
+.mapsBox7.mapsBox7 {
+  min-width: 0;
+  position: sticky;
+  top: 24px;
+}
+
+.mapsRowGap12.mapsRowGap12 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.mapsBox8.mapsBox8 {
+  min-width: 0;
+}
+
+.appEyebrowMuted.appEyebrowMuted {
+  margin-bottom: 4px;
+}
+
+.mapsText20.mapsText20 {
+  margin: 0;
+  color: var(--app-text);
+  font-size: 20px;
+  font-weight: 650;
+}
+
+.mapsBox9.mapsBox9 {
+  flex: 1;
+  overflow-y: auto;
+  max-height: calc(100vh - 300px);
+  padding-right: 4px;
+}
+
+.mapsStack.mapsStack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.carregando.carregando {
+  border-radius: 50%;
+  border: 3px solid var(--app-accent-soft);
+  border-top-color: var(--app-accent);
+  animation: maps-spin 0.9s linear infinite;
+}
