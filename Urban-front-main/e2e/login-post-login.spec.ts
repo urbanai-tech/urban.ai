@@ -90,8 +90,8 @@ test.describe('Login and post-login routing', () => {
 
     await expect.poll(() => loginPayloads.length).toBe(1);
     expect(loginPayloads[0]?.email).toBe('host.login@urbanai.com.br');
-    expect(loginPayloads[0]?.password).toMatch(/^[a-f0-9]{64}$/);
-    expect(loginPayloads[0]?.password).not.toBe('UrbanLogin@123');
+    // Senha em texto puro sob TLS: o hash é só do servidor (ADR 0025).
+    expect(loginPayloads[0]?.password).toBe('UrbanLogin@123');
     await expect.poll(() => statePayloads[0]).toEqual({ email: 'host.login@urbanai.com.br' });
 
     await page.waitForURL(/\/dashboard$/, { timeout: 10_000 });

@@ -16,7 +16,7 @@ import {
 } from '@/app/componentes/ui';
 import { getProfileById, updateProfileById } from '@/app/service/api';
 import type { ProfileResponse } from '@/app/service/api';
-import { sha256Hex } from '@/app/lib/account-privacy';
+import { safeErrorSummary } from '@/app/lib/account-privacy';
 import { emailChangeErrorMessage, isEmailChange, stashPendingEmail } from '@/app/lib/auth-links';
 
 type ProfileForm = {
@@ -118,7 +118,7 @@ export default function ProfilePage() {
       const updated = await updateProfileById(profile.id, {
         username: form.username.trim(),
         email: form.email.trim(),
-        ...(emailChanged ? { currentPassword: await sha256Hex(currentPassword) } : {}),
+        ...(emailChanged ? { currentPassword } : {}),
         phone: form.phone.trim(),
         company: form.company.trim(),
         airbnbHostId: form.airbnbHostId.trim(),
@@ -138,7 +138,7 @@ export default function ProfilePage() {
         toast('Perfil atualizado.', { type: 'success' });
       }
     } catch (error) {
-      console.error(error);
+      console.error(safeErrorSummary(error));
       toast(emailChangeErrorMessage(error), { type: 'error' });
     } finally {
       setSaving(false);

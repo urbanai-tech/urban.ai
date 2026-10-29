@@ -22,15 +22,6 @@ type PasswordChecks = {
   match: boolean;
 };
 
-async function sha256(message: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(message);
-  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-  return Array.from(new Uint8Array(hashBuffer))
-    .map((byte) => byte.toString(16).padStart(2, "0"))
-    .join("");
-}
-
 export default function AceitarConvitePage() {
   return (
     <Suspense
@@ -107,11 +98,11 @@ function AceitarConvite() {
     });
 
     try {
-      const hashedPassword = await sha256(password);
+      // Senha em texto puro sob TLS; o hash é feito só no servidor (ADR 0025).
       await acceptWaitlistInvite({
         token,
         username: validation.name ?? validation.email?.split("@")[0],
-        password: hashedPassword,
+        password,
       });
       trackAnalyticsEvent("waitlist_invite_accept", {
         source: "waitlist-invite",

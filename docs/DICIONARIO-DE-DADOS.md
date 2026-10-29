@@ -115,7 +115,7 @@ Lista curada em `PII_COLUMNS` (scripts/generate-data-dictionary.ts); o gerador f
 | `stays_accounts` | `consentUserAgent` | user-agent (prova de consentimento) | Texto puro. Retenção: a confirmar. |
 | `user` | `company` | nome de empresa | Texto puro, opcional. Proteção adicional: a confirmar. |
 | `user` | `email` | e-mail | Texto puro no banco (índice único). Mascarado (`maskEmail`) no log de auditoria admin e no log de comunicações; incluído na exportação LGPD do titular. Criptografia em repouso: a confirmar (nível do provedor de banco). |
-| `user` | `password` | hash de senha | bcrypt (12 rounds); hashes legados SHA-256 são migrados para bcrypt no login. `select: false` + `@Exclude()`; nunca na exportação LGPD. |
+| `user` | `password` | hash de senha | Esquema v2 (`pw:v2:` + bcrypt 12 rounds da senha, calculado só no servidor; senha limitada a 72 bytes UTF-8 ao definir; ADR 0025). Hashes legados (bcrypt do SHA-256 que o front antigo enviava) são migrados para v2 no login com a senha em claro. `select: false` + `@Exclude()`; nunca na exportação LGPD. |
 | `user` | `phone` | telefone | Texto puro, opcional. Proteção adicional: a confirmar. |
 | `user` | `username` | nome | Texto puro. Incluído na exportação LGPD (campos exatos em `account-data.service.ts`). Proteção adicional: a confirmar. |
 | `waitlist` | `email` | e-mail | Texto puro. Proteção adicional: a confirmar. |

@@ -14,7 +14,7 @@ import {
 } from "../../componentes/ui";
 import { deleteMyAccount, exportMyData } from "../../service/api";
 import { invalidateAuthCache, invalidateSubscriptionCache } from "../../context/subscription-status";
-import { deleteAccountErrorMessage, exportFileName, serializeExport } from "../../lib/account-privacy";
+import { deleteAccountErrorMessage, exportFileName, safeErrorSummary, serializeExport } from "../../lib/account-privacy";
 import { marketingUrl } from "../../lib/marketing-url";
 
 /**
@@ -62,7 +62,7 @@ export default function PrivacySettingsPage() {
       toast("Sua conta foi excluída.", { type: "success" });
       router.replace("/");
     } catch (error) {
-      console.error(error);
+      console.error(safeErrorSummary(error));
       setDeleteError(deleteAccountErrorMessage(error));
     } finally {
       setDeleting(false);

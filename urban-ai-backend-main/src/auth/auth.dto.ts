@@ -15,6 +15,8 @@ import {
   ValidateIf,
 } from 'class-validator';
 import { TERMS_VERSION } from './terms.constants';
+import { MaxUtf8Bytes } from '../common/max-utf8-bytes.validator';
+import { BCRYPT_MAX_PASSWORD_BYTES, PASSWORD_TOO_LONG_MESSAGE } from './password-hashing';
 
 export class AcceptWaitlistInviteDto {
   @IsString() @Matches(/^[a-f0-9]{64}$/i)
@@ -24,6 +26,7 @@ export class AcceptWaitlistInviteDto {
   username?: string;
 
   @IsString() @MinLength(8) @MaxLength(128)
+  @MaxUtf8Bytes(BCRYPT_MAX_PASSWORD_BYTES, { message: PASSWORD_TOO_LONG_MESSAGE })
   password!: string;
 
   /** Aceite dos Termos na tela de convite (opcional enquanto o front não envia). */
@@ -72,6 +75,7 @@ export class UpdateUserDto {
   email?: string;
 
   @IsOptional() @IsString() @MinLength(8) @MaxLength(128)
+  @MaxUtf8Bytes(BCRYPT_MAX_PASSWORD_BYTES, { message: PASSWORD_TOO_LONG_MESSAGE })
   password?: string;
 }
 

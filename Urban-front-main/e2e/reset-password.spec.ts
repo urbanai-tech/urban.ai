@@ -69,8 +69,8 @@ test.describe('Reset de senha', () => {
     await expect.poll(() => payloads.length).toBe(1);
     const submittedPayload = payloads[0];
     expect(submittedPayload.token).toBe('TOKEN_RESET_E2E');
-    expect(submittedPayload.pass).toMatch(/^[a-f0-9]{64}$/);
-    expect(submittedPayload.pass).not.toBe('Urban@123');
+    // Senha em texto puro sob TLS: o hash é só do servidor (ADR 0025).
+    expect(submittedPayload.pass).toBe('Urban@123');
     await expect(page.getByText(/Senha atualizada/i)).toBeVisible();
     await expect(page.getByRole('button', { name: /Ir para login/i })).toBeVisible();
   });

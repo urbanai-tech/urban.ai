@@ -1,11 +1,10 @@
-const bcrypt = require('bcrypt');
 const crypto = require('crypto');
+const { BCRYPT_MAX_PASSWORD_BYTES, fitsBcrypt, hashPasswordV2, isCurrentPasswordHash } = require('./password-hash-v2');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const mysql = require('mysql2/promise');
 
-const BCRYPT_ROUNDS = 12;
 const ACCESS_TOKEN_TTL_SECONDS = 15 * 60;
 const HEX_64 = /^[a-f0-9]{64}$/i;
 
@@ -48,6 +47,9 @@ function assertPlaintextPassword(name, password) {
   }
   if (HEX_64.test(password)) {
     throw new Error(`${name} must be the plaintext test password, not a SHA-256 digest.`);
+  }
+  if (!fitsBcrypt(password)) {
+    throw new Error(`${name} must have at most ${BCRYPT_MAX_PASSWORD_BYTES} bytes (bcrypt limit).`);
   }
   if (/^(password|changeme|urbanai|admin123)/i.test(password)) {
     throw new Error(`${name} is too weak for staging fixtures.`);
@@ -131,10 +133,6 @@ function assertDbConfig(config) {
   }
 }
 
-function sha256(valueToHash) {
-  return crypto.createHash('sha256').update(valueToHash).digest('hex');
-}
-
 function mysqlNow() {
   return new Date();
 }
@@ -183,29 +181,16 @@ function buildInsert(columns, fixture, passwordHash) {
   return row;
 }
 
-async function passwordMatches(password, storedHash) {
-  if (!storedHash) return false;
-  const frontendSubmitted = sha256(password);
-
-  if (storedHash === frontendSubmitted) return true;
-  if (/^\$2[aby]\$/.test(storedHash)) {
-    return (
-      (await bcrypt.compare(frontendSubmitted, storedHash)) ||
-      (await bcrypt.compare(password, storedHash))
-    );
-  }
-
-  return false;
-}
-
 async function ensureUser(connection, columns, fixture) {
   const [rows] = await connection.execute(
     'SELECT `id`, `username`, `email`, `password`, `ativo`, `role` FROM `user` WHERE `email` = ? LIMIT 1 FOR UPDATE',
     [fixture.email],
   );
 
-  const passwordOk = rows[0] ? await passwordMatches(fixture.password, rows[0].password) : false;
-  const passwordHash = passwordOk ? null : await bcrypt.hash(sha256(fixture.password), BCRYPT_ROUNDS);
+  // Esquema v2 (src/auth/password-hashing.ts): senha em claro, hash só no servidor.
+  // Linha legada ou senha diferente: regrava em v2.
+  const passwordOk = rows[0] ? await isCurrentPasswordHash(fixture.password, rows[0].password) : false;
+  const passwordHash = passwordOk ? null : await hashPasswordV2(fixture.password);
 
   if (!rows[0]) {
     if (dryRun) {

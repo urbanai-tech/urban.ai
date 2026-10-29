@@ -19,7 +19,7 @@ waitlist  ───────▶  convite/senha  ──▶  importa Airbnb   �
 Host entra em `/lancamento`, vê a campanha, deixa e-mail → `POST /waitlist` retorna **posição na fila + código de referral**. Recebe e-mail com link `/waitlist/aceitar?token=…`.
 
 ### Fase 2 — Conversão (`f8-waitlist-to-login.spec.ts`, `login-post-login.spec.ts`)
-No link, define senha (hash SHA-256 no front) → `POST /auth/waitlist/accept` → vira usuário ativo → redireciona a `/dashboard`. Login normal: `/auth/login` → checa estado do usuário, endereço, perfil, assinatura, imóveis e recomendações. Token em localStorage + cookie httpOnly. (Há também **login Google**.)
+No link, define senha (enviada em claro sob TLS; o hash é só do servidor, [ADR 0025](../adr/0025-senha-em-claro-sob-tls-hash-no-servidor.md)) → `POST /auth/waitlist/accept` → vira usuário ativo → redireciona a `/dashboard`. Login normal: `/auth/login` → checa estado do usuário, endereço, perfil, assinatura, imóveis e recomendações. Token em localStorage + cookie httpOnly. (Há também **login Google**.)
 
 ### Fase 3 — Onboarding / primeiro valor (`onboarding-airbnb-import.spec.ts`)
 `/onboarding` → "Conecte seus imóveis" → cola **URL do Airbnb** → sistema busca `quick-info` (foto, bairro, tipo, rating, reviews) → "Registrar imóvel" (`/connect/register`) → tela "Ajustar recomendações" define o motor: `pricingStrategy=balanced`, `operationMode=notifications`, guardrails **−10%/+20%** → salva (`PUT /auth/profile`) → "Continuar para pagamento".

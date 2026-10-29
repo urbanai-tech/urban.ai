@@ -2,11 +2,12 @@ import { expect, test } from '@playwright/test';
 import { acceptCookieConsent } from './test-helpers';
 
 /**
- * Troca de e-mail no perfil (F5): exige a senha atual, manda o hash no corpo e,
+ * Troca de e-mail no perfil (F5): exige a senha atual, manda-a no corpo (texto puro
+ * sob TLS; o hash é só do servidor, ADR 0025) e,
  * quando o backend sinaliza verificação pendente, oferece confirmar o novo e-mail.
  */
 test.describe('Perfil: troca de e-mail', () => {
-  test('pede a senha atual, envia currentPassword em SHA-256 e mostra o estado de confirmação', async ({ page }) => {
+  test('pede a senha atual, envia currentPassword em texto puro e mostra o estado de confirmação', async ({ page }) => {
     await acceptCookieConsent(page);
     const puts: Array<Record<string, unknown>> = [];
 
@@ -62,8 +63,7 @@ test.describe('Perfil: troca de e-mail', () => {
 
     await expect.poll(() => puts.length).toBe(1);
     expect(puts[0].email).toBe('novo@urbanai.com.br');
-    expect(puts[0].currentPassword).toMatch(/^[a-f0-9]{64}$/);
-    expect(puts[0].currentPassword).not.toBe('Senha123!');
+    expect(puts[0].currentPassword).toBe('Senha123!');
     await expect(page.getByRole('heading', { name: /Confirme seu novo e-mail/i })).toBeVisible();
 
     await page.getByRole('button', { name: /Confirmar agora/i }).click();

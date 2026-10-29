@@ -21,9 +21,13 @@ import { StaysService } from 'src/stays/stays.service';
 import { markSessionsCutoff } from '../common/session-cutoff';
 import { TERMS_VERSION } from './terms.constants';
 import { HTTP_TIMEOUT_MS, fetchWithTimeout } from '../common/http-timeouts';
+import {
+  hashPasswordForStorage,
+  hashPasswordV2,
+  isSlowPasswordHash,
+  verifyPassword as verifyStoredPassword,
+} from './password-hashing';
 
-const BCRYPT_ROUNDS = 12;
-const SHA256_HEX_REGEX = /^[a-f0-9]{64}$/i;
 const REFRESH_TOKEN_BYTES = 48;
 const REFRESH_TOKEN_TTL_DAYS = 7;
 /** Hash bcrypt(12) descartável: iguala o tempo de login para e-mail inexistente / conta sem senha. */
@@ -174,75 +178,11 @@ export class AuthService {
     );
   }
 
-  // ============ Senha (SHA-256 → bcrypt lazy migration) ============
+  // ============ Senha (esquema v2 + migração transparente; ver password-hashing.ts) ============
 
-  /** bcrypt hashes começam com $2a$, $2b$ ou $2y$ */
-  private isBcryptHash(hash: string): boolean {
-    return typeof hash === 'string' && /^\$2[aby]\$/.test(hash);
-  }
-
-  /** Hex 64-char: hash SHA-256 legado (ou pré-hash vindo do frontend) */
-  private isSha256Hash(hash: string): boolean {
-    return typeof hash === 'string' && SHA256_HEX_REGEX.test(hash);
-  }
-
-  /** SHA-256 simples sem salt — mantido apenas para comparação com hashes legados */
-  private sha256(str: string): string {
-    // Compatibilidade de leitura apenas; credenciais aceitas são regravadas com bcrypt(12).
-    // lgtm[js/insufficient-password-hash]
-    return crypto.createHash('sha256').update(str).digest('hex'); // lgtm[js/insufficient-password-hash]
-  }
-
-  /**
-   * Hashes a plaintext password with bcrypt(12).
-   * O input pode ser a senha em texto puro OU um pré-hash SHA-256 vindo do
-   * frontend (legado): nos dois casos, o valor entrada vira bcrypt.
-   */
-  private async bcryptHash(passwordOrSha256: string): Promise<string> {
-    return bcrypt.hash(passwordOrSha256, BCRYPT_ROUNDS);
-  }
-
-  /**
-   * Verifica a senha submetida contra o hash armazenado.
-   * Aceita três formatos de `storedHash`: bcrypt (futuro padrão), SHA-256 hex
-   * (legado atual) e `google_*` (conta Google, nunca autentica por senha).
-   * Retorna { ok, needsRehash } — se ok=true e needsRehash=true, o caller deve
-   * atualizar o registro para bcrypt de forma transparente.
-   */
-  private async verifyPassword(
-    submitted: string,
-    storedHash: string,
-  ): Promise<{ ok: boolean; needsRehash: boolean }> {
-    if (!storedHash || storedHash.startsWith('google_')) {
-      return { ok: false, needsRehash: false };
-    }
-
-    if (this.isBcryptHash(storedHash)) {
-      // Caminho novo: o hash no banco já é bcrypt. O input pode ser
-      // texto-puro ou pré-hash SHA-256 (frontend legado) — tentamos ambos.
-      if (await bcrypt.compare(submitted, storedHash)) {
-        return { ok: true, needsRehash: false };
-      }
-      if (!this.isSha256Hash(submitted)) {
-        const asSha = this.sha256(submitted);
-        if (await bcrypt.compare(asSha, storedHash)) {
-          return { ok: true, needsRehash: false };
-        }
-      }
-      return { ok: false, needsRehash: false };
-    }
-
-    if (this.isSha256Hash(storedHash)) {
-      // Caminho legado: o hash no banco é SHA-256 puro. Comparamos tanto o
-      // pré-hash (caso o front já tenha mandado SHA-256) quanto o texto-puro.
-      const submittedSha = this.isSha256Hash(submitted) ? submitted : this.sha256(submitted);
-      if (submittedSha === storedHash) {
-        return { ok: true, needsRehash: true };
-      }
-      return { ok: false, needsRehash: false };
-    }
-
-    return { ok: false, needsRehash: false };
+  /** Confere a senha (texto puro; sha256hex do front antigo só na janela de compatibilidade). */
+  private verifyPassword(submitted: string, storedHash: string) {
+    return verifyStoredPassword(submitted, storedHash);
   }
 
   /** Remove o campo password do objeto retornado para o cliente. */
@@ -272,9 +212,9 @@ export class AuthService {
       throw new ConflictException('O e-mail informado já está em uso.');
     }
 
-    // Novos registros entram direto com bcrypt(12), seja o input texto-puro
-    // ou pré-hash SHA-256 vindo do frontend.
-    const pwdHash = await this.bcryptHash(data.password);
+    // Novos registros entram no esquema v2 (o hex do front antigo, só na janela,
+    // fica no formato legado para migrar no próximo login com a senha em claro).
+    const pwdHash = await hashPasswordForStorage(data.password);
 
     try {
       const user = this.userRepository.create({
@@ -296,7 +236,8 @@ export class AuthService {
 
       return this.sanitizeUser(savedUser);
     } catch (error) {
-      console.error('Erro ao registrar usuário:', error);
+      // Só a mensagem: o erro do driver pode carregar os parâmetros do INSERT (hash da senha).
+      console.error('Erro ao registrar usuário:', error instanceof Error ? error.message : 'erro desconhecido');
       throw new InternalServerErrorException('Falha no registro do usuário. Verifique com o suporte.');
     }
   }
@@ -442,9 +383,8 @@ export class AuthService {
     }
 
     if (data.password) {
-      // Toda atualização de senha passa por bcrypt(12), independente de
-      // o input ser texto-puro ou pré-hash SHA-256 vindo do frontend legado.
-      user.password = await this.bcryptHash(data.password);
+      // Senha definida pelo admin: mesmo esquema do cadastro (v2).
+      user.password = await hashPasswordForStorage(data.password);
     }
 
     const saved = await this.userRepository.save(user);
@@ -466,7 +406,7 @@ export class AuthService {
       await bcrypt.compare(password, TIMING_EQUALIZER_HASH);
       throw new UnauthorizedException('Credenciais inválidas');
     }
-    if (!this.isBcryptHash(user.password)) {
+    if (!isSlowPasswordHash(user.password)) {
       await bcrypt.compare(password, TIMING_EQUALIZER_HASH);
     }
 
@@ -477,14 +417,17 @@ export class AuthService {
     if (user.ativo === false) throw new UnauthorizedException('Usuário inativo. Faça login com uma conta ativa.');
 
     if (needsRehash) {
-      // Lazy migration: usuário autenticou com SHA-256 legado. Re-hash para
-      // bcrypt(12) transparentemente — próximo login já valida pelo caminho novo.
+      // Migração transparente: conta legada provou a senha em claro. Regrava em
+      // v2 — a partir daqui o sha256hex dessa senha deixa de valer como credencial.
       try {
-        user.password = await this.bcryptHash(password);
+        user.password = await hashPasswordV2(password);
         await this.userRepository.save(user);
       } catch (error) {
-        // Não falha o login se o re-hash falhar; é melhor-esforço.
-        console.error('Falha ao migrar senha para bcrypt (usuário ainda autenticado):', error);
+        // Não falha o login se o re-hash falhar; é melhor-esforço. Só a mensagem (sem hash).
+        console.error(
+          'Falha ao migrar senha para o esquema v2 (usuário ainda autenticado):',
+          error instanceof Error ? error.message : 'erro desconhecido',
+        );
       }
     }
 

@@ -87,7 +87,7 @@ Evidencia minima: teste de helper, teste de pelo menos um cron automatico, query
   ```
 - **Cobertura global atual:** ~10.6% statements / 10.57% lines (de ~5% antes).
   - **Cobertura dos fluxos críticos:** alta —
-    - `AuthService`: register, login (bcrypt + legado SHA-256), rotação de refresh, revocação — 100% dos caminhos principais
+    - `AuthService`: register, login (esquema v2 + migração dos hashes legados, ADR 0025), rotação de refresh, revocação — 100% dos caminhos principais
     - `PaymentsService`: webhook (5 tipos de evento), cancelSubscription, createCheckoutSession (monthly + annual + trial + new customer)
     - `UrbanAIPricingEngine`: todos os multiplicadores + combinações
     - `PlansService`: seed com env vars, destaque, custom price
@@ -123,7 +123,7 @@ Evidencia minima: teste de helper, teste de pelo menos um cron automatico, query
 
 ### Fase 1 (S6, enquanto F5C.2 rola) — Cobrir o coração
 
-1. **`auth.service` — bcrypt migration path.** Quando o hash passar para bcrypt (F5C.2 item 7), adicionar testes que validem o caminho "senha legada SHA-256 ainda autentica" + "nova senha bcrypt autentica" + "rehash invisível no login".
+1. **`auth.service` — migração de senha.** Coberto em `password-hashing.spec.ts` e `auth.service.spec.ts` (ADR 0025): conta legada entra com a senha em claro e migra para v2; cadastro, reset e admin gravam v2; senha errada falha nos dois esquemas; sha256 hex do front antigo só vale em linha legada e só dentro da janela.
 2. **`payments.service` — webhook Stripe.** Criar specs que tratam os 5 eventos (`checkout.session.completed`, `payment_intent.succeeded`, `customer.subscription.updated/deleted`, `invoice.payment_failed`) com payloads realistas (copiar de `https://stripe.com/docs/webhooks/test`). Mock do Stripe SDK.
 3. **`urban-ai-pricing-engine` (quando for extraído do `PropriedadeService`).** Testes dos multiplicadores: categoria (+10–20%), atratividade (+20–50%), travel time (<15min → +30%), relevância de evento (até +50%). Cada multiplicador em um teste, + um teste do cálculo combinado.
 

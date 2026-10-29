@@ -15,10 +15,10 @@
  * Idempotente: pode rodar quantas vezes quiser; cada registro tem chave natural
  * (e-mail, id_do_anuncio `seed-dev-*`, dedupHash de `seed-dev-event-*`).
  *
- * Senha: igual ao fluxo real. O front envia SHA-256 hex da senha; o servidor
- * guarda bcrypt(12) desse hex (AuthService.register -> bcryptHash). O seed ja
- * parte desse SHA-256 (constante abaixo), entao nao calcula hash de senha. O
- * login por curl usa o SHA-256 da senha (ver CONTRIBUTING.md).
+ * Senha: igual ao fluxo real. O front envia a senha em texto puro (sob TLS) e o
+ * servidor grava o esquema v2 (src/auth/password-hashing.ts -> hashPasswordV2).
+ * O seed usa a mesma funcao; o login por curl manda a senha em claro (ver
+ * CONTRIBUTING.md).
  *
  * Uso:
  *   docker compose exec backend npm run seed:dev     # com o Compose no ar
@@ -26,11 +26,11 @@
  */
 
 import 'reflect-metadata';
-import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 import { AppDataSource } from '../src/data-source';
 import { evaluateDevSeedGuard } from '../src/common/dev-seed-guard';
 import { TERMS_VERSION } from '../src/auth/terms.constants';
+import { hashPasswordV2 } from '../src/auth/password-hashing';
 import { User } from '../src/entities/user.entity';
 import { List } from '../src/entities/list.entity';
 import { Address } from '../src/entities/addresses.entity';
@@ -40,14 +40,13 @@ import { AnaliseEnderecoEvento } from '../src/entities/AnaliseEnderecoEvento.ent
 import { Notification } from '../src/entities/notification.entity';
 import { Payment } from '../src/entities/payment.entity';
 
-const BCRYPT_ROUNDS = 12; // mesmo custo do AuthService
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 // Valores ficticios, so para uso local (senha documentada: UrbanLocal#2026).
 const HOST_EMAIL = 'host@urban.local';
 const ADMIN_EMAIL = 'admin@urban.local';
-// SHA-256 hex de 'UrbanLocal#2026', que e o que o front envia no login.
-const DEV_LOGIN_PREHASH = 'df646be6e34c6a07edeae42a9f48a82ac01fa24f52a9e0b8e219c6f0cbbfaa38';
+// Senha local ficticia (a mesma documentada no CONTRIBUTING.md e no .env.example).
+const DEV_LOCAL_LOGIN = 'UrbanLocal#2026';
 
 const LISTING_KEY = 'seed-dev-0001';
 const BASE_NIGHTLY = 320;
@@ -118,7 +117,7 @@ async function main(): Promise<void> {
       // ---------------------------------------------------------- usuarios
       async function upsertUser(email: string, username: string, role: 'host' | 'admin', extra: Partial<User>) {
         const existing = await users.findOne({ where: { email }, select: ['id', 'email', 'password'] });
-        const passwordHash = await bcrypt.hash(DEV_LOGIN_PREHASH, BCRYPT_ROUNDS);
+        const passwordHash = await hashPasswordV2(DEV_LOCAL_LOGIN);
         if (existing) {
           await users.update(existing.id, {
             username, role, ativo: true, password: passwordHash,
