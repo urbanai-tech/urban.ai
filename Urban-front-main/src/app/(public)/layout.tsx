@@ -2,6 +2,7 @@ import React from "react";
 import HeaderPublic from "../componentes/HeaderPublic";
 import FooterPublic from "../componentes/FooterPublic";
 import { JsonLd, publicBaseJsonLd } from "../lib/seo";
+import styles from "./layout.module.css";
 
 /**
  * Layout do site público (myurbanai.com).
@@ -19,18 +20,10 @@ export default function PublicLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        background: "var(--theme-public-bg)",
-        color: "var(--theme-public-text)",
-      }}
-    >
+    <div className={styles.shell}>
       <JsonLd id="urban-public-base-jsonld" data={publicBaseJsonLd()} />
       <HeaderPublic />
-      <div style={{ flex: 1 }}>{children}</div>
+      <div className={styles.content}>{children}</div>
       <FooterPublic />
     </div>
   );

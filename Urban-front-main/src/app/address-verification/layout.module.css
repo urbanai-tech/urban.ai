@@ -1,0 +1,5 @@
+.shell {
+  min-height: 100vh;
+  background: var(--theme-page-bg);
+  color: var(--theme-page-text);
+}

@@ -67,46 +67,20 @@ export default function PasswordResetRequest() {
     >
       <AppCard variant="elevated" className={styles.formCard}>
         {sentTo ? (
-          <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-            <div
-              style={{
-                width: 42,
-                height: 42,
-                borderRadius: 10,
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                background: "rgba(22, 160, 107, 0.10)",
-                color: "var(--app-success)",
-              }}
-            >
+          <div className={styles.stack}>
+            <div className={styles.successIcon}>
               <Icons.Check size={20} />
             </div>
             <div>
-              <h2
-                style={{
-                  margin: 0,
-                  color: "var(--app-text)",
-                  fontSize: 18,
-                  lineHeight: 1.35,
-                  fontWeight: 650,
-                }}
-              >
+              <h2 className={styles.successTitle}>
                 E-mail enviado
               </h2>
-              <p
-                style={{
-                  margin: "8px 0 0",
-                  color: "var(--app-text-muted)",
-                  fontSize: 14,
-                  lineHeight: 1.65,
-                }}
-              >
+              <p className={styles.successText}>
                 Enviamos o link para <strong>{sentTo}</strong>. Ele expira em 30
                 minutos.
               </p>
             </div>
-            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+            <div className={styles.successActions}>
               <AppButton
                 variant="secondary"
                 size="md"
@@ -130,7 +104,7 @@ export default function PasswordResetRequest() {
             </div>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+          <form onSubmit={handleSubmit} className={styles.stack}>
             <AppInput
               label="E-mail"
               type="email"
@@ -153,24 +127,9 @@ export default function PasswordResetRequest() {
               Enviar link
             </AppButton>
 
-            <p
-              style={{
-                margin: 0,
-                textAlign: "center",
-                color: "var(--app-text-muted)",
-                fontSize: 13,
-                lineHeight: 1.5,
-              }}
-            >
+            <p className={styles.loginHint}>
               Lembrou a senha?{" "}
-              <Link
-                href="/"
-                style={{
-                  color: "var(--app-accent)",
-                  fontWeight: 650,
-                  textDecoration: "none",
-                }}
-              >
+              <Link href="/" className={styles.loginLink}>
                 Fazer login
               </Link>
             </p>

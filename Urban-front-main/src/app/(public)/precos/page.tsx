@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Check, Minus } from "lucide-react";
 import { JsonLd, buildSeoMetadata, faqPageJsonLd, offerJsonLd } from "../../lib/seo";
+import styles from "./page.module.css";
 import {
   CheckList,
   FinalCommercialCta,
@@ -87,7 +88,7 @@ export default function PrecosPage() {
             </div>
           </div>
           <aside className="public-page-hero__aside">
-            <p><strong style={{ color: "var(--theme-public-text)" }}>Ciclos disponíveis</strong><br />Mensal, trimestral, semestral e anual. O valor por imóvel diminui nos ciclos mais longos.</p>
+            <p><strong className={styles.strongLead}>Ciclos disponíveis</strong><br />Mensal, trimestral, semestral e anual. O valor por imóvel diminui nos ciclos mais longos.</p>
           </aside>
         </div>
       </section>
@@ -101,7 +102,7 @@ export default function PrecosPage() {
                 <h2>{plan.name}</h2>
                 <p className="public-price-card__audience">{plan.audience}</p>
                 <p className="public-price-card__price">
-                  {plan.price === "Sob medida" ? <strong style={{ fontSize: 48 }}>{plan.price}</strong> : <><span>R$</span><strong>{plan.price}</strong></>}
+                  {plan.price === "Sob medida" ? <strong className={styles.priceCustom}>{plan.price}</strong> : <><span>R$</span><strong>{plan.price}</strong></>}
                 </p>
                 <p className="public-price-card__billing">{plan.note}</p>
                 <PublicButton href={plan.name === "Escala" ? "mailto:comercial@myurbanai.com" : PUBLIC_SIGNUP_URL} variant={plan.featured ? "primary" : "secondary"}>
@@ -168,7 +169,7 @@ export default function PrecosPage() {
         </div>
       </section>
 
-      <FinalCommercialCta title={<>Escolha o plano e comece a ler seu calendário com <em style={{ color: "var(--theme-public-accent)" }}>mais contexto.</em></>} />
+      <FinalCommercialCta title={<>Escolha o plano e comece a ler seu calendário com <em className={styles.accentEm}>mais contexto.</em></>} />
     </main>
   );
 }

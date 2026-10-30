@@ -192,48 +192,25 @@ export default function EmailConfirmation() {
         </AppCard>
       ) : (
       <AppCard variant="elevated" className={styles.statusCard}>
-        <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
-          <div style={{ textAlign: "center" }}>
-            <div
-              style={{
-                width: 58,
-                height: 58,
-                margin: "0 auto 16px",
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                borderRadius: 14,
-                background: "var(--app-accent-soft)",
-                color: "var(--app-accent)",
-              }}
-            >
+        <div className={styles.statusStack}>
+          <div className={styles.statusHeader}>
+            <div className={styles.statusIcon}>
               <Mail size={30} strokeWidth={1.8} />
             </div>
-            <p style={{ margin: 0, color: "var(--app-text-muted)", fontSize: 14 }}>
+            <p className={styles.sentLabel}>
               Código enviado para
             </p>
-            <strong style={{ display: "block", marginTop: 4, color: "var(--app-text)", wordBreak: "break-word" }}>
+            <strong className={styles.sentEmail}>
               {maskEmail(email)}
             </strong>
           </div>
 
           <div>
-            <label
-              style={{
-                display: "block",
-                marginBottom: 14,
-                textAlign: "center",
-                color: "var(--app-text-muted)",
-                fontSize: 12,
-                fontWeight: 650,
-                letterSpacing: 1.5,
-                textTransform: "uppercase",
-              }}
-            >
+            <label className={styles.codeLabel}>
               Código de 6 dígitos
             </label>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(6, minmax(0, 1fr))", gap: 10 }}>
+            <div className={styles.codeGrid}>
               {Array.from({ length: CODE_LENGTH }).map((_, index) => (
                 <input
                   key={index}
@@ -248,37 +225,19 @@ export default function EmailConfirmation() {
                   inputMode="numeric"
                   maxLength={1}
                   aria-label={`Digito ${index + 1}`}
-                  style={{
-                    width: "100%",
-                    aspectRatio: "1",
-                    minHeight: 48,
-                    textAlign: "center",
-                    fontSize: 24,
-                    fontWeight: 750,
-                    borderRadius: 10,
-                    border: `1px solid ${code[index] ? "var(--app-accent)" : "var(--app-divider-strong)"}`,
-                    color: "var(--app-text)",
-                    outline: "none",
-                  }}
+                  className={`${styles.codeInput} ${code[index] ? styles.codeInputFilled : ""}`}
                 />
               ))}
             </div>
 
-            <div style={{ marginTop: 16, textAlign: "center" }}>
+            <div className={styles.resendRow}>
               <button
                 type="button"
                 onClick={handleResendCode}
                 disabled={resendDisabled || isResending}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 8,
-                  border: "none",
-                  background: "transparent",
-                  color: resendDisabled ? "var(--app-text-muted)" : "var(--app-accent)",
-                  fontWeight: 650,
-                  cursor: resendDisabled || isResending ? "not-allowed" : "pointer",
-                }}
+                className={`${styles.resendButton} ${resendDisabled ? styles.resendButtonWaiting : ""} ${
+                  resendDisabled || isResending ? styles.resendButtonBlocked : ""
+                }`}
               >
                 <RefreshCw size={16} strokeWidth={1.8} />
                 {resendDisabled ? `Reenviar código em ${countdown}s` : 'Reenviar código'}
@@ -298,28 +257,12 @@ export default function EmailConfirmation() {
             Confirmar e-mail
           </AppButton>
 
-          <p
-            style={{
-              margin: 0,
-              paddingTop: 18,
-              borderTop: "1px solid var(--app-divider)",
-              textAlign: "center",
-              color: "var(--app-text-muted)",
-              fontSize: 13,
-              lineHeight: 1.55,
-            }}
-          >
+          <p className={styles.supportNote}>
             Não recebeu o código? Verifique sua pasta de spam ou{" "}
             <button
               type="button"
               onClick={() => window.location.assign(marketingUrl('/contato'))}
-              style={{
-                border: "none",
-                background: "transparent",
-                color: "var(--app-accent)",
-                fontWeight: 650,
-                cursor: "pointer",
-              }}
+              className={styles.supportLink}
             >
               contate o suporte
             </button>

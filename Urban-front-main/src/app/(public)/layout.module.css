@@ -1,0 +1,11 @@
+.shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--theme-public-bg);
+  color: var(--theme-public-text);
+}
+
+.content {
+  flex: 1;
+}

@@ -1,3 +1,114 @@
 .statusCard.statusCard {
   padding: 28px;
 }
+
+.statusStack {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.statusHeader {
+  text-align: center;
+}
+
+.statusIcon {
+  width: 58px;
+  height: 58px;
+  margin: 0 auto 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  background: var(--app-accent-soft);
+  color: var(--app-accent);
+}
+
+.sentLabel {
+  margin: 0;
+  color: var(--app-text-muted);
+  font-size: 14px;
+}
+
+.sentEmail {
+  display: block;
+  margin-top: 4px;
+  color: var(--app-text);
+  word-break: break-word;
+}
+
+.codeLabel {
+  display: block;
+  margin-bottom: 14px;
+  text-align: center;
+  color: var(--app-text-muted);
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.codeGrid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.codeInput {
+  width: 100%;
+  aspect-ratio: 1;
+  min-height: 48px;
+  text-align: center;
+  font-size: 24px;
+  font-weight: 750;
+  border-radius: 10px;
+  border: 1px solid var(--app-divider-strong);
+  color: var(--app-text);
+  outline: none;
+}
+
+.codeInputFilled {
+  border-color: var(--app-accent);
+}
+
+.resendRow {
+  margin-top: 16px;
+  text-align: center;
+}
+
+.resendButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  background: transparent;
+  color: var(--app-accent);
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.resendButtonWaiting {
+  color: var(--app-text-muted);
+}
+
+.resendButtonBlocked {
+  cursor: not-allowed;
+}
+
+.supportNote {
+  margin: 0;
+  padding-top: 18px;
+  border-top: 1px solid var(--app-divider);
+  text-align: center;
+  color: var(--app-text-muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.supportLink {
+  border: none;
+  background: transparent;
+  color: var(--app-accent);
+  font-weight: 650;
+  cursor: pointer;
+}
