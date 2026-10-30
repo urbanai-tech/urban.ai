@@ -68,6 +68,7 @@ export class WaitlistController {
       phone: body.phone,
       source: body.source,
       referredBy: body.referredBy,
+      acceptedTerms: body.acceptedTerms,
       signupIp: ip ?? undefined,
       userAgent: ua ?? undefined,
     });

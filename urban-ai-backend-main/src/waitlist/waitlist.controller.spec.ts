@@ -7,13 +7,22 @@ describe('WaitlistController', () => {
     const controller = new WaitlistController(waitlist as any, {} as any);
 
     await controller.signup(
-      { email: 'a@b.com' } as any,
+      { email: 'a@b.com', acceptedTerms: true } as any,
       { ip: '198.51.100.7', headers: { 'x-forwarded-for': '6.6.6.6, 1.1.1.1', 'user-agent': 'jest' } } as any,
     );
 
     expect(waitlist.signup).toHaveBeenCalledWith(
       expect.objectContaining({ signupIp: '198.51.100.7', userAgent: 'jest' }),
     );
+  });
+
+  it('repassa o aceite dos termos ao serviço', async () => {
+    const waitlist = { signup: jest.fn().mockResolvedValue({ alreadyRegistered: true, totalSignups: 1 }) };
+    const controller = new WaitlistController(waitlist as any, {} as any);
+
+    await controller.signup({ email: 'a@b.com', acceptedTerms: true } as any, { ip: '198.51.100.7', headers: {} } as any);
+
+    expect(waitlist.signup).toHaveBeenCalledWith(expect.objectContaining({ acceptedTerms: true }));
   });
 
   it.each(['invite', 'updateNotes', 'remove'])(

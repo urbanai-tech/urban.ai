@@ -1,4 +1,5 @@
 import {
+  Equals,
   IsDefined,
   IsEmail,
   IsOptional,
@@ -23,6 +24,10 @@ export class WaitlistSignupDto {
 
   @IsOptional() @IsString() @MaxLength(128)
   referredBy?: string;
+
+  /** Aceite obrigatório dos Termos de Uso e da Política de Privacidade (prova de consentimento). */
+  @Equals(true, { message: 'É necessário aceitar os Termos de Uso e a Política de Privacidade' })
+  acceptedTerms!: true;
 }
 
 export class UpdateWaitlistNotesDto {

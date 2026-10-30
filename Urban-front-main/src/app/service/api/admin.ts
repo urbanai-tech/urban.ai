@@ -1024,6 +1024,7 @@ export const signupWaitlist = (input: {
   phone?: string;
   source?: string;
   referredBy?: string;
+  acceptedTerms: true;
 }) =>
   api.post<WaitlistSignupResult | WaitlistAlreadyRegistered>('/waitlist', input).then((r) => r.data);
 

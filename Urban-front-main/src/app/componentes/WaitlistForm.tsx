@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { signupWaitlist, type WaitlistSignupResult } from "../service/api";
+import { WaitlistTermsConsent } from "./WaitlistTermsConsent";
 import {
   attributionEventParams,
   captureAttribution,
@@ -43,6 +44,8 @@ export function WaitlistForm({
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<Status>("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [termsError, setTermsError] = useState(false);
   const [result, setResult] = useState<WaitlistSignupResult | null>(null);
   const [attribution, setAttribution] = useState<MarketingAttribution>({
     firstTouch: null,
@@ -65,8 +68,14 @@ export function WaitlistForm({
       return;
     }
 
+    if (!acceptedTerms) {
+      setTermsError(true);
+      return;
+    }
+
     setStatus("loading");
     setErrorMessage(null);
+    setTermsError(false);
 
     try {
       const attributionParams = attributionEventParams(attribution);
@@ -82,6 +91,7 @@ export function WaitlistForm({
             email: trimmed,
             source: waitlistSource,
             referredBy,
+            acceptedTerms: true,
             attribution: attributionParams,
           }),
         });
@@ -94,6 +104,7 @@ export function WaitlistForm({
           email: trimmed,
           source: waitlistSource,
           referredBy,
+          acceptedTerms: true,
         });
         // E-mail já cadastrado: resposta genérica, sem posição.
         signupResult = response.alreadyRegistered ? null : response;
@@ -156,6 +167,15 @@ export function WaitlistForm({
           disabled={status === "loading"}
           aria-invalid={status === "error"}
           className={styles.emailInput}
+        />
+        <WaitlistTermsConsent
+          checked={acceptedTerms}
+          onChange={(next) => {
+            setAcceptedTerms(next);
+            if (next) setTermsError(false);
+          }}
+          invalid={termsError}
+          disabled={status === "loading"}
         />
         <button
           type="submit"

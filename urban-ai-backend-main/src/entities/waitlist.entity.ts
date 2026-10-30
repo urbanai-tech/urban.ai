@@ -103,6 +103,17 @@ export class Waitlist {
   @Column({ type: 'varchar', length: 255, nullable: true })
   userAgent: string | null;
 
+  /**
+   * Aceite dos Termos de Uso/Política de Privacidade no cadastro (prova de
+   * consentimento). null = linhas anteriores ao campo.
+   */
+  @Column({ type: 'datetime', nullable: true })
+  termsAcceptedAt: Date | null;
+
+  /** Versão dos termos aceita (`TERMS_VERSION` no momento do cadastro). */
+  @Column({ type: 'varchar', length: 32, nullable: true })
+  termsVersion: string | null;
+
   /** Notas internas do admin (motivo de prioridade, contexto). */
   @Column({ type: 'text', nullable: true })
   notes: string | null;

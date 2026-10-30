@@ -183,6 +183,7 @@ export class AuthController {
         name: data.username,
         source: data.source ?? 'auth-register',
         referredBy: data.referredBy,
+        acceptedTerms: data.termsAccepted === true,
         signupIp: ip ?? undefined,
         userAgent: ua ?? undefined,
       });

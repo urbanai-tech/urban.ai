@@ -12,6 +12,7 @@ import { Waitlist } from '../entities/waitlist.entity';
 import { MailerService } from '../mailer/mailer.service';
 import { clampInt } from '../common/clamp-int';
 import { escapeHtml } from '../common/escape-html';
+import { TERMS_VERSION } from '../auth/terms.constants';
 
 export type WaitlistSignupOutcome =
   | {
@@ -60,6 +61,8 @@ export class WaitlistService {
     phone?: string;
     source?: string;
     referredBy?: string;
+    /** true = o titular aceitou os termos vigentes agora; grava data e versão. */
+    acceptedTerms?: boolean;
     signupIp?: string;
     userAgent?: string;
   }): Promise<WaitlistSignupOutcome> {
@@ -98,6 +101,8 @@ export class WaitlistService {
       referredBy: referredEntry ? referredEntry.referralCode : null,
       signupIp: input.signupIp ?? null,
       userAgent: input.userAgent?.slice(0, 255) ?? null,
+      termsAcceptedAt: input.acceptedTerms === true ? new Date() : null,
+      termsVersion: input.acceptedTerms === true ? TERMS_VERSION : null,
       status: 'pending',
     });
 

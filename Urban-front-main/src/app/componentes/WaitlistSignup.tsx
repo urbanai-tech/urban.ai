@@ -17,6 +17,7 @@ import {
   trackWaitlistSignup,
   type MarketingAttribution,
 } from "./Analytics";
+import { WaitlistTermsConsent } from "./WaitlistTermsConsent";
 import { AppBadge, AppButton, AppCard, AppInput, Icons } from "./ui";
 import styles from "./WaitlistSignup.module.css";
 
@@ -36,6 +37,8 @@ export function WaitlistSignup({
   const [email, setEmail] = useState(defaultEmail);
   const [name, setName] = useState(defaultName);
   const [phone, setPhone] = useState("");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [termsError, setTermsError] = useState(false);
   const [result, setResult] = useState<WaitlistSignupResult | null>(null);
   const [statusReferrals, setStatusReferrals] = useState(0);
   const [errorMessage, setErrorMessage] = useState("");
@@ -85,8 +88,14 @@ export function WaitlistSignup({
       return;
     }
 
+    if (!acceptedTerms) {
+      setTermsError(true);
+      return;
+    }
+
     setSubmitting(true);
     setErrorMessage("");
+    setTermsError(false);
 
     try {
       const attributionParams = attributionEventParams(attribution);
@@ -98,6 +107,7 @@ export function WaitlistSignup({
         phone: phone.trim() || undefined,
         source: waitlistSource,
         referredBy: referralCode ?? undefined,
+        acceptedTerms: true,
       });
 
       if (r.alreadyRegistered) {
@@ -211,6 +221,16 @@ export function WaitlistSignup({
           disabled={submitting}
           helper="Opcional"
           leftAddon={<Phone size={14} />}
+        />
+
+        <WaitlistTermsConsent
+          checked={acceptedTerms}
+          onChange={(next) => {
+            setAcceptedTerms(next);
+            if (next) setTermsError(false);
+          }}
+          invalid={termsError}
+          disabled={submitting}
         />
 
         {errorMessage && <InlineNotice kind="error">{errorMessage}</InlineNotice>}

@@ -1,0 +1,40 @@
+.consent {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--app-text);
+  cursor: pointer;
+}
+
+.checkbox {
+  margin-top: 3px;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  accent-color: var(--app-accent);
+}
+
+.checkboxInvalid {
+  outline: 2px solid var(--app-danger);
+  outline-offset: 1px;
+}
+
+.label a {
+  color: var(--app-accent);
+  font-weight: 600;
+}
+
+.error {
+  margin: 0;
+  color: var(--app-danger);
+  font-size: 13px;
+  line-height: 1.45;
+}

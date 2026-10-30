@@ -4,6 +4,7 @@ type WaitlistPayload = {
   email: string;
   source?: string;
   referredBy?: string;
+  acceptedTerms?: boolean;
 };
 
 function assertCapturedPayload(payload: WaitlistPayload | null): WaitlistPayload {
@@ -99,12 +100,14 @@ test.describe('Prelaunch waitlist analytics', () => {
     await page.locator('input[type="email"]').fill('lead+prelaunch@urbanai.com.br');
     await page.locator('input[autocomplete="name"]').fill('Lead Prelaunch');
     await page.locator('input[type="tel"]').fill('(11) 99999-0000');
+    await page.getByRole('checkbox', { name: /Termos de Uso/i }).check();
     await page.getByRole('button', { name: /Entrar na lista/i }).click();
 
     await expect(page.getByText(waitlistSuccessText)).toBeVisible();
     const sentPayload = assertCapturedPayload(payload);
     expect(sentPayload.email).toBe('lead+prelaunch@urbanai.com.br');
     expect(sentPayload.referredBy).toBe('abc123xy');
+    expect(sentPayload.acceptedTerms).toBe(true);
     expect(sentPayload.source).toContain('create-signup');
     expect(sentPayload.source).toContain('meta');
     expect(sentPayload.source).toContain('cpc');
@@ -143,6 +146,7 @@ test.describe('Prelaunch waitlist analytics', () => {
 
     await page.goto('/create?utm_source=meta&utm_medium=cpc&utm_campaign=beta-sp');
     await page.locator('input[type="email"]').fill('lead+no-consent@urbanai.com.br');
+    await page.getByRole('checkbox', { name: /Termos de Uso/i }).check();
     await page.getByRole('button', { name: /Entrar na lista/i }).click();
     await expect(page.getByText(waitlistSuccessText)).toBeVisible();
 
