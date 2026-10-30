@@ -38,7 +38,7 @@ test("o cliente da API tipa acceptedTerms como obrigatório", () => {
 test("captcha Turnstile só aparece com site key e envia captchaToken", () => {
   const widget = read("src/app/componentes/TurnstileWidget.tsx");
   assert.match(widget, /NEXT_PUBLIC_TURNSTILE_SITE_KEY/);
-  assert.match(widget, /https:\/\/challenges\.cloudflare\.com\/turnstile\/v0\/api\.js/);
+  assert.ok(widget.includes("https://challenges.cloudflare.com/turnstile/v0/api.js"), "script oficial do Turnstile");
   assert.match(widget, /strategy="lazyOnload"/);
   assert.match(widget, /if \(!TURNSTILE_SITE_KEY\) return null;/, "sem chave: nada é renderizado nem carregado");
   assert.doesNotMatch(widget, /style=\{\{/, "sem estilo inline");
