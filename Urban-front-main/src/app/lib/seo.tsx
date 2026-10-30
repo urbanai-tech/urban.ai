@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
+import { NONCE_HEADER } from "./csp";
 
 const DEFAULT_SITE_URL = "https://myurbanai.com";
 const DEFAULT_APP_URL = "https://app.myurbanai.com";
@@ -80,7 +82,7 @@ export function buildSeoMetadata({
   };
 }
 
-export function JsonLd({
+export async function JsonLd({
   data,
   id,
 }: {
@@ -88,10 +90,13 @@ export function JsonLd({
   id?: string;
 }) {
   const graph = Array.isArray(data) ? data : [data];
+  // JSON-LD não executa, mas leva o nonce para a CSP não reportar o bloco.
+  const nonce = (await headers()).get(NONCE_HEADER) ?? undefined;
 
   return (
     <script
       id={id}
+      nonce={nonce}
       type="application/ld+json"
       dangerouslySetInnerHTML={{
         __html: JSON.stringify({

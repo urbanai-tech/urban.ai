@@ -31,10 +31,11 @@ const script = `
 })();
 `;
 
-export function ThemeScript() {
+export function ThemeScript({ nonce }: { nonce?: string }) {
   return (
     <script
       id="urban-theme-script"
+      nonce={nonce}
       dangerouslySetInnerHTML={{ __html: script }}
     />
   );

@@ -18,7 +18,10 @@ test.describe('Smoke - rotas publicas', () => {
     expect(headers['referrer-policy']).toBe('strict-origin-when-cross-origin');
     expect(headers['strict-transport-security']).toBe('max-age=31536000');
     expect(headers['permissions-policy']).toContain('camera=()');
-    expect(headers['content-security-policy-report-only']).toContain("default-src 'self'");
+    // CSP vem do middleware: report-only por padrão, bloqueante com CSP_ENFORCE=true.
+    const csp = headers['content-security-policy'] ?? headers['content-security-policy-report-only'];
+    expect(csp).toContain("default-src 'self'");
+    expect(csp).toContain("object-src 'none'");
   });
 
   test.beforeEach(async ({ page }) => {

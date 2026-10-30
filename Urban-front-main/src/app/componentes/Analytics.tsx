@@ -223,7 +223,7 @@ export function trackWaitlistSignup(params: AnalyticsParams = {}) {
  * `page_location`/`page_path` do GA4 passam por `scrubUrl`/`scrubPath`.
  * Os page_views são manuais (`send_page_view: false`) para controlar a URL.
  */
-export function Analytics() {
+export function Analytics({ nonce }: { nonce?: string } = {}) {
   const appEnv =
     process.env.NEXT_PUBLIC_APP_ENV || process.env.NODE_ENV || "development";
   const isProd = appEnv === "production";
@@ -296,8 +296,9 @@ export function Analytics() {
           <Script
             src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
             strategy="afterInteractive"
+            nonce={nonce}
           />
-          <Script id="ga4-init" strategy="afterInteractive">
+          <Script id="ga4-init" strategy="afterInteractive" nonce={nonce}>
             {`
               window.dataLayer = window.dataLayer || [];
               window.gtag = window.gtag || function(){window.dataLayer.push(arguments);}
@@ -312,7 +313,7 @@ export function Analytics() {
 
       {pixelId && state.marketing && (
         <>
-          <Script id="meta-pixel-init" strategy="afterInteractive">
+          <Script id="meta-pixel-init" strategy="afterInteractive" nonce={nonce}>
             {`
               !function(f,b,e,v,n,t,s)
               {if(f.fbq)return;n=f.fbq=function(){n.callMethod?

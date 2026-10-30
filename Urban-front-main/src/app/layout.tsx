@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { headers } from "next/headers";
 import localFont from "next/font/local";
 import "./globals.css";
 
@@ -45,6 +46,7 @@ import { RootShell } from "./RootShell";
 import { StagingBanner } from "./componentes/StagingBanner";
 import { ThemeScript } from "./componentes/theme";
 import { APPLE_STARTUP_IMAGES } from "./lib/pwaSplashScreens.generated";
+import { NONCE_HEADER } from "./lib/csp";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://myurbanai.com";
 const APP_ENV = process.env.NEXT_PUBLIC_APP_ENV;
@@ -111,11 +113,15 @@ export const viewport: Viewport = {
   ],
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // Nonce da CSP gerado por requisição no middleware. Ler headers() torna a
+  // renderização dinâmica — requisito para o nonce valer em cada resposta.
+  const nonce = (await headers()).get(NONCE_HEADER) ?? undefined;
+
   return (
     <html
       lang="pt-BR"
@@ -123,12 +129,12 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
-        <ThemeScript />
+        <ThemeScript nonce={nonce} />
         {BRAND_FONTS_URL ? <link rel="stylesheet" href={BRAND_FONTS_URL} /> : null}
       </head>
       <body cz-shortcut-listen="true">
         <StagingBanner />
-        <RootShell>{children}</RootShell>
+        <RootShell nonce={nonce}>{children}</RootShell>
       </body>
     </html>
   );
