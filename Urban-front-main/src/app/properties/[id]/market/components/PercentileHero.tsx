@@ -42,29 +42,10 @@ export function PercentileHero({
     ? "estável"
     : `${isUp ? "+" : ""}${trend30d} pontos`;
 
-  const trendColor = isUp
-    ? "var(--app-accent)"
-    : isDown
-      ? "var(--app-text-muted)"
-      : "var(--app-text-muted)";
-
-  const trendBackground = isUp
-    ? "var(--app-accent-soft)"
-    : "var(--app-surface-muted)";
-
   return (
     <section
       aria-label="Comparacao com o mercado"
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: 18,
-        padding: "32px 24px",
-        background: "var(--app-surface)",
-        border: "1px solid var(--app-divider)",
-        borderRadius: 16,
-        boxShadow: "0 1px 2px var(--theme-app-legacy-ink-04)",
-      }}
+      className={styles.heroSection}
     >
       <p className="urban-app-eyebrow">POSIÇÃO NO MERCADO · ÚLTIMOS 30 DIAS</p>
       <div
@@ -81,23 +62,7 @@ export function PercentileHero({
         <span
           role="status"
           aria-label={`Tendência ${trendLabel} nos últimos 30 dias`}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 8,
-            padding: "10px 16px",
-            background: trendBackground,
-            border: `1px solid ${
-              isUp ? "color-mix(in srgb, var(--app-accent, var(--admin-accent)) 25%, transparent)" : "var(--app-divider-strong)"
-            }`,
-            borderRadius: 999,
-            color: trendColor,
-            fontSize: 13,
-            fontWeight: 600,
-            letterSpacing: 0.3,
-            whiteSpace: "nowrap",
-            flexShrink: 0,
-          }}
+          className={`${styles.trendChip} ${isUp ? styles.trendChipUp : ""}`}
         >
           {isUp && <TrendingUp size={14} />}
           {isDown && <TrendingDown size={14} />}

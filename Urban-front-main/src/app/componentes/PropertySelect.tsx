@@ -246,16 +246,14 @@ function PropertyMenuOption({ option }: { option: Option }) {
       {!option.isAll && (
         <span
           aria-hidden
-          style={{
-            width: 9,
-            height: 9,
-            borderRadius: "50%",
-            background: option.processing ? uiVar.warning : uiVar.success,
-            boxShadow: option.processing
-              ? `0 0 0 3px ${uiVar.warningSoft}`
-              : `0 0 0 3px ${uiVar.successSoft}`,
-            flexShrink: 0,
-          }}
+          className={
+            option.processing ? styles.statusDot : `${styles.statusDot} ${styles.statusDotReady}`
+          }
+          style={
+            option.processing
+              ? { background: uiVar.warning, boxShadow: `0 0 0 3px ${uiVar.warningSoft}` }
+              : undefined
+          }
         />
       )}
     </div>
@@ -270,15 +268,12 @@ function PropertyThumb({ option, size }: { option: Option; size: number }) {
         src={option.imageUrl}
         alt=""
         aria-hidden
-        style={{
-          width: size,
-          height: size,
-          objectFit: "cover",
-          borderRadius: 6,
-          border: `1px solid ${uiVar.divider}`,
-          opacity: option.processing ? 0.62 : 1,
-          flexShrink: 0,
-        }}
+        className={
+          option.processing
+            ? `${styles.thumbImage} ${styles.thumbImageProcessing}`
+            : styles.thumbImage
+        }
+        style={{ "--thumb-size": `${size}px` } as React.CSSProperties}
       />
     );
   }
@@ -286,18 +281,13 @@ function PropertyThumb({ option, size }: { option: Option; size: number }) {
   return (
     <span
       aria-hidden
-      style={{
-        width: size,
-        height: size,
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        borderRadius: 6,
-        border: `1px solid ${uiVar.divider}`,
-        background: option.isAll ? uiVar.accentSoft : uiVar.surfaceMuted,
-        color: option.isAll ? uiVar.accent : uiVar.textMuted,
-        flexShrink: 0,
-      }}
+      className={option.isAll ? `${styles.thumbIcon} ${styles.thumbIconAll}` : styles.thumbIcon}
+      style={
+        {
+          "--thumb-size": `${size}px`,
+          ...(option.isAll ? null : { background: uiVar.surfaceMuted }),
+        } as React.CSSProperties
+      }
     >
       <Home size={Math.max(15, Math.round(size * 0.42))} strokeWidth={1.8} />
     </span>
@@ -306,17 +296,7 @@ function PropertyThumb({ option, size }: { option: Option; size: number }) {
 
 function DropdownIndicator() {
   return (
-    <span
-      aria-hidden
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        width: 30,
-        height: 30,
-        color: uiVar.textMuted,
-      }}
-    >
+    <span aria-hidden className={styles.dropdownIndicator}>
       <Search size={15} strokeWidth={1.9} />
     </span>
   );

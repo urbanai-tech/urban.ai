@@ -53,3 +53,16 @@
 .roleShell.roleShell.roleShell {
   width: 120px;
 }
+
+.statusToggle.statusToggle {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  opacity: 1;
+}
+
+.statusToggle.statusToggle:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}

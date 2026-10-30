@@ -94,7 +94,7 @@ export default function EventDetailPage() {
   if (loading) {
     return (
       <AppPageShell>
-        <div data-testid="host-event-detail-loading" style={{ minHeight: 480, display: "grid", placeItems: "center" }}>
+        <div data-testid="host-event-detail-loading" className={styles.loadingBox}>
           <Spinner />
         </div>
       </AppPageShell>
@@ -143,16 +143,13 @@ export default function EventDetailPage() {
         }
       />
 
-      <div
-        className="urban-event-detail-grid"
-        style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.2fr) minmax(320px, 0.8fr)", gap: 22 }}
-      >
+      <div className={styles.detailGrid}>
         <AppCard variant="default" className={styles.heroCard}>
-          <div className="urban-event-detail-media" style={{ height: 340, background: "var(--app-surface-muted)" }}>
+          <div className={styles.heroMedia}>
             <EventImage src={event.imageUrl} alt={event.name} venue={event.venueName} />
           </div>
-          <div style={{ padding: 22 }}>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
+          <div className={styles.heroBody}>
+            <div className={styles.badgeRow}>
               <AppBadge kind={confidenceBadgeKind(intelligence.confidence)}>
                 {confidenceLabel(intelligence.confidence)}
               </AppBadge>
@@ -168,12 +165,12 @@ export default function EventDetailPage() {
             </div>
 
             {event.description && (
-              <p style={{ margin: "0 0 18px", color: "var(--app-text-muted)", fontSize: 15, lineHeight: 1.65 }}>
+              <p className={styles.description}>
                 {event.description}
               </p>
             )}
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 12 }}>
+            <div className={styles.metricGrid}>
               <Metric label="Score de demanda" value={String(intelligence.eventDemandScore ?? "-")} />
               <Metric label="Potencial estimado" value={formatCompactCurrencyFromCents(intelligence.eventRevenuePotentialCents)} />
               <Metric label="Raio de demanda" value={intelligence.demandRadiusKm ? `${intelligence.demandRadiusKm} km` : "-"} />
@@ -181,31 +178,14 @@ export default function EventDetailPage() {
             </div>
 
             {sourceLinks.length > 0 && (
-              <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 18 }}>
+              <div className={styles.sourceLinks}>
                 {sourceLinks.map((link) => (
                   <a
                     key={link.label}
                     href={link.href}
                     target="_blank"
                     rel="noreferrer"
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: 8,
-                      height: 36,
-                      padding: "0 12px",
-                      minWidth: 0,
-                      maxWidth: "100%",
-                      borderRadius: 8,
-                      border: "1px solid var(--app-divider-strong)",
-                      color: "var(--app-text)",
-                      textDecoration: "none",
-                      fontSize: 13,
-                      fontWeight: 700,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
+                    className={styles.sourceLink}
                   >
                     {link.label}
                     <Icons.ArrowRight size={13} />
@@ -222,36 +202,36 @@ export default function EventDetailPage() {
             title="O que fazer com este evento"
             subtitle="Estimativa explicável. Use a faixa de preço como simulação, não como promessa de reserva."
           />
-          <p style={{ margin: 0, color: "var(--app-text)", fontSize: 15, lineHeight: 1.65 }}>
+          <p className={styles.interpretation}>
             {intelligence.interpretation}
           </p>
-          <div style={{ display: "grid", gap: 10, marginTop: 18 }} data-testid="host-event-intelligence-drivers">
+          <div className={styles.driverList} data-testid="host-event-intelligence-drivers">
             {intelligence.drivers.length > 0 ? (
               intelligence.drivers.map((driver) => (
-                <div key={driver.key} style={{ borderTop: "1px solid var(--app-divider)", paddingTop: 10, minWidth: 0 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "flex-start" }}>
-                    <p style={{ margin: 0, color: "var(--app-text)", fontSize: 13, fontWeight: 750, overflowWrap: "anywhere" }}>
+                <div key={driver.key} className={styles.driverItem}>
+                  <div className={styles.driverHead}>
+                    <p className={styles.driverLabel}>
                       {driver.label}
                     </p>
-                    <span style={{ color: "var(--app-text-muted)", fontSize: 12, fontWeight: 700, flexShrink: 0 }}>
+                    <span className={styles.driverWeight}>
                       {formatPercent(driver.weight)}
                     </span>
                   </div>
-                  <p style={{ margin: "4px 0 0", color: "var(--app-text-muted)", fontSize: 12, lineHeight: 1.5, overflowWrap: "anywhere" }}>
+                  <p className={styles.driverExplanation}>
                     {driver.explanation}
                   </p>
                 </div>
               ))
             ) : (
               <AppCard variant="subtle" className={styles.emptyDriversCard}>
-                <p style={{ margin: 0, color: "var(--app-text-muted)", fontSize: 13, lineHeight: 1.5 }}>
+                <p className={styles.emptyDriversText}>
                   Ainda não há drivers explicáveis para este evento.
                 </p>
               </AppCard>
             )}
           </div>
           {intelligence.riskFlags.length > 0 && (
-            <div style={{ marginTop: 18, display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <div className={styles.flagRow}>
               {intelligence.riskFlags.map((flag) => (
                 <AppBadge
                   key={flag}
@@ -263,7 +243,7 @@ export default function EventDetailPage() {
               ))}
             </div>
           )}
-          <div style={{ marginTop: 22 }}>
+          <div className={styles.radarAction}>
             <AppButton
               type="button"
               variant="primary"
@@ -277,7 +257,7 @@ export default function EventDetailPage() {
         </AppCard>
       </div>
 
-      <div style={{ marginTop: 24 }}>
+      <div className={styles.sectionGap}>
         <AppCard variant="default">
           <AppCardHeader
             eyebrow="MEUS IMÓVEIS IMPACTADOS"
@@ -289,33 +269,33 @@ export default function EventDetailPage() {
       </div>
 
       {selectedImpact && (
-        <div style={{ marginTop: 24 }}>
+        <div className={styles.sectionGap}>
           <PriceAbsorptionScenarios
             title={`${selectedImpact.propertyName} - curva inicial`}
             scenarios={selectedImpact.absorptionScenarios}
           />
           {simulating && (
-            <p role="status" aria-live="polite" style={{ margin: "10px 0 0", color: "var(--app-text-muted)", fontSize: 12 }}>
+            <p role="status" aria-live="polite" className={styles.simulationStatus}>
               Atualizando simulação…
             </p>
           )}
         </div>
       )}
       {simulationError && !simulating && (
-        <p role="alert" style={{ margin: "10px 0 0", color: "var(--app-danger)", fontSize: 12, lineHeight: 1.45 }}>
+        <p role="alert" className={styles.simulationError}>
           {simulationError}
         </p>
       )}
 
       {detail.relatedEvents && detail.relatedEvents.length > 0 && (
-        <div style={{ marginTop: 28 }}>
+        <div className={styles.relatedSection}>
           <AppSectionHeader
             size="sm"
             eyebrow="EVENTOS RELACIONADOS"
             title="Também no radar"
             subtitle="Eventos próximos no calendário que podem competir ou somar demanda."
           />
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
+          <div className={styles.relatedGrid}>
             {detail.relatedEvents.map((relatedEvent) => (
               <EventCatalogCard
                 key={relatedEvent.id}
@@ -328,18 +308,7 @@ export default function EventDetailPage() {
         </div>
       )}
 
-      <style>{`
-        @media (max-width: 980px) {
-          .urban-event-detail-grid {
-            grid-template-columns: 1fr !important;
-          }
-        }
-        @media (max-width: 640px) {
-          .urban-event-detail-media {
-            height: 240px !important;
-          }
-        }
-      `}</style>
+      <style>{`@media (max-width: 980px) { .${styles.detailGrid} { grid-template-columns: 1fr !important; } } @media (max-width: 640px) { .${styles.heroMedia} { height: 240px !important; } }`}</style>
     </AppPageShell>
   );
 }
@@ -357,20 +326,11 @@ function formatFlagLabel(flag: string): string {
 
 function Metric({ label, value }: { label: string; value: string }) {
   return (
-    <div style={{ padding: 14, borderRadius: 8, background: "var(--app-surface-muted)", border: "1px solid var(--app-divider)" }}>
-      <p
-        style={{
-          margin: "0 0 4px",
-          color: "var(--app-text-muted)",
-          fontSize: 10,
-          fontWeight: 750,
-          letterSpacing: 1.2,
-          textTransform: "uppercase",
-        }}
-      >
+    <div className={styles.metricCard}>
+      <p className={styles.metricLabel}>
         {label}
       </p>
-      <p style={{ margin: 0, color: "var(--app-text)", fontSize: 18, fontWeight: 800, lineHeight: 1.2, overflowWrap: "anywhere" }}>
+      <p className={styles.metricValue}>
         {value}
       </p>
     </div>
@@ -382,16 +342,7 @@ function Spinner() {
     <span
       role="status"
       aria-label="Carregando"
-      style={{
-        width: 36,
-        height: 36,
-        borderRadius: "50%",
-        border: "3px solid var(--app-accent-soft)",
-        borderTopColor: "var(--app-accent)",
-        animation: "event-detail-spin 0.9s linear infinite",
-      }}
-    >
-      <style>{`@keyframes event-detail-spin { to { transform: rotate(360deg); } }`}</style>
-    </span>
+      className={styles.spinner}
+    />
   );
 }

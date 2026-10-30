@@ -119,3 +119,50 @@
   letter-spacing: 1.5px;
   text-transform: uppercase;
 }
+
+.statusSelect.statusSelect.statusSelect {
+  cursor: pointer;
+}
+
+.statusSelect.statusSelect.statusSelect.statusSelectBusy {
+  cursor: not-allowed;
+}
+
+.deleteButton.deleteButton {
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--admin-danger) 30%, transparent);
+  border-radius: 2px;
+  color: var(--admin-danger);
+  padding: 6px;
+  cursor: pointer;
+  display: inline-flex;
+  line-height: 0;
+}
+
+.deleteButton.deleteButton.deleteButtonBusy {
+  cursor: not-allowed;
+}
+
+.testResult.testResult {
+  margin-top: 8px;
+  padding: 14px 16px;
+  border: 1px solid;
+  border-radius: 2px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.testResultOk.testResultOk.testResultOk {
+  border-color: color-mix(in srgb, var(--admin-success) 30%, transparent);
+  color: var(--admin-success);
+}
+
+.testResultFail.testResultFail.testResultFail {
+  border-color: color-mix(in srgb, var(--admin-danger) 30%, transparent);
+  color: var(--admin-danger);
+}

@@ -5,6 +5,7 @@ import Script from "next/script";
 import { usePathname } from "next/navigation";
 import { isAnalyticsAllowedPath, scrubPath, scrubUrl } from "../lib/privacy-scrub";
 import { readConsentSync, useConsent } from "./useConsent";
+import styles from "./Analytics.module.css";
 
 declare global {
   interface Window {
@@ -332,7 +333,7 @@ export function Analytics() {
             <img
               height="1"
               width="1"
-              style={{ display: "none" }}
+              className={styles.pixelHidden}
               alt=""
               src={`https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1`}
             />

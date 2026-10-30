@@ -350,13 +350,7 @@ function TierTip({
         className={styles.statusDot}
       />
       <div>
-        <strong
-          style={{
-            color: active ? "var(--admin-accent)" : "var(--admin-text)",
-            fontSize: 12,
-            fontWeight: 600,
-          }}
-        >
+        <strong className={`${styles.tierTipName} ${active ? styles.tierTipNameActive : ""}`}>
           {tier}:
         </strong>{" "}
         <span className={styles.tierTipDesc}>{desc}</span>

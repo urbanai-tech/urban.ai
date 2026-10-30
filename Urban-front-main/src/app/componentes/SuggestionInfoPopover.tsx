@@ -2,6 +2,7 @@
 
 import React, { useRef, useState } from "react";
 import { Lightbulb, X } from "lucide-react";
+import styles from "./SuggestionInfoPopover.module.css";
 
 interface SuggestionInfoPopoverProps {
   buttonLabel?: string;
@@ -24,7 +25,7 @@ export const SuggestionInfoPopover: React.FC<SuggestionInfoPopoverProps> = ({
   return (
     <div
       ref={wrapperRef}
-      style={{ position: "relative", display: "inline-flex" }}
+      className={styles.popoverWrapper}
       onKeyDown={(event) => {
         if (open && event.key === "Escape") {
           event.stopPropagation();
@@ -38,20 +39,8 @@ export const SuggestionInfoPopover: React.FC<SuggestionInfoPopoverProps> = ({
         type="button"
         aria-expanded={open}
         onClick={() => setOpen((value) => !value)}
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          gap: 8,
-          minHeight: 32,
-          padding: "0 10px",
-          border: "1px solid transparent",
-          borderRadius: 8,
-          background: "transparent",
-          color: "#92400E",
-          fontSize: 13,
-          fontWeight: 650,
-          cursor: "pointer",
-        }}
+        className={styles.popoverTrigger}
+        style={{ color: "#92400E" }}
       >
         <Lightbulb size={15} strokeWidth={1.8} />
         {buttonLabel}
@@ -61,14 +50,9 @@ export const SuggestionInfoPopover: React.FC<SuggestionInfoPopoverProps> = ({
         <div
           role="dialog"
           aria-label={title}
+          className={styles.popoverPanel}
           style={{
-            position: "absolute",
-            zIndex: 50,
-            bottom: "calc(100% + 10px)",
-            left: 0,
-            width: 260,
             border: `1px solid ${resolvedBorder}`,
-            borderRadius: 10,
             background: "#fff",
             color: "#1F2937",
             boxShadow: "0 12px 30px rgba(14,17,22,0.14)",
@@ -76,45 +60,29 @@ export const SuggestionInfoPopover: React.FC<SuggestionInfoPopoverProps> = ({
         >
           <div
             aria-hidden
+            className={styles.popoverArrow}
             style={{
-              position: "absolute",
-              left: 18,
-              bottom: -6,
-              width: 12,
-              height: 12,
               background: "#fff",
               borderRight: `1px solid ${resolvedBorder}`,
               borderBottom: `1px solid ${resolvedBorder}`,
-              transform: "rotate(45deg)",
             }}
           />
           <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: 12,
-              padding: "10px 12px",
-              borderBottom: "1px solid #eee",
-              fontWeight: 700,
-            }}
+            className={styles.popoverHeader}
+            style={{ borderBottom: "1px solid #eee" }}
           >
             <span>{title}</span>
             <button
               type="button"
               aria-label="Fechar"
               onClick={() => setOpen(false)}
-              style={{
-                border: "none",
-                background: "transparent",
-                color: "#6B7280",
-                cursor: "pointer",
-              }}
+              className={styles.popoverClose}
+              style={{ color: "#6B7280" }}
             >
               <X size={15} strokeWidth={1.8} />
             </button>
           </div>
-          <p style={{ margin: 0, padding: 12, fontSize: 13, lineHeight: 1.5 }}>
+          <p className={styles.popoverDescription}>
             {description}
           </p>
         </div>

@@ -184,3 +184,11 @@
 .chevronIcon.chevronIcon {
   color: var(--admin-text-dim);
 }
+
+.modeBackend.modeBackend {
+  color: var(--admin-success);
+}
+
+.modeOther.modeOther {
+  color: var(--admin-warning);
+}

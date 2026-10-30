@@ -4,6 +4,7 @@ import { Check, Minus } from "lucide-react";
 import { JsonLd, buildSeoMetadata, faqPageJsonLd, webPageJsonLd } from "../lib/seo";
 import { FinalCommercialCta, ProductPreview, PublicButton, SectionHeading } from "../componentes/PublicMarketing";
 import { SeoOrganicCtaSection } from "./SeoOrganicCtaSection";
+import styles from "./seoContent.module.css";
 
 type SeoQa = { question: string; answer: string };
 type SeoBlock = { title: string; body: string };
@@ -74,8 +75,8 @@ export function SeoContentPage({ content }: { content: SeoContent }) {
 
       <section id="resposta-direta" className="public-section">
         <div className="public-container">
-          <blockquote className="public-quote" style={{ maxWidth: 980 }}>{content.answer}</blockquote>
-          <div className="public-article-grid" style={{ marginTop: 54 }}>
+          <blockquote className={`public-quote ${styles.answerQuote}`}>{content.answer}</blockquote>
+          <div className={`public-article-grid ${styles.answerGrid}`}>
             {content.directAnswers.map((item) => (
               <article className="public-content-card" key={item.question}>
                 <h2>{item.question}</h2>
@@ -107,17 +108,17 @@ export function SeoContentPage({ content }: { content: SeoContent }) {
               title={<>Use sinais verificáveis, não <em>promessas prontas.</em></>}
               description="A boa decisão combina contexto externo, regra comercial e acompanhamento do que foi aplicado."
             />
-            <div className="public-article-grid" style={{ gridTemplateColumns: "1fr" }}>
+            <div className={`public-article-grid ${styles.singleColumn}`}>
               {content.evidence.map((item) => <ContentCard key={item.title} item={item} />)}
             </div>
           </div>
           <div>
             <p className="public-kicker">Método recomendado</p>
-            <div className="public-process" style={{ gridTemplateColumns: "1fr" }}>
+            <div className={`public-process ${styles.singleColumn}`}>
               {content.methodology.map((item, index) => (
-                <article key={item.title} style={{ minHeight: 0 }}>
-                  <span style={{ fontSize: 44 }}>{String(index + 1).padStart(2, "0")}</span>
-                  <h3 style={{ marginTop: 30 }}>{item.title.replace(/^\d+\.\s*/, "")}</h3>
+                <article key={item.title} className={styles.processStep}>
+                  <span className={styles.processNumber}>{String(index + 1).padStart(2, "0")}</span>
+                  <h3 className={styles.processTitle}>{item.title.replace(/^\d+\.\s*/, "")}</h3>
                   <p>{item.body}</p>
                 </article>
               ))}
@@ -155,8 +156,7 @@ export function SeoContentPage({ content }: { content: SeoContent }) {
           <div className="public-article-grid">
             {content.internalCtas.map((cta, index) => (
               <NextLink
-                className="public-content-card"
-                style={{ textDecoration: "none" }}
+                className={`public-content-card ${styles.hubCard}`}
                 key={cta.href}
                 href={cta.href}
                 data-urban-analytics="hub-cta"

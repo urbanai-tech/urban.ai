@@ -420,3 +420,47 @@
 .traceBadge.traceBadge.traceBadge {
   margin-top: 8px;
 }
+
+.th.th {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--admin-divider);
+  color: var(--admin-text-muted);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  text-align: left;
+}
+
+.td.td {
+  padding: 16px;
+  border-bottom: 1px solid var(--admin-divider);
+  color: var(--admin-text-muted);
+  font-size: 13px;
+  vertical-align: top;
+}
+
+.td.td.tdStrong {
+  color: var(--admin-text);
+  font-weight: 600;
+}
+
+.progressFill.progressFill {
+  width: var(--pct);
+  height: 100%;
+  background: var(--admin-accent);
+}
+
+.readinessFill.readinessFill {
+  width: var(--pct);
+  height: 100%;
+  background: var(--admin-danger);
+}
+
+.readinessFill.readinessFill.readinessFillSuccess {
+  background: var(--admin-success);
+}
+
+.readinessFill.readinessFill.readinessFillWarn {
+  background: var(--admin-warning);
+}

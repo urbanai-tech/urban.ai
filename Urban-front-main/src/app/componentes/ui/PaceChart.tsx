@@ -167,8 +167,8 @@ export function PaceChart({
   if (!hasCurveSignal) {
     return (
       <div
-        style={{ minHeight: height, gridTemplateColumns: events.length ? "minmax(0, 0.9fr) minmax(260px, 1.1fr)" : "1fr" }}
-        className={`pace-empty-grid ${styles.emptyLayout}`}
+        style={{ minHeight: height }}
+        className={`pace-empty-grid ${styles.emptyLayout} ${events.length ? styles.emptyLayoutWithEvents : ""}`}
       >
         <div>
           <p className={`urban-app-eyebrow-muted ${styles.emptyEyebrow}`}>

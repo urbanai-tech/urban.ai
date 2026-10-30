@@ -1,0 +1,114 @@
+.root {
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: transparent;
+  color: var(--theme-page-text);
+}
+
+.rootFullscreen {
+  position: fixed;
+  inset: 0;
+  background: var(--loader-overlay);
+  backdrop-filter: saturate(140%) blur(8px);
+  z-index: 9999;
+}
+
+.content {
+  display: grid;
+  justify-items: center;
+  gap: 22px;
+  width: min(420px, 100%);
+  text-align: center;
+}
+
+.logoWrap {
+  position: relative;
+  width: min(260px, 72vw);
+  animation: urbanLoaderFloat 2.4s ease-in-out infinite;
+}
+
+.logo {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.orbit {
+  position: absolute;
+  inset: -22px;
+  border: 1px solid var(--loader-orbit);
+  border-right-color: transparent;
+  border-bottom-color: transparent;
+  border-radius: 999px;
+  opacity: 0.8;
+  animation: urbanLoaderSpin 1.8s linear infinite;
+}
+
+.line {
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  bottom: -18px;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--theme-app-accent) 72%, transparent),
+    transparent
+  );
+  animation: urbanLoaderLine 1.4s ease-in-out infinite;
+}
+
+.texts {
+  display: grid;
+  gap: 8px;
+}
+
+.title {
+  margin: 0;
+  color: var(--theme-app-accent);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+
+.subtitle {
+  margin: 0;
+  color: var(--theme-app-text-muted);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+@keyframes urbanLoaderFloat {
+  0%,
+  100% {
+    transform: scale(1);
+    filter: drop-shadow(0 8px 20px var(--loader-shadow-rest));
+  }
+  50% {
+    transform: scale(1.018) translateY(-2px);
+    filter: drop-shadow(0 12px 32px var(--loader-shadow-lift));
+  }
+}
+
+@keyframes urbanLoaderSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes urbanLoaderLine {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scaleX(0.72);
+  }
+  50% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}

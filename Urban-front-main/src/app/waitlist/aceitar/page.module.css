@@ -22,3 +22,131 @@
 .passwordInput.passwordInput {
   padding-right: 44px;
 }
+
+.passwordForm {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.loadingRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.loadingText.loadingText {
+  margin: 0;
+  color: var(--app-text-muted);
+  font-size: 14px;
+}
+
+.passwordField {
+  position: relative;
+}
+
+.passwordToggle.passwordToggle {
+  position: absolute;
+  right: 8px;
+  top: 27px;
+  height: 36px;
+  width: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--app-text-muted);
+  cursor: pointer;
+}
+
+.rulesBox {
+  padding: 16px;
+  background: var(--app-surface-muted);
+  border: 1px solid var(--app-divider);
+  border-radius: 10px;
+}
+
+.rulesTitle.rulesTitle {
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.rulesList.rulesList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ruleItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 0;
+  color: var(--app-text-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.ruleItem.ruleItemMet {
+  color: var(--app-text);
+}
+
+.ruleCheck {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--app-surface);
+  border: 1px solid var(--app-divider-strong);
+  color: var(--theme-app-legacy-white);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.ruleCheck.ruleCheckMet {
+  background: var(--app-success);
+  border: 1px solid var(--app-success);
+}
+
+.notice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.noticeSuccess {
+  background: var(--theme-app-legacy-success-08);
+  color: var(--app-success);
+}
+
+.noticeError {
+  background: var(--theme-app-legacy-danger-08);
+  border-color: var(--theme-app-legacy-danger-22);
+  color: var(--app-danger);
+}
+
+.spinner {
+  display: inline-block;
+  width: 28px;
+  height: 28px;
+  border: 3px solid var(--app-accent-soft);
+  border-top-color: var(--app-accent);
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

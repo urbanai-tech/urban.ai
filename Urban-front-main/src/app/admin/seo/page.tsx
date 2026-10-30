@@ -1,6 +1,5 @@
 "use client";
 
-import type { CSSProperties } from "react";
 import {
   AdminBadge,
   AdminButton,
@@ -89,11 +88,8 @@ export default function AdminSeoPage() {
 
             <div className={styles.progressTrack}>
               <div
-                style={{
-                  width: `${completion.value}%`,
-                  height: "100%",
-                  background: "var(--admin-accent)",
-                }}
+                className={styles.progressFill}
+                style={{ "--pct": `${completion.value}%` } as React.CSSProperties}
               />
             </div>
 
@@ -137,7 +133,7 @@ export default function AdminSeoPage() {
               <thead>
                 <tr>
                   {["Indicador", "Valor", "Fonte atual", "Cadencia", "Status integração", "Atualizado / próxima"].map((header) => (
-                    <th key={header} style={thStyle}>
+                    <th key={header} className={styles.th}>
                       {header}
                     </th>
                   ))}
@@ -195,7 +191,7 @@ export default function AdminSeoPage() {
               <thead>
                 <tr>
                   {["Conector", "Readiness", "Variaveis", "Endpoint seguro", "Nota"].map((header) => (
-                    <th key={header} style={thStyle}>
+                    <th key={header} className={styles.th}>
                       {header}
                     </th>
                   ))}
@@ -225,7 +221,7 @@ export default function AdminSeoPage() {
               <thead>
                 <tr>
                   {["Cluster", "Pergunta", "Intenção", "Ativo fonte", "Readiness"].map((header) => (
-                    <th key={header} style={thStyle}>
+                    <th key={header} className={styles.th}>
                       {header}
                     </th>
                   ))}
@@ -234,15 +230,15 @@ export default function AdminSeoPage() {
               <tbody>
                 {aiSearchQuestions.map((row) => (
                   <tr key={row.question}>
-                    <td style={tdStyle}>
+                    <td className={styles.td}>
                       <AdminBadge kind="neutral">{row.cluster}</AdminBadge>
                     </td>
-                    <td style={{ ...tdStyle, color: "var(--admin-text)", fontWeight: 600 }}>
+                    <td className={`${styles.td} ${styles.tdStrong}`}>
                       {row.question}
                     </td>
-                    <td style={tdStyle}>{row.intent}</td>
-                    <td style={tdStyle}>{row.asset}</td>
-                    <td style={tdStyle}>
+                    <td className={styles.td}>{row.intent}</td>
+                    <td className={styles.td}>{row.asset}</td>
+                    <td className={styles.td}>
                       <Readiness value={row.readiness} />
                     </td>
                   </tr>
@@ -405,7 +401,7 @@ function ConnectorReadinessRow({
 }: AdminSeoConnectorReadinessItem) {
   return (
     <tr>
-      <td style={{ ...tdStyle, color: "var(--admin-text)", fontWeight: 600 }}>
+      <td className={`${styles.td} ${styles.tdStrong}`}>
         <div className={styles.statusRow}>
           <AdminStatusDot kind={status} size={8} />
           <span>{name}</span>
@@ -414,10 +410,10 @@ function ConnectorReadinessRow({
           {provider}
         </p>
       </td>
-      <td style={tdStyle}>
+      <td className={styles.td}>
         <AdminBadge kind={status}>{readiness}</AdminBadge>
       </td>
-      <td style={tdStyle}>
+      <td className={styles.td}>
         <div className={styles.envKeyList}>
           {envKeys.map((envKey) => (
             <AdminBadge key={envKey} kind="neutral">
@@ -426,8 +422,8 @@ function ConnectorReadinessRow({
           ))}
         </div>
       </td>
-      <td style={tdStyle}>{safeStatusEndpoint}</td>
-      <td style={tdStyle}>{note}</td>
+      <td className={styles.td}>{safeStatusEndpoint}</td>
+      <td className={styles.td}>{note}</td>
     </tr>
   );
 }
@@ -442,7 +438,7 @@ function OperationalMetricRow({
 }: AdminSeoOperationalMetric) {
   return (
     <tr>
-      <td style={{ ...tdStyle, color: "var(--admin-text)", fontWeight: 600 }}>
+      <td className={`${styles.td} ${styles.tdStrong}`}>
         <div className={styles.statusRow}>
           <AdminStatusDot kind={status} size={8} />
           <span>{label}</span>
@@ -451,22 +447,22 @@ function OperationalMetricRow({
           {detail}
         </p>
       </td>
-      <td style={tdStyle}>
+      <td className={styles.td}>
         <strong className={styles.metricValue}>
           {typeof value === "number" ? value.toLocaleString("pt-BR") : value}
         </strong>
       </td>
-      <td style={tdStyle}>
+      <td className={styles.td}>
         {trace.source}
       </td>
-      <td style={tdStyle}>{trace.cadence}</td>
-      <td style={tdStyle}>
+      <td className={styles.td}>{trace.cadence}</td>
+      <td className={styles.td}>
         <AdminBadge kind={integrationBadgeKind(trace.integrationStatus)}>{trace.integrationStatusLabel}</AdminBadge>
         <p className={styles.metricStatusLabel}>
           {statusLabel}
         </p>
       </td>
-      <td style={tdStyle}>
+      <td className={styles.td}>
         <span className={styles.lastUpdatedLabel}>{trace.lastUpdatedLabel}</span>
         {trace.nextIntegrationLabel && (
           <AdminBadge kind={status === "success" ? "accent" : "warn"}>
@@ -534,16 +530,10 @@ function Readiness({ value }: { value: number }) {
     <div className={styles.readinessRow}>
       <div className={styles.readinessTrack}>
         <div
-          style={{
-            width: `${value}%`,
-            height: "100%",
-            background:
-              kind === "success"
-                ? "var(--admin-success)"
-                : kind === "warn"
-                  ? "var(--admin-warning)"
-                  : "var(--admin-danger)",
-          }}
+          className={`${styles.readinessFill} ${
+            kind === "success" ? styles.readinessFillSuccess : kind === "warn" ? styles.readinessFillWarn : ""
+          }`}
+          style={{ "--pct": `${value}%` } as React.CSSProperties}
         />
       </div>
       <span className={styles.readinessValue}>
@@ -599,22 +589,3 @@ function integrationBadgeKind(
 
   return map[status];
 }
-
-const thStyle: CSSProperties = {
-  padding: "12px 16px",
-  borderBottom: "1px solid var(--admin-divider)",
-  color: "var(--admin-text-muted)",
-  fontSize: 10,
-  fontWeight: 600,
-  letterSpacing: 1.5,
-  textTransform: "uppercase",
-  textAlign: "left",
-};
-
-const tdStyle: CSSProperties = {
-  padding: "16px",
-  borderBottom: "1px solid var(--admin-divider)",
-  color: "var(--admin-text-muted)",
-  fontSize: 13,
-  verticalAlign: "top",
-};

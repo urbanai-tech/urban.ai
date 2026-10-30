@@ -282,15 +282,10 @@ export default function AdminJobsPage() {
         </p>
         <AdminCard variant="subtle">
           <ul className={styles.shortcutList}>
-            {shortcuts.map((s, i) => (
+            {shortcuts.map((s) => (
               <li
                 key={s.href}
-                style={{
-                  borderBottom:
-                    i === shortcuts.length - 1
-                      ? "none"
-                      : "1px solid var(--admin-divider)",
-                }}
+                className={styles.shortcutItem}
               >
                 <a
                   href={s.href}

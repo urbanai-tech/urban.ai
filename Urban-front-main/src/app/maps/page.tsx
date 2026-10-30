@@ -300,7 +300,6 @@ export default function MapsPage() {
                       steps={mapStatus.steps}
                       tone={mapStatus.tone}
                       className={styles.mapOverlayStatus}
-                      style={{ background: "var(--theme-app-legacy-maps-white-94)" }}
                     />
                   </div>
                 )}

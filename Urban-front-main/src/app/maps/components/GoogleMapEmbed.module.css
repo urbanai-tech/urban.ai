@@ -1,0 +1,27 @@
+/*
+ * Moldura do mapa Leaflet. Os icones dos marcadores (DivIcon) sao strings HTML
+ * com style inline por exigencia do Leaflet e ficam em GoogleMapEmbed.tsx.
+ * Branco/sombra = --theme-app-legacy-white / --theme-app-legacy-ink-12 (mesmos valores).
+ */
+.mapFrame.mapFrame {
+  width: 100%;
+  margin: 0 8px;
+  padding: 4px;
+  border-radius: 8px;
+  background: var(--theme-app-legacy-white);
+  box-shadow: 0 4px 12px var(--theme-app-legacy-ink-12);
+}
+
+.mapContainer.mapContainer {
+  height: 100%;
+  width: 100%;
+  border-radius: 8px;
+}
+
+.popupImage.popupImage {
+  width: 200px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 6px;
+}

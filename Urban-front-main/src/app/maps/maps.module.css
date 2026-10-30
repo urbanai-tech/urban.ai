@@ -155,6 +155,7 @@
 }
 
 .mapOverlayStatus.mapOverlayStatus {
+  --tone-background: var(--theme-app-legacy-maps-white-94);
   width: min(420px, calc(100% - 16px));
   box-shadow: 0 12px 32px var(--theme-app-legacy-maps-ink-14);
 }

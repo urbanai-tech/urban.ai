@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { JsonLd, buildSeoMetadata, faqPageJsonLd } from "../../lib/seo";
+import styles from "./page.module.css";
 import {
   CheckList,
   FinalCommercialCta,
@@ -37,7 +38,7 @@ export default function ComeceAgoraPage() {
               <PublicButton href="/precos" variant="secondary">Ver planos</PublicButton>
             </div>
           </div>
-          <aside className="public-page-hero__aside"><p><strong style={{ color: "var(--theme-public-text)" }}>Sem fila de espera.</strong><br />O produto está disponível para cadastro e onboarding.</p></aside>
+          <aside className="public-page-hero__aside"><p><strong className={styles.strongLead}>Sem fila de espera.</strong><br />O produto está disponível para cadastro e onboarding.</p></aside>
         </div>
       </section>
 
@@ -73,7 +74,7 @@ export default function ComeceAgoraPage() {
         </div>
       </section>
 
-      <FinalCommercialCta eyebrow="Produto disponível" title={<>Abra sua conta e leve mais contexto para o seu <em style={{ color: "var(--theme-public-accent)" }}>calendário.</em></>} />
+      <FinalCommercialCta eyebrow="Produto disponível" title={<>Abra sua conta e leve mais contexto para o seu <em className={styles.accentEm}>calendário.</em></>} />
     </main>
   );
 }

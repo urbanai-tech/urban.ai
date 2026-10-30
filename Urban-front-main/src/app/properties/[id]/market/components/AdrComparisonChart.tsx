@@ -164,7 +164,8 @@ export function AdrComparisonChart({
         aria-label={`Gráfico comparativo de diária média, seu imóvel e imóveis parecidos, ${data.length} dias.`}
         viewBox={`0 0 ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}`}
         preserveAspectRatio="none"
-        style={{ width: "100%", height, display: "block" }}
+        className={styles.chartSvg}
+        style={{ "--chart-h": `${height}px` } as React.CSSProperties}
       >
         <title>Comparativo de diária média</title>
 
@@ -291,7 +292,8 @@ export function AdrComparisonChart({
               tabIndex={0}
               // outline:none inline de propósito: a regra global :focus-visible tem mais
               // especificidade que uma classe e faria o anel de foco aparecer.
-              style={{ cursor: "crosshair", outline: "none" }}
+              className={styles.hoverZone}
+              style={{ outline: "none" }}
               aria-label={`${formatDateLong(p.date)} — sua diária média ${formatBRL(p.yourAdr)}, média dos parecidos ${formatBRL(p.medianAdr)}`}
             />
           );
@@ -301,23 +303,8 @@ export function AdrComparisonChart({
       {hovered && (
         <div
           role="tooltip"
-          style={{
-            position: "absolute",
-            left: `calc(${(hovered.x / VIEWBOX_WIDTH) * 100}% - 0px)`,
-            top: 4,
-            transform: "translateX(-50%)",
-            background: "var(--app-surface)",
-            border: "1px solid var(--app-divider-strong)",
-            borderRadius: 8,
-            padding: "10px 14px",
-            boxShadow: "0 4px 16px var(--theme-app-legacy-ink-10)",
-            fontSize: 12,
-            color: "var(--app-text)",
-            pointerEvents: "none",
-            whiteSpace: "nowrap",
-            zIndex: 2,
-            fontFamily: "var(--font-brand)",
-          }}
+          className={styles.tooltip}
+          style={{ "--tooltip-left": `${(hovered.x / VIEWBOX_WIDTH) * 100}%` } as React.CSSProperties}
         >
           <div className={styles.tooltipDate}>
             {formatDateLong(hovered.date)}

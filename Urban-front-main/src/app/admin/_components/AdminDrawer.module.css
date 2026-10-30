@@ -64,3 +64,14 @@
   justify-content: flex-end;
   background: var(--admin-surface);
 }
+
+.panel.panel {
+  position: relative;
+  width: 100%;
+  max-width: var(--drawer-max-width);
+  background: var(--admin-surface-elevated);
+  border-left: 1px solid var(--admin-divider);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}

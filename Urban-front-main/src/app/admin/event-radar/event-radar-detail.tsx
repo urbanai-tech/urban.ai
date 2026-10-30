@@ -364,12 +364,15 @@ export function ScoreCell({ value }: { value: number | null }) {
   if (value === null) return <span className={styles.scoreEmpty}>—</span>;
   const pct = Math.max(0, Math.min(100, value));
   return (
-    <div className={styles.scoreCell}>
-      <span style={{ fontFamily: "monospace", fontWeight: 700, color: scoreColor(value), fontSize: 13 }}>
+    <div
+      className={styles.scoreCell}
+      style={{ "--score-color": scoreColor(value), "--pct": `${pct}%` } as React.CSSProperties}
+    >
+      <span className={styles.scoreValue}>
         {value}
       </span>
       <div className={styles.scoreTrack}>
-        <div style={{ width: `${pct}%`, height: "100%", background: scoreColor(value) }} />
+        <div className={styles.scoreFill} />
       </div>
     </div>
   );

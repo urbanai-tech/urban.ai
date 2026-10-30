@@ -1,0 +1,257 @@
+.card.card {
+  display: grid;
+  gap: 22px;
+  padding: 24px;
+  border: 1px solid var(--theme-app-divider-strong);
+  border-radius: 12px;
+  background: var(--theme-app-surface);
+  box-shadow: var(--theme-app-shadow-card);
+  color: var(--theme-app-text);
+}
+
+.card.cardCompact {
+  gap: 18px;
+  padding: 20px;
+}
+
+.card.cardLight {
+  border-radius: 8px;
+}
+
+.header {
+  display: grid;
+  gap: 8px;
+}
+
+.eyebrow.eyebrow {
+  margin: 0;
+  color: var(--theme-app-text-muted);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2.2px;
+  text-transform: uppercase;
+}
+
+.title.title {
+  margin: 0;
+  color: var(--theme-app-text);
+  font-size: 30px;
+  line-height: 1.05;
+}
+
+.title.titleCompact {
+  font-size: 24px;
+}
+
+.bodyText.bodyText {
+  margin: 0;
+  color: var(--theme-app-text-muted);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: 18px;
+}
+
+.controls {
+  display: grid;
+  gap: 18px;
+}
+
+.fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+
+.legend {
+  margin-bottom: 8px;
+  color: var(--theme-app-text-muted);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.quantityRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.optionButton.optionButton {
+  min-height: 44px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--theme-app-divider-strong);
+  background: var(--theme-app-surface);
+  color: var(--theme-app-text);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.optionButton.optionButtonSelected {
+  border-color: var(--theme-app-accent);
+  background: var(--theme-app-accent-soft);
+  color: var(--theme-app-accent);
+}
+
+.optionButton.stepButton {
+  width: 44px;
+  min-height: 44px;
+  font-size: 20px;
+}
+
+.optionButton.cycleButton {
+  display: grid;
+  gap: 2px;
+}
+
+.quantityInput.quantityInput {
+  width: 116px;
+  min-height: 52px;
+  border-radius: 8px;
+  border: 1px solid var(--theme-app-divider-strong);
+  background: var(--theme-app-surface);
+  color: var(--theme-app-text);
+  text-align: center;
+  font-size: 28px;
+  font-weight: 900;
+}
+
+.quantityHint {
+  color: var(--theme-app-text-muted);
+  font-size: 13px;
+}
+
+.presetRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.cycleGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
+}
+
+.cycleDiscount {
+  color: var(--theme-app-text-muted);
+  font-size: 12px;
+}
+
+.cycleDiscount.cycleDiscountSelected {
+  color: var(--theme-app-accent);
+}
+
+.summary {
+  padding: 18px;
+  border-radius: 8px;
+  border: 1px solid var(--theme-app-divider-strong);
+  background: var(--theme-app-surface-muted);
+  display: grid;
+  gap: 12px;
+  align-content: start;
+}
+
+.summaryEyebrow.summaryEyebrow {
+  margin: 0;
+  color: var(--theme-app-text-muted);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.summaryTitle.summaryTitle {
+  margin: 0;
+  color: var(--theme-app-text);
+  font-size: 26px;
+  line-height: 1.05;
+}
+
+.summaryRange.summaryRange {
+  margin: 6px 0 0;
+  color: var(--theme-app-text-muted);
+  font-size: 13px;
+}
+
+.quoteLines {
+  display: grid;
+  gap: 6px;
+}
+
+.quoteLine.quoteLine {
+  margin: 0;
+  color: var(--theme-app-text-muted);
+  font-size: 14px;
+}
+
+.quoteValue.quoteValue {
+  color: var(--theme-app-text);
+}
+
+.totalLabel.totalLabel {
+  margin: 0;
+  color: var(--theme-app-text-muted);
+  font-size: 12px;
+}
+
+.totalValue.totalValue {
+  margin: 2px 0 0;
+  color: var(--theme-app-accent);
+  font-size: 30px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.errorText.errorText {
+  margin: 0;
+  color: var(--theme-app-danger);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.checkoutButton.checkoutButton {
+  width: 100%;
+  min-height: 48px;
+  border-radius: 8px;
+  border: 1px solid var(--theme-app-accent);
+  background: var(--theme-app-accent);
+  color: var(--theme-app-accent-contrast);
+  font-weight: 900;
+  cursor: pointer;
+  opacity: 1;
+}
+
+.checkoutButton.checkoutButtonBusy {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.featureList.featureList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+  color: var(--theme-app-text-muted);
+  font-size: 14px;
+}
+
+.featureItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.featureIcon {
+  color: var(--theme-app-accent);
+  display: inline-flex;
+  margin-top: 2px;
+}

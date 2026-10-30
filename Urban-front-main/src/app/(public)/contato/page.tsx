@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { createContactSubmission } from "../../service/api";
+import styles from "./page.module.css";
 
 export default function ContatoPage() {
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
@@ -39,7 +40,7 @@ export default function ContatoPage() {
             <h1>Vamos entender sua <em>operação.</em></h1>
             <p className="public-page-hero__lead">Fale com o My Urban sobre planos, integração, parceria, suporte ou uma operação em escala.</p>
           </div>
-          <aside className="public-page-hero__aside"><p><strong style={{ color: "var(--theme-public-text)" }}>Direcionamento rápido.</strong><br />Conte quantos imóveis você administra e qual problema quer resolver. Isso ajuda a levar a conversa para o canal certo.</p></aside>
+          <aside className="public-page-hero__aside"><p><strong className={styles.strongLead}>Direcionamento rápido.</strong><br />Conte quantos imóveis você administra e qual problema quer resolver. Isso ajuda a levar a conversa para o canal certo.</p></aside>
         </div>
       </section>
 
@@ -51,8 +52,8 @@ export default function ContatoPage() {
             <label className="public-field"><span>Assunto</span><select name="subject" required defaultValue=""><option value="" disabled>Selecione o motivo</option><option>Quero conhecer o produto</option><option>Planos para minha operação</option><option>Integração e automação</option><option>Suporte</option><option>Parceria</option><option>Privacidade e LGPD</option><option>Outro assunto</option></select></label>
             <label className="public-field"><span>Mensagem</span><textarea name="message" required minLength={10} placeholder="Conte quantos imóveis você administra e como podemos ajudar." /></label>
             <button type="submit" disabled={status === "loading"}>{status === "loading" ? "Enviando…" : "Enviar mensagem"}</button>
-            {status === "success" ? <p role="status" style={{ margin: "18px 0 0", color: "var(--theme-public-text)" }}>Mensagem registrada. Nossa equipe retorna pelo e-mail informado.</p> : null}
-            {status === "error" ? <p role="alert" style={{ margin: "18px 0 0", color: "#ff8f70" }}>{errorMessage}</p> : null}
+            {status === "success" ? <p role="status" className={`${styles.formStatus} ${styles.formStatusSuccess}`}>Mensagem registrada. Nossa equipe retorna pelo e-mail informado.</p> : null}
+            {status === "error" ? <p role="alert" className={styles.formStatus} style={{ color: "#ff8f70" }}>{errorMessage}</p> : null}
           </form>
 
           <aside className="public-contact-aside">

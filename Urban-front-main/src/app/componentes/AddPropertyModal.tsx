@@ -534,7 +534,7 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 disabled={isLoading}
-                style={inputStyle}
+                className={styles.textInput}
               />
 
               {showLoadingStatus && (
@@ -571,13 +571,8 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
               />
 
               <div
-                style={{
-                  padding: 14,
-                  border: "1px solid #FDBA74",
-                  borderRadius: 8,
-                  background: "#FFF7ED",
-                  color: "var(--theme-app-legacy-ink)",
-                }}
+                className={styles.pendingPriceNotice}
+                style={{ borderColor: "#FDBA74", background: "#FFF7ED" }}
               >
                 <p className={styles.pendingPriceTitle}>Informe a diária base</p>
                 <p className={styles.pendingPriceText}>
@@ -598,7 +593,7 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
                       className={styles.pendingPropertyThumb}
                     />
                   ) : (
-                    <div style={{ width: 64, height: 52, borderRadius: 8, background: "#F3F4F6", flexShrink: 0 }} />
+                    <div className={styles.pendingPropertyPlaceholder} style={{ background: "#F3F4F6" }} />
                   )}
                   <div className={styles.propertyInfo}>
                     <p className={styles.propertyName}>
@@ -609,7 +604,7 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
                         {property.airbnbId}
                       </p>
                     )}
-                    <p style={{ margin: "4px 0 0", color: "#9A3412", fontSize: 12, lineHeight: 1.35 }}>
+                    <p className={styles.pendingFallbackMessage} style={{ color: "#9A3412" }}>
                       {property.fallbackMessage}
                       {property.provisionalDailyPrice
                         ? ` Valor encontrado: R$ ${property.provisionalDailyPrice.toFixed(2)} (${property.sourceLabel ?? "fonte não informada"}).`
@@ -625,7 +620,7 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
                       setManualPriceDrafts((prev) => ({ ...prev, [property.addressId]: event.target.value }))
                     }
                     disabled={isLoading}
-                    style={{ ...inputStyle, width: 140, flexShrink: 0 }}
+                    className={`${styles.textInput} ${styles.pendingPriceInput}`}
                   />
                 </div>
               ))}
@@ -657,16 +652,11 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
                       <div
                         key={prop.id_do_anuncio}
                         onClick={() => handleToggleProperty(prop.id_do_anuncio, !selected)}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 16,
-                          padding: 12,
-                          border: `1px solid ${selected ? "color-mix(in srgb, var(--theme-app-accent) 35%, transparent)" : "var(--theme-app-divider-strong)"}`,
-                          borderRadius: 10,
-                          background: selected ? "color-mix(in srgb, var(--theme-app-accent) 8%, transparent)" : "var(--theme-app-surface)",
-                          cursor: "pointer",
-                        }}
+                        className={
+                          selected
+                            ? `${styles.propertyOption} ${styles.propertyOptionSelected}`
+                            : styles.propertyOption
+                        }
                       >
                         <input
                           type="checkbox"
@@ -686,17 +676,8 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
                           />
                         ) : (
                           <div
-                            style={{
-                              width: 70,
-                              height: 70,
-                              display: "grid",
-                              placeItems: "center",
-                              borderRadius: 8,
-                              background: "#F3F4F6",
-                              color: "#9CA3AF",
-                              fontSize: 12,
-                              flexShrink: 0,
-                            }}
+                            className={styles.propertyThumbPlaceholder}
+                            style={{ background: "#F3F4F6", color: "#9CA3AF" }}
                           >
                             Sem foto
                           </div>
@@ -898,17 +879,6 @@ function getPropertyLoadingStatus(stage: PropertyLoadStage, foundCount: number):
     })),
   };
 }
-
-const inputStyle: React.CSSProperties = {
-  width: "100%",
-  height: 48,
-  padding: "0 14px",
-  border: "1px solid var(--theme-app-legacy-ink-12)",
-  borderRadius: 10,
-  color: "var(--theme-app-legacy-ink)",
-  fontSize: 15,
-  outline: "none",
-};
 
 const iconButtonStyle: React.CSSProperties = {
   width: 32,

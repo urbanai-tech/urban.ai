@@ -1,0 +1,66 @@
+.pushCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 16px 18px;
+  margin-bottom: 20px;
+  border: 1px solid var(--app-divider);
+  border-radius: var(--app-radius-card);
+  background: var(--app-surface);
+}
+
+.pushCardCompact {
+  padding: 14px 16px;
+  margin-bottom: 24px;
+  background: var(--app-accent-soft);
+}
+
+.pushInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 220px;
+}
+
+.pushIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  color: var(--app-accent);
+  background: var(--app-accent-soft);
+}
+
+.pushIconCompact {
+  background: var(--app-surface);
+}
+
+.pushTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pushTitle {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--app-text);
+}
+
+.pushText {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--app-text-muted);
+  line-height: 1.45;
+}
+
+.pushActions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}

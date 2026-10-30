@@ -242,3 +242,16 @@
   font-family: monospace;
   overflow-wrap: anywhere;
 }
+
+.scoreValue.scoreValue {
+  font-family: monospace;
+  font-weight: 700;
+  color: var(--score-color);
+  font-size: 13px;
+}
+
+.scoreFill.scoreFill {
+  width: var(--pct);
+  height: 100%;
+  background: var(--score-color);
+}

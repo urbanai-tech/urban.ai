@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Building2, Eye, MapPinned, ShieldCheck, type LucideIcon } from "lucide-react";
 import { JsonLd, aboutPageJsonLd, buildSeoMetadata } from "../../lib/seo";
 import { FinalCommercialCta, SectionHeading } from "../../componentes/PublicMarketing";
+import styles from "./page.module.css";
 
 export const metadata: Metadata = buildSeoMetadata({
   title: "Sobre | My Urban AI",
@@ -20,7 +21,7 @@ export default function SobrePage() {
             <h1>A cidade muda. A estratégia de preço precisa <em>acompanhar.</em></h1>
             <p className="public-page-hero__lead">O My Urban transforma sinais urbanos dispersos em recomendações de preço compreensíveis para quem administra aluguel por temporada como negócio.</p>
           </div>
-          <aside className="public-page-hero__aside"><p><strong style={{ color: "var(--theme-public-text)" }}>Feita em São Paulo.</strong><br />Uma plataforma brasileira, criada a partir da complexidade real das cidades e das operações de temporada.</p></aside>
+          <aside className="public-page-hero__aside"><p><strong className={styles.strongLead}>Feita em São Paulo.</strong><br />Uma plataforma brasileira, criada a partir da complexidade real das cidades e das operações de temporada.</p></aside>
         </div>
       </section>
 
@@ -62,11 +63,11 @@ export default function SobrePage() {
         </div>
       </section>
 
-      <FinalCommercialCta eyebrow="Conheça na prática" title={<>Veja como o My Urban organiza a próxima decisão do seu <em style={{ color: "var(--theme-public-accent)" }}>calendário.</em></>} />
+      <FinalCommercialCta eyebrow="Conheça na prática" title={<>Veja como o My Urban organiza a próxima decisão do seu <em className={styles.accentEm}>calendário.</em></>} />
     </main>
   );
 }
 
 function Principle({ icon: Icon, title, body }: { icon: LucideIcon; title: string; body: string }) {
-  return <article className="public-content-card"><Icon aria-hidden size={22} /><h3 style={{ marginTop: 28 }}>{title}</h3><p>{body}</p></article>;
+  return <article className="public-content-card"><Icon aria-hidden size={22} /><h3 className={styles.cardTitle}>{title}</h3><p>{body}</p></article>;
 }

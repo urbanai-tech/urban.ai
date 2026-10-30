@@ -121,7 +121,7 @@ export default function MyRoiPage() {
         subtitle="Soma estimada das diárias em que a sugestão foi aceita ou aplicada. Separar confirmado de acompanhamento evita tratar potencial como dinheiro já recebido."
         actions={
           <div className="roi-actions">
-            <div style={{ minWidth: 0, width: 320, maxWidth: "100%" }}>
+            <div className={pageStyles.propertySelectWrap}>
               <PropertySelect
                 value={propertyId}
                 propsInfo={properties}
@@ -161,7 +161,7 @@ export default function MyRoiPage() {
         <div className="roi-hero">
           <div>
             <p className="urban-app-eyebrow">IMPACTO ATRIBUÍDO AO MY URBAN</p>
-            <p className="urban-app-display-hero" style={{ marginTop: 12, color: 'var(--app-accent)' }}>
+            <p className={`urban-app-display-hero ${pageStyles.heroAmount}`}>
               {fmt(data.money.totalAttributedCents)}
             </p>
             <p className="roi-muted">
@@ -172,7 +172,7 @@ export default function MyRoiPage() {
           </div>
           <div className="roi-subhero">
             <p className="urban-app-eyebrow-muted">Quanto voltou sobre o plano</p>
-            <p className="urban-app-display-md" style={{ marginTop: 12 }}>
+            <p className={`urban-app-display-md ${pageStyles.roiLabel}`}>
               {roiLabel}
             </p>
             <p className={data.money.netValueCents >= 0 ? 'roi-muted' : 'roi-danger'}>
@@ -256,7 +256,7 @@ export default function MyRoiPage() {
             <strong>{acceptance.toFixed(0)}%</strong>
           </div>
           <div className="roi-progress" aria-label={`Sugestões aceitas ${acceptance.toFixed(0)}%`}>
-            <span style={{ width: `${acceptance}%` }} />
+            <span className={pageStyles.progressFill} style={{ "--pct": `${acceptance}%` } as React.CSSProperties} />
           </div>
           <div className="roi-mini-grid">
             <AppMetricCard label="Aprovadas" value={data.activity.accepted} variant="sm" />

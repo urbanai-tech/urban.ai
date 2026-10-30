@@ -1,0 +1,23 @@
+/*
+ * StagingBanner. As cores (amarelo de alerta e texto escuro) nao tem token
+ * equivalente e ficam inline em StagingBanner.tsx.
+ */
+.stagingBanner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  text-align: center;
+  min-height: 24px;
+  box-sizing: border-box;
+  font-size: 10px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  padding: 4px 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: system-ui, -apple-system, sans-serif;
+}

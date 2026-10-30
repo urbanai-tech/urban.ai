@@ -225,16 +225,13 @@ export default function AdminFinancePage() {
             <div>
               <p className="urban-admin-eyebrow">MARGEM POR IMÓVEL ATIVO</p>
               <p
-                className="urban-admin-display-hero"
-                style={{
-                  marginTop: 12,
-                  color:
-                    perListingMargin > 30
-                      ? "var(--admin-success)"
-                      : perListingMargin > 0
-                        ? "var(--admin-text)"
-                        : "var(--admin-danger)",
-                }}
+                className={`urban-admin-display-hero ${styles.marginHero} ${
+                  perListingMargin > 30
+                    ? styles.marginHeroGood
+                    : perListingMargin > 0
+                      ? ""
+                      : styles.marginHeroBad
+                }`}
               >
                 {fmt(overview.perListing.marginCents)}
               </p>
@@ -351,11 +348,8 @@ export default function AdminFinancePage() {
                       className={styles.categoryBarTrack}
                     >
                       <div
-                        style={{
-                          height: "100%",
-                          width: `${(c.cents / max) * 100}%`,
-                          background: "var(--admin-accent)",
-                        }}
+                        className={styles.categoryBarFill}
+                        style={{ "--pct": `${(c.cents / max) * 100}%` } as React.CSSProperties}
                       />
                     </div>
                   </div>
@@ -634,16 +628,7 @@ function CostActions({ cost, onChange }: { cost: AdminCost; onChange: () => void
         disabled={busy}
         title={cost.active ? "Desativar" : "Ativar"}
         aria-label={cost.active ? "Desativar custo" : "Ativar custo"}
-        style={{
-          background: "transparent",
-          border: "1px solid var(--admin-divider-strong)",
-          borderRadius: 2,
-          color: "var(--admin-text-muted)",
-          padding: 6,
-          cursor: busy ? "not-allowed" : "pointer",
-          display: "inline-flex",
-          lineHeight: 0,
-        }}
+        className={styles.actionButton}
       >
         <Icons.RefreshCw size={12} />
       </button>
@@ -653,16 +638,7 @@ function CostActions({ cost, onChange }: { cost: AdminCost; onChange: () => void
         disabled={busy}
         title="Remover"
         aria-label="Remover custo"
-        style={{
-          background: "transparent",
-          border: "1px solid color-mix(in srgb, var(--admin-danger) 30%, transparent)",
-          borderRadius: 2,
-          color: "var(--admin-danger)",
-          padding: 6,
-          cursor: busy ? "not-allowed" : "pointer",
-          display: "inline-flex",
-          lineHeight: 0,
-        }}
+        className={`${styles.actionButton} ${styles.actionButtonDanger}`}
       >
         <Icons.Trash size={12} />
       </button>

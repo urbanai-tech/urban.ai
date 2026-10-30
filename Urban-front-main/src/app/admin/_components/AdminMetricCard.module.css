@@ -12,3 +12,51 @@
   color: var(--admin-text-muted);
   font-weight: 400;
 }
+
+.root.root {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rootHero.rootHero.rootHero {
+  padding: 32px 0;
+}
+
+.rootMd.rootMd.rootMd {
+  padding: 24px 0;
+}
+
+.rootSm.rootSm.rootSm {
+  padding: 16px 0;
+  gap: 6px;
+}
+
+.value.value.value {
+  color: var(--admin-text);
+}
+
+.valueSm.valueSm.valueSm {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+}
+
+.valueAccent.valueAccent.valueAccent {
+  color: var(--admin-accent);
+}
+
+.trend.trend {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+}
+
+.trendUp.trendUp.trendUp {
+  color: var(--admin-success);
+}
+
+.trendDown.trendDown.trendDown {
+  color: var(--admin-danger);
+}

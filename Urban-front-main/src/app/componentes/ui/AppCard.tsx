@@ -61,9 +61,7 @@ export function AppCardHeader({
     <header className={[styles.header, className].filter(Boolean).join(" ")} style={style}>
       <div className={styles.headerText}>
         {eyebrow && (
-          <p className="urban-app-eyebrow-muted" style={{ marginBottom: 6 }}>
-            {eyebrow}
-          </p>
+          <p className={`urban-app-eyebrow-muted ${styles.eyebrow}`}>{eyebrow}</p>
         )}
         <h3 className={styles.title}>{title}</h3>
         {subtitle && <p className={styles.subtitle}>{subtitle}</p>}

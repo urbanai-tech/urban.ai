@@ -1,0 +1,53 @@
+/*
+ * Primitivos de layout (AppStack/AppGrid). Valores enumerados viram classes;
+ * alinhamento livre e colunas do grid chegam por props (inline / custom property).
+ * A prop `style` do caller continua inline e vence as classes.
+ */
+.stack {
+  display: flex;
+}
+
+.stackRow {
+  flex-direction: row;
+}
+
+.stackColumn {
+  flex-direction: column;
+}
+
+.stackWrap {
+  flex-wrap: wrap;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: var(--grid-cols);
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+.gapNone {
+  gap: 0;
+}
+
+.gapXs {
+  gap: 4px;
+}
+
+.gapSm {
+  gap: 8px;
+}
+
+.gapMd {
+  gap: 12px;
+}
+
+.gapLg {
+  gap: 16px;
+}
+
+.gapXl {
+  gap: 24px;
+}

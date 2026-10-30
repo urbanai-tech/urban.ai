@@ -386,14 +386,7 @@ function HealthCheck({
   hint?: string;
 }) {
   return (
-    <div
-      style={{
-        padding: "12px 14px",
-        border: "1px solid var(--admin-divider)",
-        borderRadius: 2,
-        background: ok ? "color-mix(in srgb, var(--admin-success) 4%, transparent)" : "color-mix(in srgb, var(--admin-warning) 4%, transparent)",
-      }}
-    >
+    <div className={`${styles.healthCheck} ${ok ? styles.healthCheckOk : styles.healthCheckWarn}`}>
       <div className={styles.healthCheckHeader}>
         <AdminStatusDot kind={ok ? "success" : "warn"} size={7} />
         <p
@@ -474,13 +467,7 @@ function RecentAnalysesTable({ rows }: { rows: AnalysisRow[] }) {
         if (r.diferencaPercentual == null) return <span className={styles.emptyCell}>—</span>;
         const d = Number(r.diferencaPercentual);
         return (
-          <span
-            style={{
-              fontFamily: "monospace",
-              fontWeight: 600,
-              color: d >= 0 ? "var(--admin-success)" : "var(--admin-danger)",
-            }}
-          >
+          <span className={`${styles.deltaValue} ${d >= 0 ? styles.deltaPositive : styles.deltaNegative}`}>
             {d > 0 ? "+" : ""}
             {d.toFixed(1)}%
           </span>

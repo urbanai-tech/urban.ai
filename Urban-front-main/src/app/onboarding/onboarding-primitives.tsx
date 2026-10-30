@@ -192,27 +192,39 @@ function splitPrimitiveProps(props: PrimitiveProps) {
   return { domProps, style };
 }
 
-const primitive = (defaultAs: React.ElementType, baseStyle?: React.CSSProperties) =>
+function cx(...names: Array<string | false | null | undefined>) {
+  return names.filter(Boolean).join(' ');
+}
+
+const primitive = (defaultAs: React.ElementType, baseStyle?: React.CSSProperties, baseClassName?: string) =>
   React.forwardRef<any, PrimitiveProps>(function Primitive({ as, children, ...props }, ref) {
     const Component = as ?? defaultAs;
     const { domProps, style } = splitPrimitiveProps(props);
+    // Estilo em runtime: props de estilo estilo-Chakra (w, mt, bg...) + base computada.
+    const merged: React.CSSProperties = { ...baseStyle, ...style };
+    const { className: extraClassName, ...restDomProps } = domProps;
     return (
-      <Component ref={ref} style={{ ...baseStyle, ...style }} {...domProps}>
+      <Component
+        ref={ref}
+        style={merged}
+        {...restDomProps}
+        className={cx(baseClassName, extraClassName) || undefined}
+      >
         {children}
       </Component>
     );
   });
 
 const Box = primitive('div');
-const Flex = primitive('div', { display: 'flex' });
+const Flex = primitive('div', undefined, styles.flexBase);
 const FormControl = primitive('div');
 const FormLabel = primitive('label');
-const AlertTitle = primitive('strong', { display: 'block' });
+const AlertTitle = primitive('strong', undefined, styles.alertTitleBase);
 const AlertDescription = primitive('span');
-const Container = primitive('div', { width: '100%', marginLeft: 'auto', marginRight: 'auto' });
+const Container = primitive('div', undefined, styles.containerBase);
 
 function Text({ as = 'p', children, ...props }: PrimitiveProps) {
-  const Component = primitive(as, { margin: 0 });
+  const Component = primitive(as, undefined, styles.textBase);
   return <Component {...props}>{children}</Component>;
 }
 
@@ -224,26 +236,24 @@ function Heading({ as = 'h2', size, children, ...props }: PrimitiveProps) {
       : size === 'lg'
         ? '26px'
         : '22px';
-  const Component = primitive(as, { margin: 0, fontWeight: 700, lineHeight: 1.15, fontSize });
+  const Component = primitive(as, { fontSize }, styles.headingBase);
   return <Component {...props}>{children}</Component>;
 }
 
-function stackStyle(direction: 'row' | 'column', props: PrimitiveProps) {
+function stackStyle(props: PrimitiveProps) {
   return {
-    display: 'flex',
-    flexDirection: direction,
     gap: spacing(Number(resolveResponsive(props.spacing ?? props.gap ?? 2))),
-    alignItems: props.align ?? (direction === 'row' ? 'center' : undefined),
+    alignItems: props.align,
   } as React.CSSProperties;
 }
 
 function VStack({ children, ...props }: PrimitiveProps) {
-  const Component = primitive('div', stackStyle('column', props));
+  const Component = primitive('div', stackStyle(props), cx(styles.stackBase, styles.stackColumn));
   return <Component {...props}>{children}</Component>;
 }
 
 function HStack({ children, ...props }: PrimitiveProps) {
-  const Component = primitive('div', stackStyle('row', props));
+  const Component = primitive('div', stackStyle(props), cx(styles.stackBase, styles.stackRow));
   return <Component {...props}>{children}</Component>;
 }
 
@@ -253,21 +263,12 @@ function Stack({ children, ...props }: PrimitiveProps) {
 
 function Input(props: PrimitiveProps) {
   const { domProps, style } = splitPrimitiveProps(props);
+  const { className: inputExtraClassName, ...restInputDomProps } = domProps;
   return (
     <input
-      style={{
-        width: '100%',
-        height: cssValue('height', props.h ?? (props.size === 'lg' ? 13 : 10)),
-        padding: '0 14px',
-        color: 'var(--app-text)',
-        background: 'var(--app-surface)',
-        border: '1px solid var(--app-divider-strong)',
-        borderRadius: 10,
-        outline: 'none',
-        font: 'inherit',
-        ...style,
-      }}
-      {...domProps}
+      style={style}
+      {...restInputDomProps}
+      className={cx(styles.formInput, props.size === 'lg' && styles.formInputLarge, inputExtraClassName)}
     />
   );
 }
@@ -286,27 +287,21 @@ function Button({
   const { domProps, style } = splitPrimitiveProps(props);
   const isGhost = variant === 'ghost';
   const isOutline = variant === 'outline';
+  const { className: extraClassName, ...restDomProps } = domProps;
   return (
     <button
-      type={domProps.type ?? 'button'}
-      {...domProps}
+      type={restDomProps.type ?? 'button'}
+      {...restDomProps}
       disabled={Boolean(disabled || isDisabled || isLoading)}
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 8,
-        minHeight: props.size === 'lg' ? 48 : props.size === 'sm' ? 32 : 40,
-        padding: props.size === 'sm' ? '0 14px' : '0 20px',
-        color: isGhost ? 'var(--app-text-muted)' : isOutline ? 'var(--app-accent)' : 'var(--theme-app-legacy-white)',
-        background: isGhost || isOutline ? 'transparent' : 'var(--app-accent)',
-        border: isGhost ? '1px solid transparent' : isOutline ? '1px solid var(--app-accent)' : '1px solid var(--app-accent)',
-        borderRadius: 10,
-        fontWeight: 650,
-        cursor: disabled || isDisabled || isLoading ? 'not-allowed' : 'pointer',
-        opacity: disabled || isDisabled || isLoading ? 0.55 : props.opacity ?? 1,
-        ...style,
-      }}
+      className={cx(
+        styles.button,
+        props.size === 'lg' && styles.buttonLarge,
+        props.size === 'sm' && styles.buttonSmall,
+        isGhost && styles.buttonGhost,
+        isOutline && styles.buttonOutline,
+        extraClassName,
+      )}
+      style={style}
     >
       {leftIcon}
       <span>{isLoading ? (loadingText ?? 'Carregando…') : children}</span>
@@ -317,24 +312,18 @@ function Button({
 
 function IconButton({ icon, isDisabled, disabled, ...props }: PrimitiveProps) {
   const { domProps, style } = splitPrimitiveProps(props);
+  const { className: iconExtraClassName, ...restIconDomProps } = domProps;
   return (
     <button
       type="button"
-      {...domProps}
+      {...restIconDomProps}
       disabled={Boolean(disabled || isDisabled)}
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: 32,
-        height: 32,
-        color: props.colorScheme === 'red' ? 'var(--app-danger)' : 'var(--app-text-muted)',
-        background: 'transparent',
-        border: '1px solid transparent',
-        borderRadius: 8,
-        cursor: disabled || isDisabled ? 'not-allowed' : 'pointer',
-        ...style,
-      }}
+      className={cx(
+        styles.iconButton,
+        props.colorScheme === 'red' && styles.iconButtonDanger,
+        iconExtraClassName,
+      )}
+      style={style}
     >
       {icon}
     </button>
@@ -350,21 +339,16 @@ function Image(props: PrimitiveProps) {
 
 function Badge({ children, ...props }: PrimitiveProps) {
   const { domProps, style } = splitPrimitiveProps(props);
+  const { className: badgeExtraClassName, ...restBadgeDomProps } = domProps;
   return (
     <span
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        width: 'fit-content',
-        padding: '2px 8px',
-        color: props.colorScheme === 'blue' ? 'var(--app-accent)' : props.colorScheme === 'orange' ? 'var(--app-accent)' : 'var(--app-text-dim)',
-        background: props.colorScheme === 'blue' ? 'var(--app-accent-soft)' : props.colorScheme === 'orange' ? 'var(--app-accent-soft)' : 'var(--app-surface-muted)',
-        borderRadius: 999,
-        fontSize: 11,
-        fontWeight: 700,
-        ...style,
-      }}
-      {...domProps}
+      className={cx(
+        styles.badge,
+        (props.colorScheme === 'blue' || props.colorScheme === 'orange') && styles.badgeAccent,
+        badgeExtraClassName,
+      )}
+      style={style}
+      {...restBadgeDomProps}
     >
       {children}
     </span>
@@ -373,28 +357,30 @@ function Badge({ children, ...props }: PrimitiveProps) {
 
 function SimpleGrid({ columns = 1, spacing: gap = 4, children, ...props }: PrimitiveProps) {
   const count = Number(resolveResponsive(columns)) || 1;
-  const Component = primitive('div', {
-    display: 'grid',
-    gridTemplateColumns: `repeat(${count}, minmax(0, 1fr))`,
-    gap: cssValue('gap', gap),
-  });
+  const Component = primitive(
+    'div',
+    {
+      gridTemplateColumns: `repeat(${count}, minmax(0, 1fr))`,
+      gap: cssValue('gap', gap),
+    },
+    styles.gridBase,
+  );
   return <Component {...props}>{children}</Component>;
 }
 
 function Spinner({ color = 'var(--app-accent)', thickness = '3px', ...props }: PrimitiveProps) {
   const { style } = splitPrimitiveProps(props);
+  // Espessura, cor e animação vêm de props/runtime.
+  const spinnerStyle: React.CSSProperties = {
+    border: `${thickness} solid var(--app-divider)`,
+    borderTopColor: colorMap[color] ?? color,
+    animation: 'onboarding-spin 800ms linear infinite',
+    ...style,
+  };
   return (
     <span
-      style={{
-        display: 'inline-block',
-        width: props.size === 'xl' ? 42 : 28,
-        height: props.size === 'xl' ? 42 : 28,
-        border: `${thickness} solid var(--app-divider)`,
-        borderTopColor: colorMap[color] ?? color,
-        borderRadius: '50%',
-        animation: 'onboarding-spin 800ms linear infinite',
-        ...style,
-      }}
+      className={cx(styles.spinner, props.size === 'xl' && styles.spinnerXl)}
+      style={spinnerStyle}
     />
   );
 }
@@ -415,7 +401,7 @@ function Tabs({ index = 0, onChange, children, ...props }: PrimitiveProps) {
 }
 
 function TabList({ children, ...props }: PrimitiveProps) {
-  const Component = primitive('div', { display: 'flex', gap: 4 });
+  const Component = primitive('div', undefined, styles.tabListBase);
   return (
     <Component {...props}>
       {React.Children.map(children, (child, index) =>
@@ -429,27 +415,16 @@ function Tab({ children, tabIndexValue, ...props }: PrimitiveProps) {
   const context = React.useContext(TabsContext);
   const selected = context?.index === tabIndexValue;
   const { domProps, style } = splitPrimitiveProps(props);
+  const { className: tabExtraClassName, ...restTabDomProps } = domProps;
+  // A sombra do tab selecionado usa um valor bruto do mapa de sombras (sem token equivalente).
+  const tabStyle: React.CSSProperties = { boxShadow: selected ? shadowMap.sm : 'none', ...style };
   return (
     <button
       type="button"
-      {...domProps}
+      {...restTabDomProps}
       onClick={() => context?.onChange?.(tabIndexValue)}
-      style={{
-        flex: 1,
-        display: 'inline-flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        minHeight: 40,
-        padding: '0 12px',
-        color: selected ? 'var(--app-accent)' : 'var(--app-text-muted)',
-        background: selected ? 'var(--app-surface)' : 'transparent',
-        border: '1px solid transparent',
-        borderRadius: 10,
-        boxShadow: selected ? shadowMap.sm : 'none',
-        fontWeight: 650,
-        cursor: 'pointer',
-        ...style,
-      }}
+      className={cx(styles.tab, selected && styles.tabSelected, tabExtraClassName)}
+      style={tabStyle}
     >
       {children}
     </button>
@@ -474,6 +449,9 @@ function TabPanel({ children, panelIndexValue, ...props }: PrimitiveProps) {
   return <Component {...props}>{children}</Component>;
 }
 
+// Sombra do knob: valor bruto do mapa de sombras (sem token equivalente).
+const SWITCH_KNOB_STYLE: React.CSSProperties = { boxShadow: shadowMap.sm };
+
 function Switch({ isChecked, onChange, id, 'aria-label': ariaLabel, ...props }: PrimitiveProps) {
   return (
     <label className={`${styles.switchLabel} ${props.size === 'lg' ? styles.switchLarge : styles.switchSmall}`}>
@@ -490,17 +468,12 @@ function Switch({ isChecked, onChange, id, 'aria-label': ariaLabel, ...props }: 
         className={`${styles.switchTrack} ${isChecked ? styles.switchTrackOn : styles.switchTrackOff}`}
       />
       <span
-        style={{
-          position: 'absolute',
-          top: 3,
-          left: isChecked ? 24 : 3,
-          width: props.size === 'lg' ? 20 : 18,
-          height: props.size === 'lg' ? 20 : 18,
-          background: 'var(--app-surface)',
-          borderRadius: '50%',
-          boxShadow: shadowMap.sm,
-          transition: 'left 140ms ease',
-        }}
+        className={cx(
+          styles.switchKnob,
+          props.size === 'lg' && styles.switchKnobLarge,
+          isChecked && styles.switchKnobOn,
+        )}
+        style={SWITCH_KNOB_STYLE}
       />
     </label>
   );
@@ -508,12 +481,14 @@ function Switch({ isChecked, onChange, id, 'aria-label': ariaLabel, ...props }: 
 
 function Link({ isExternal, children, ...props }: PrimitiveProps) {
   const { domProps, style } = splitPrimitiveProps(props);
+  const { className: linkExtraClassName, ...restLinkDomProps } = domProps;
   return (
     <a
-      {...domProps}
-      target={isExternal ? '_blank' : domProps.target}
-      rel={isExternal ? 'noopener noreferrer' : domProps.rel}
-      style={{ color: 'var(--app-accent)', textDecoration: 'none', ...style }}
+      {...restLinkDomProps}
+      target={isExternal ? '_blank' : restLinkDomProps.target}
+      rel={isExternal ? 'noopener noreferrer' : restLinkDomProps.rel}
+      className={cx(styles.link, linkExtraClassName)}
+      style={style}
     >
       {children}
     </a>
@@ -521,15 +496,7 @@ function Link({ isExternal, children, ...props }: PrimitiveProps) {
 }
 
 function Alert({ children, ...props }: PrimitiveProps) {
-  const Component = primitive('div', {
-    display: 'flex',
-    alignItems: 'flex-start',
-    gap: 12,
-    padding: 14,
-    color: 'var(--app-accent)',
-    background: 'var(--app-accent-soft)',
-    border: '1px solid var(--app-divider-strong)',
-  });
+  const Component = primitive('div', undefined, styles.alertBase);
   return <Component {...props}>{children}</Component>;
 }
 

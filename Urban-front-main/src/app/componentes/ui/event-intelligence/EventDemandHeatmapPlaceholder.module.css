@@ -62,6 +62,14 @@
   display: grid;
   place-items: center;
   min-width: 0;
+  left: var(--cell-left);
+  top: var(--cell-top);
+  width: var(--cell-size);
+  height: var(--cell-size);
+  border: var(--cell-border);
+  background: var(--cell-bg);
+  color: var(--cell-text);
+  box-shadow: var(--cell-shadow);
 }
 
 .heatCellScore.heatCellScore {
@@ -238,6 +246,7 @@
   width: 8px;
   height: 8px;
   border-radius: 999px;
+  background: var(--dot-color);
 }
 
 .heatLegendNote.heatLegendNote {
@@ -257,6 +266,7 @@
   position: absolute;
   left: 50%;
   top: 50%;
+  width: var(--ring-size);
   aspect-ratio: 1 / 1;
   transform: translate(-50%, -50%);
   border: 1px solid var(--app-divider);
@@ -385,6 +395,8 @@
   padding: 0 9px;
   border-radius: 8px;
   border: 1px solid var(--app-divider-strong);
+  background: var(--link-bg);
+  color: var(--link-text);
   font-size: 11px;
   font-weight: 750;
   cursor: pointer;

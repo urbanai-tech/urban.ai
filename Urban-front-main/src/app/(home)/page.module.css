@@ -1,0 +1,341 @@
+.loginRoot {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  background: var(--app-bg);
+  overflow: hidden;
+  font-family: Inter, system-ui, sans-serif;
+}
+
+/* ---------- Painel esquerdo (manifesto editorial) ---------- */
+.manifestoPanel {
+  display: none;
+  position: relative;
+  width: 50%;
+  min-height: 100vh;
+  background: var(--theme-public-bg);
+  color: var(--theme-public-text);
+  overflow: hidden;
+}
+
+.glowTopLeft {
+  width: 800px;
+  height: 800px;
+  top: -15%;
+  left: -20%;
+  position: absolute;
+}
+
+.glowBottomRight {
+  width: 600px;
+  height: 600px;
+  bottom: -15%;
+  right: -15%;
+  position: absolute;
+}
+
+.wordmark {
+  position: absolute;
+  top: 32px;
+  left: 48px;
+  z-index: 2;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.wordmarkPart {
+  font-size: 24px;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.wordmarkBrand {
+  color: var(--theme-public-text);
+}
+
+.wordmarkAccent {
+  color: var(--theme-public-accent);
+}
+
+.hero {
+  position: relative;
+  z-index: 2;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: 64px 64px 112px;
+}
+
+.heroEyebrow {
+  font-size: 11px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--theme-public-accent);
+  font-weight: 600;
+  margin: 0;
+  margin-bottom: 28px;
+}
+
+.heroTitleEnter.heroTitleEnter {
+  animation-duration: 700ms;
+}
+
+.heroTitle {
+  font-size: clamp(64px, min(8vw, 15.5vh), 140px);
+  line-height: 0.88;
+  letter-spacing: 0;
+  font-weight: 400;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.heroTitleAccent {
+  color: var(--theme-public-accent);
+}
+
+.heroLeadEnter.heroLeadEnter {
+  animation-duration: 700ms;
+  animation-delay: 150ms;
+  margin-top: 40px;
+  max-width: 480px;
+}
+
+.heroLead {
+  font-size: 18px;
+  line-height: 1.65;
+  font-weight: 300;
+  color: var(--theme-public-muted);
+  margin: 0;
+}
+
+.panelFooter {
+  position: absolute;
+  bottom: 40px;
+  left: 64px;
+  right: 64px;
+  z-index: 2;
+  padding-top: 24px;
+  border-top: 1px solid var(--theme-public-soft);
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--theme-public-muted);
+  font-weight: 500;
+}
+
+/* ---------- Painel direito (formulario) ---------- */
+.formPane {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+  background: var(--app-bg);
+}
+
+.formEnter.formEnter {
+  animation-duration: 500ms;
+  animation-delay: 100ms;
+  width: 100%;
+  max-width: 420px;
+}
+
+.mobileLogo {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 32px;
+}
+
+.mobileWordmark {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.mobileWordmarkPart {
+  font-size: 28px;
+  font-weight: 400;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.mobileWordmarkBrand {
+  color: var(--app-text);
+}
+
+.mobileWordmarkAccent {
+  color: var(--app-accent);
+}
+
+/* .urban-app .urban-app-eyebrow define margin: 0 (0,2,0); precisa de mais especificidade. */
+.formEyebrow.formEyebrow.formEyebrow {
+  margin-bottom: 14px;
+}
+
+.formTitle {
+  font-size: 48px;
+  line-height: 1;
+  letter-spacing: 0;
+  font-weight: 400;
+  margin: 0;
+  text-transform: uppercase;
+  color: var(--app-text);
+}
+
+.formTitleAccent {
+  color: var(--app-accent);
+}
+
+.formLead {
+  font-size: 14px;
+  color: var(--app-text-muted);
+  line-height: 1.6;
+  margin: 16px 0 36px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.field {
+  display: block;
+}
+
+.fieldLabel {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--app-text-muted);
+  margin-bottom: 8px;
+  transition: color 120ms;
+}
+
+.fieldLabelFocus {
+  color: var(--app-accent);
+}
+
+.fieldInput {
+  width: 100%;
+  padding: 14px 0;
+  background: transparent;
+  border: none;
+  border-bottom: 1.5px solid var(--app-divider-strong);
+  color: var(--app-text);
+  font-size: 16px;
+  font-weight: 400;
+  outline: none;
+  transition: border-color 150ms;
+  font-family: Inter, system-ui, sans-serif;
+}
+
+.fieldInputPassword {
+  padding: 14px 36px 14px 0;
+}
+
+.fieldInputFocus {
+  border-bottom-color: var(--app-accent);
+}
+
+.passwordWrap {
+  position: relative;
+}
+
+.passwordToggle {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: var(--app-text-muted);
+  cursor: pointer;
+  padding: 8px;
+  line-height: 0;
+}
+
+.formLinks {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+}
+
+.linkMuted.linkMuted {
+  color: var(--app-text-muted);
+  text-decoration: none;
+  font-weight: 500;
+  border-bottom: 1px solid transparent;
+  transition: color 120ms, border-color 120ms;
+}
+
+.linkAccent.linkAccent {
+  color: var(--app-accent);
+  text-decoration: none;
+  font-weight: 600;
+  border-bottom: 1px solid transparent;
+  transition: border-color 120ms;
+}
+
+.submitButton {
+  margin-top: 12px;
+  height: 56px;
+  padding: 0 28px;
+  background: var(--app-accent);
+  color: var(--theme-page-bg);
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: background 180ms, transform 80ms;
+  font-family: Inter, system-ui, sans-serif;
+  box-shadow: none;
+}
+
+.submitButtonLoading {
+  cursor: wait;
+}
+
+.secureNote {
+  margin-top: 40px;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--app-text-dim);
+  font-weight: 500;
+  text-align: center;
+}
+
+.spinner {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--theme-public-strong);
+  border-top-color: var(--theme-public-text);
+  border-radius: 50%;
+  animation: spinnerRotate 0.7s linear infinite;
+}
+
+@keyframes spinnerRotate {
+  to {
+    transform: rotate(360deg);
+  }
+}

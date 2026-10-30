@@ -197,19 +197,11 @@ export function GeoOpsHeatmapPanel({
               data-testid="admin-geo-ops-cell"
               data-cell-id={item.cell.cellId}
               title={`${item.cell.label}: ${metricLabel(metric)} ${formatHeatmapValue(item.value, metric)}`}
+              className={styles.heatmapCell}
               style={{
-                minHeight: 158,
-                padding: 14,
-                border: "1px solid var(--admin-divider)",
-                borderTop: `3px solid color-mix(in srgb, var(--app-accent, var(--admin-accent)) ${Math.round((Math.max(0.3, item.intensity))*100)}%, transparent)`,
-                borderRadius: 2,
-                background: `color-mix(in srgb, var(--app-accent, var(--admin-accent)) ${Math.round((item.intensity * 0.24)*100)}%, transparent)`,
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "space-between",
-                gap: 12,
-                minWidth: 0,
-              }}
+                "--border-pct": `${Math.round((Math.max(0.3, item.intensity))*100)}%`,
+                "--bg-pct": `${Math.round((item.intensity * 0.24)*100)}%`,
+              } as React.CSSProperties}
             >
               <div className={styles.contentBlock}>
                 <div className={styles.cellValueRow}>
@@ -299,23 +291,14 @@ function GeoOpsRadarMap({
                 data-testid="admin-geo-ops-radar-cell"
                 data-cell-code={adminCellCode(item.cell)}
                 title={`${item.cell.label}: ${formatHeatmapValue(item.value, metric)} - ${adminCellCode(item.cell)}`}
+                className={styles.radarBubble}
                 style={{
-                  position: "absolute",
-                  left: `${left}%`,
-                  top: `${top}%`,
-                  width: size,
-                  height: size,
-                  transform: "translate(-50%, -50%)",
-                  borderRadius: "50%",
-                  border: `1px solid color-mix(in srgb, var(--app-accent, var(--admin-accent)) ${Math.round((Math.max(0.28, item.intensity))*100)}%, transparent)`,
-                  background: `color-mix(in srgb, var(--app-accent, var(--admin-accent)) ${Math.round((Math.max(0.10, item.intensity * 0.26))*100)}%, transparent)`,
-                  color: "var(--admin-accent)",
-                  display: "grid",
-                  placeItems: "center",
-                  textAlign: "center",
-                  padding: 8,
-                  boxShadow: "0 14px 30px var(--admin-backdrop)",
-                }}
+                  "--left": `${left}%`,
+                  "--top": `${top}%`,
+                  "--size": `${size}px`,
+                  "--border-pct": `${Math.round((Math.max(0.28, item.intensity))*100)}%`,
+                  "--bg-pct": `${Math.round((Math.max(0.10, item.intensity * 0.26))*100)}%`,
+                } as React.CSSProperties}
               >
                 <span className={styles.radarBubbleValue}>
                   {formatHeatmapValue(item.value, metric)}
@@ -353,17 +336,8 @@ function AdminRadarOverlay() {
         <span
           key={size}
           aria-hidden
-          style={{
-            position: "absolute",
-            left: "50%",
-            top: "50%",
-            width: `${size}%`,
-            aspectRatio: "1 / 1",
-            transform: "translate(-50%, -50%)",
-            border: "1px solid var(--admin-divider)",
-            borderRadius: "50%",
-            pointerEvents: "none",
-          }}
+          className={styles.radarRing}
+          style={{ "--size": `${size}%` } as React.CSSProperties}
         />
       ))}
       <span aria-hidden className={styles.radarAxisHorizontal} />
@@ -374,7 +348,7 @@ function AdminRadarOverlay() {
 
 function GeoCellMeta({ cell, compact }: { cell: AdminEventRadarHeatmapCell; compact?: boolean }) {
   return (
-    <p style={{ margin: compact ? "6px 0 0" : "5px 0 0", fontSize: 10, color: "var(--admin-text-muted)", overflowWrap: "anywhere" }}>
+    <p className={`${styles.cellMeta} ${compact ? styles.cellMetaCompact : ""}`}>
       <span className={styles.cellKind}>{adminCellKind(cell)}</span>{" "}
       <span className={styles.cellCode}>{adminCellCode(cell)}</span>
       {!adminCellHasGeo(cell) ? " - sem centro geo" : ""}

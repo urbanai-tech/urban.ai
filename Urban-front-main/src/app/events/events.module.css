@@ -141,6 +141,11 @@
   cursor: pointer;
   box-shadow: 0 12px 28px var(--theme-app-legacy-events-ink-13);
   min-width: 0;
+  left: var(--pin-left);
+  top: var(--pin-top);
+  border: 1px solid var(--pin-border);
+  background: var(--pin-bg);
+  color: var(--pin-text);
 }
 
 .mapPinHeader.mapPinHeader {
@@ -176,6 +181,7 @@
   position: absolute;
   left: 50%;
   top: 50%;
+  width: var(--ring-size);
   aspect-ratio: 1 / 1;
   transform: translate(-50%, -50%);
   border: 1px solid var(--theme-app-legacy-events-ink-07);

@@ -2,6 +2,7 @@
 
 import React, { createContext, useCallback, useContext, useMemo, useState } from "react";
 import { AlertCircle, Check, Close, Info } from "./Icons";
+import styles from "./AppToast.module.css";
 
 /**
  * AppToast — toast manager light premium do anfitrião.
@@ -43,30 +44,11 @@ type Ctx = {
 
 const AppToastContext = createContext<Ctx | null>(null);
 
-const KIND_STYLE: Record<
-  AppToastKind,
-  { border: string; iconColor: string; bg: string }
-> = {
-  success: {
-    border: "var(--app-success)",
-    iconColor: "var(--app-success)",
-    bg: "var(--app-surface-muted)",
-  },
-  warn: {
-    border: "var(--app-warning)",
-    iconColor: "var(--app-warning)",
-    bg: "var(--app-surface-muted)",
-  },
-  error: {
-    border: "var(--app-danger)",
-    iconColor: "var(--app-danger)",
-    bg: "var(--app-surface-muted)",
-  },
-  info: {
-    border: "var(--app-accent)",
-    iconColor: "var(--app-accent)",
-    bg: "var(--app-accent-soft)",
-  },
+const KIND_CLASS: Record<AppToastKind, string> = {
+  success: styles.toastSuccess,
+  warn: styles.toastWarn,
+  error: styles.toastError,
+  info: styles.toastInfo,
 };
 
 function IconFor({ kind }: { kind: AppToastKind }) {
@@ -107,100 +89,27 @@ export function AppToastProvider({ children }: { children: React.ReactNode }) {
   return (
     <AppToastContext.Provider value={ctx}>
       {children}
-      <div
-        aria-live="polite"
-        aria-atomic="true"
-        style={{
-          position: "fixed",
-          top: 20,
-          right: 20,
-          zIndex: 3000,
-          display: "flex",
-          flexDirection: "column",
-          gap: 10,
-          pointerEvents: "none",
-          maxWidth: "calc(100vw - 40px)",
-        }}
-      >
+      <div aria-live="polite" aria-atomic="true" className={styles.toastStack}>
         {toasts.map((t) => {
-          const s = KIND_STYLE[t.kind];
           const isErrorish = t.kind === "error" || t.kind === "warn";
           return (
             <div
               key={t.id}
               role={isErrorish ? "alert" : "status"}
               aria-live={isErrorish ? "assertive" : "polite"}
-              style={{
-                pointerEvents: "auto",
-                minWidth: 280,
-                maxWidth: 420,
-                padding: "14px 16px",
-                background: "var(--app-surface)",
-                border: "1px solid var(--app-divider)",
-                borderLeft: `3px solid ${s.border}`,
-                borderRadius: 8,
-                display: "flex",
-                alignItems: "flex-start",
-                gap: 12,
-                fontSize: 14,
-                color: "var(--app-text)",
-                boxShadow: "var(--app-shadow-overlay)",
-                animation: "urban-app-toast-in 220ms cubic-bezier(0.16, 1, 0.3, 1)",
-                fontFamily: "var(--font-brand)",
-              }}
+              className={`${styles.toast} ${KIND_CLASS[t.kind]}`}
             >
-              <span
-                style={{
-                  color: s.iconColor,
-                  marginTop: 1,
-                  flexShrink: 0,
-                  display: "inline-flex",
-                  width: 22,
-                  height: 22,
-                  borderRadius: "50%",
-                  background: s.bg,
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
+              <span className={styles.toastIcon}>
                 <IconFor kind={t.kind} />
               </span>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ margin: 0, fontWeight: 500, lineHeight: 1.4 }}>
-                  {t.message}
-                </p>
-                {t.sub && (
-                  <p
-                    style={{
-                      margin: "4px 0 0",
-                      fontSize: 12,
-                      color: "var(--app-text-muted)",
-                      lineHeight: 1.5,
-                    }}
-                  >
-                    {t.sub}
-                  </p>
-                )}
+              <div className={styles.toastBody}>
+                <p className={styles.toastMessage}>{t.message}</p>
+                {t.sub && <p className={styles.toastSub}>{t.sub}</p>}
               </div>
               <button
                 onClick={() => dismiss(t.id)}
                 aria-label="Fechar notificação"
-                className="urban-focus-ring"
-                style={{
-                  background: "transparent",
-                  border: "none",
-                  color: "var(--app-text-muted)",
-                  cursor: "pointer",
-                  padding: 6,
-                  minWidth: 28,
-                  minHeight: 28,
-                  borderRadius: 6,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  lineHeight: 0,
-                  display: "inline-flex",
-                  flexShrink: 0,
-                }}
+                className={`urban-focus-ring ${styles.toastClose}`}
               >
                 <Close size={14} />
               </button>

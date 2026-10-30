@@ -391,7 +391,14 @@ function CatalogMap({
                 data-testid="host-event-map-pin"
                 data-geo-cell={catalogGeoCellId(event)}
                 onClick={() => onOpen(event.id)}
-                className={styles.hostEventMapPin} style={{ left: `${left}%`, top: `${top}%`, border: `1px solid ${color.border}`, background: color.background, color: color.text }}
+                className={styles.hostEventMapPin}
+                style={{
+                  "--pin-left": `${left}%`,
+                  "--pin-top": `${top}%`,
+                  "--pin-border": color.border,
+                  "--pin-bg": color.background,
+                  "--pin-text": color.text,
+                } as React.CSSProperties}
               >
                 <span className={styles.mapPinHeader}>
                   <span className={styles.mapPinName}>
@@ -432,7 +439,8 @@ function MapRadarOverlay() {
         <span
           key={size}
           aria-hidden
-          className={styles.radarRing} style={{ width: `${size}%` }}
+          className={styles.radarRing}
+          style={{ "--ring-size": `${size}%` } as React.CSSProperties}
         />
       ))}
       <span

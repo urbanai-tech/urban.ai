@@ -169,7 +169,15 @@ export function EventDemandHeatmapPlaceholder({
                       onClick={() => onSelectCell?.(cell)}
                       title={`${cell.regionLabel}: ${cell.cellCode}, score ${cell.score}, ${cell.eventsCount} ${cell.eventsCount === 1 ? "evento" : "eventos"}`}
                       aria-label={`${cell.regionLabel}, célula ${cell.cellCode}, score de demanda ${cell.score}, ${cell.affectedPropertiesCount} ${cell.affectedPropertiesCount === 1 ? "imóvel impactado" : "imóveis impactados"}`}
-                      style={{ left: `${left}%`, top: `${top}%`, width: size, height: size, border: isSelected ? `2px solid ${color.text}` : `1px solid ${color.border}`, background: color.background, color: color.text, boxShadow: isSelected ? "0 0 0 5px var(--app-accent-soft), var(--app-shadow-overlay)" : "var(--app-shadow-elevated)" }}
+                      style={{
+                        "--cell-left": `${left}%`,
+                        "--cell-top": `${top}%`,
+                        "--cell-size": `${size}px`,
+                        "--cell-border": isSelected ? `2px solid ${color.text}` : `1px solid ${color.border}`,
+                        "--cell-bg": color.background,
+                        "--cell-text": color.text,
+                        "--cell-shadow": isSelected ? "0 0 0 5px var(--app-accent-soft), var(--app-shadow-overlay)" : "var(--app-shadow-elevated)",
+                      } as React.CSSProperties}
                     >
                       <span className={styles.heatCellScore}>{cell.score || "-"}</span>
                       <span className={styles.heatCellLevel}>
@@ -357,7 +365,7 @@ function HeatLegend() {
           key={item.label}
           className={styles.heatLegendLabel}
         >
-          <span className={styles.heatLegendDot} style={{ background: item.color }} />
+          <span className={styles.heatLegendDot} style={{ "--dot-color": item.color } as React.CSSProperties} />
           {item.label}
         </span>
       ))}
@@ -379,7 +387,8 @@ function RadarGridOverlay() {
         <span
           key={size}
           aria-hidden
-          className={styles.radarRing} style={{ width: `${size}%` }}
+          className={styles.radarRing}
+          style={{ "--ring-size": `${size}%` } as React.CSSProperties}
         />
       ))}
       <span
@@ -481,7 +490,11 @@ function RegionCard({
               data-testid="host-event-demand-heatmap-event-link"
               onClick={() => onSelectEvent?.(event.id)}
               title={event.name}
-              className={styles.regionCardEventLink} style={{ background: selectedEventStyle(event.id, cell, selected), color: selected ? "var(--app-accent)" : "var(--app-text-muted)" }}
+              className={styles.regionCardEventLink}
+              style={{
+                "--link-bg": selectedEventStyle(event.id, cell, selected),
+                "--link-text": selected ? "var(--app-accent)" : "var(--app-text-muted)",
+              } as React.CSSProperties}
             >
               {event.name}
             </button>

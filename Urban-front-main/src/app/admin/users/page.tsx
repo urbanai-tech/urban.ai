@@ -198,13 +198,7 @@ export default function AdminUsersPage() {
           type="button"
           onClick={() => setConfirmActive({ user: u, next: !u.ativo })}
           disabled={busy === u.id}
-          style={{
-            background: "transparent",
-            border: "none",
-            cursor: busy === u.id ? "not-allowed" : "pointer",
-            padding: 0,
-            opacity: busy === u.id ? 0.5 : 1,
-          }}
+          className={styles.statusToggle}
           title={u.ativo ? "Clique para desativar" : "Clique para ativar"}
         >
           <AdminBadge kind={u.ativo ? "success" : "neutral"}>

@@ -1,0 +1,11 @@
+.strongLead.strongLead {
+  color: var(--theme-public-text);
+}
+
+.formStatus.formStatus {
+  margin: 18px 0 0;
+}
+
+.formStatusSuccess.formStatusSuccess {
+  color: var(--theme-public-text);
+}

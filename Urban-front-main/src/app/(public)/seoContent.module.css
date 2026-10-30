@@ -1,0 +1,27 @@
+.answerQuote.answerQuote {
+  max-width: 980px;
+}
+
+.answerGrid.answerGrid {
+  margin-top: 54px;
+}
+
+.singleColumn.singleColumn {
+  grid-template-columns: 1fr;
+}
+
+.processStep.processStep {
+  min-height: 0;
+}
+
+.processNumber.processNumber {
+  font-size: 44px;
+}
+
+.processTitle.processTitle {
+  margin-top: 30px;
+}
+
+.hubCard.hubCard {
+  text-decoration: none;
+}

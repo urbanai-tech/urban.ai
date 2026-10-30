@@ -4,6 +4,7 @@ import React from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import styles from './GoogleMapEmbed.module.css';
 
 // ===== ICONES CUSTOMIZADOS =====
 function createPropertyIcon(name: string, imageUrl: string) {
@@ -146,21 +147,11 @@ export default function AirbnbMap({ height = 500, events, property }: AirbnbMapP
         : [-23.55052, -46.633308];
 
   return (
-    <div
-      style={{
-        height: resolvedHeight,
-        width: "100%",
-        margin: "0 8px",
-        padding: 4,
-        borderRadius: 8,
-        background: "#fff",
-        boxShadow: "0 4px 12px rgba(14,17,22,0.12)",
-      }}
-    >
+    <div className={styles.mapFrame} style={{ height: resolvedHeight }}>
       <MapContainer
         center={center}
         zoom={12}
-        style={{ height: "100%", width: "100%", borderRadius: "8px" }}
+        className={styles.mapContainer}
         scrollWheelZoom
       >
         <TileLayer
@@ -179,13 +170,7 @@ export default function AirbnbMap({ height = 500, events, property }: AirbnbMapP
               <img
                 src={property.image_url}
                 alt={property.propertyName}
-                style={{
-                  width: "200px",
-                  height: "120px",
-                  objectFit: "cover",
-                  borderRadius: "8px",
-                  marginBottom: "6px"
-                }}
+                className={styles.popupImage}
               />
               <strong>{property.propertyName}</strong>
             </Popup>
@@ -210,13 +195,7 @@ export default function AirbnbMap({ height = 500, events, property }: AirbnbMapP
                   <img
                     src={ev.imagem_url}
                     alt={ev.nome}
-                    style={{
-                      width: '200px',
-                      height: '120px',
-                      objectFit: 'cover',
-                      borderRadius: '8px',
-                      marginBottom: '6px'
-                    }}
+                    className={styles.popupImage}
                   />
                 )}
                 <strong>{ev.nome}</strong>

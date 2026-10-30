@@ -313,3 +313,263 @@
   color: var(--app-text-muted);
   font-family: 'Inter', sans-serif;
 }
+
+.thumbImage.thumbImage {
+  width: var(--thumb-size);
+  height: var(--thumb-size);
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1px solid var(--app-divider);
+  background: var(--app-surface-muted);
+}
+
+.thumbInitials.thumbInitials {
+  width: var(--thumb-size);
+  height: var(--thumb-size);
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--app-surface-muted);
+  border: 1px solid var(--app-divider);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--thumb-font-size);
+  font-weight: 600;
+  color: var(--app-text-muted);
+  font-family: 'Inter', sans-serif;
+  letter-spacing: 0.5px;
+}
+
+.skeletonRow.skeletonRow {
+  position: absolute;
+  top: var(--row-top);
+  left: 0;
+  right: 0;
+  height: var(--row-height);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--app-divider);
+}
+
+.loadingHeader.loadingHeader {
+  height: var(--header-height);
+  background: var(--app-surface-muted);
+  border-bottom: 1px solid var(--app-divider);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+}
+
+.loadingBody.loadingBody {
+  position: relative;
+  height: var(--skeleton-height);
+}
+
+.emptyStateLink.emptyStateLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 18px;
+  border-radius: 8px;
+  background: var(--app-accent);
+  color: var(--app-bg);
+  font-weight: 600;
+  font-size: 14px;
+  text-decoration: none;
+  font-family: 'Inter', sans-serif;
+}
+
+.mobileDayCell.mobileDayCell.mobileDayCell {
+  all: unset;
+  scroll-snap-align: start;
+  flex-shrink: 0;
+  width: var(--mobile-day-width);
+  height: 76px;
+  min-height: 44px;
+  cursor: default;
+  border-radius: 8px;
+  border: 1px solid var(--app-divider);
+  background: var(--app-surface);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 6px 4px;
+}
+
+.mobileDayCellWeekend.mobileDayCellWeekend.mobileDayCellWeekend {
+  background: var(--app-surface-muted);
+}
+
+.mobileDayCellSelected.mobileDayCellSelected.mobileDayCellSelected {
+  background: var(--app-accent-soft);
+}
+
+.mobileDayCellMarked.mobileDayCellMarked.mobileDayCellMarked {
+  border: 2px solid var(--app-accent);
+}
+
+.mobileDayCellClickable.mobileDayCellClickable.mobileDayCellClickable {
+  cursor: pointer;
+}
+
+.gridHeaderRow.gridHeaderRow {
+  display: flex;
+  background: var(--app-surface-muted);
+  border-bottom: 1px solid var(--app-divider-strong);
+  height: var(--header-height);
+}
+
+.gridHeaderLeft.gridHeaderLeft {
+  width: var(--left-col-width);
+  flex-shrink: 0;
+  border-right: 1px solid var(--app-divider-strong);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 16px;
+  background: var(--app-surface-muted);
+  position: sticky;
+  left: 0;
+  z-index: 2;
+}
+
+.gridHeaderDates.gridHeaderDates {
+  width: var(--dates-width);
+  height: var(--header-height);
+  display: flex;
+}
+
+.gridHeaderDay.gridHeaderDay {
+  width: var(--day-col-width);
+  flex-shrink: 0;
+  height: var(--header-height);
+  border-right: 1px solid var(--app-divider);
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  color: var(--app-text-muted);
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+.gridHeaderDayWeekend.gridHeaderDayWeekend {
+  background: var(--app-surface-muted);
+}
+
+.gridHeaderDayActive.gridHeaderDayActive {
+  color: var(--app-accent);
+  font-weight: 700;
+}
+
+.gridBodyInner.gridBodyInner {
+  position: relative;
+  width: var(--grid-width);
+  height: var(--body-height);
+}
+
+.gridRow.gridRow {
+  position: absolute;
+  top: var(--row-top);
+  left: 0;
+  height: var(--row-height);
+  width: var(--grid-width);
+  display: flex;
+  border-bottom: 1px solid var(--app-divider);
+  background: transparent;
+  transition: background 120ms ease;
+}
+
+.gridRowActive.gridRowActive {
+  background: var(--app-accent-soft);
+}
+
+.gridRowLeft.gridRowLeft {
+  width: var(--left-col-width);
+  flex-shrink: 0;
+  height: var(--row-height);
+  background: var(--app-surface);
+  border-right: 1px solid var(--app-divider-strong);
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 16px;
+}
+
+.gridRowLeft.gridRowLeft:hover {
+  background: var(--app-surface-muted);
+}
+
+.dayCell.dayCell.dayCell {
+  all: unset;
+  width: var(--day-col-width);
+  flex-shrink: 0;
+  height: var(--row-height);
+  cursor: default;
+  border-right: 1px solid var(--app-divider);
+  background: transparent;
+  position: relative;
+  box-sizing: border-box;
+  outline: none;
+  outline-offset: -2px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.dayCellWeekend.dayCellWeekend.dayCellWeekend {
+  background: var(--app-surface-muted);
+}
+
+.dayCellSelected.dayCellSelected.dayCellSelected {
+  background: var(--app-accent-soft);
+}
+
+.dayCellMarked.dayCellMarked.dayCellMarked {
+  outline: 2px solid var(--app-accent);
+}
+
+.dayCellClickable.dayCellClickable.dayCellClickable {
+  cursor: pointer;
+}
+
+.eventTag.eventTag {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  max-width: calc(var(--day-col-width) - 14px);
+  height: 14px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--app-surface-muted);
+  font-size: 8px;
+  color: var(--app-text-muted);
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  font-family: 'Inter', sans-serif;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  font-weight: 750;
+  line-height: 14px;
+  pointer-events: none;
+}
+
+.eventTagHigh.eventTagHigh {
+  background: var(--app-accent-soft);
+  color: var(--app-accent);
+}

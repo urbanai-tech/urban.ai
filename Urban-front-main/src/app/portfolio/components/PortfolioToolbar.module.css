@@ -104,3 +104,24 @@
   width: 120px;
   height: 36px;
 }
+
+.toolbarSurface.toolbarSurface {
+  background: var(--app-surface-elevated, var(--theme-app-legacy-white));
+  display: grid;
+  align-items: start;
+  gap: 14px 20px;
+}
+
+.selectedCountBadge.selectedCountBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: var(--app-accent-soft);
+  color: var(--app-accent, var(--theme-brand-teal));
+  font-size: 12px;
+  font-weight: 700;
+}

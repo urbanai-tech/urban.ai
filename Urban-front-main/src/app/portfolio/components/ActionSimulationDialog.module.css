@@ -43,3 +43,14 @@
   font-weight: 700;
   font-size: 15px;
 }
+
+.snapshotCard.snapshotCard {
+  border: 1px solid var(--app-divider);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: var(--app-surface-muted);
+}
+
+.snapshotCard.snapshotCard.snapshotCardWarn {
+  background: var(--theme-app-legacy-status-warning-08);
+}

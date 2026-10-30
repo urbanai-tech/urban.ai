@@ -1,0 +1,7 @@
+.strongLead.strongLead {
+  color: var(--theme-public-text);
+}
+
+.accentEm.accentEm {
+  color: var(--theme-public-accent);
+}

@@ -14,6 +14,7 @@ import { getClientPushEligibility } from "../service/pwaClient";
 import { OPEN_INSTALL_SHEET_EVENT, type PushEligibility } from "../service/pwaInstall";
 import { PushCategoryPreferences } from "./PushCategoryPreferences";
 import styles from "./Pwa.module.css";
+import pushStyles from "./PushNotificationOptIn.module.css";
 
 const DISMISS_KEY = "urban_ai_push_invite_dismissed";
 
@@ -179,52 +180,31 @@ export function PushNotificationOptIn({ variant = "full" }: PushNotificationOptI
         : "Avisos ainda não estão liberados neste ambiente.";
 
   return (
-    <section
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        gap: 16,
-        flexWrap: "wrap",
-        padding: isCompact ? "14px 16px" : "16px 18px",
-        marginBottom: isCompact ? 24 : 20,
-        border: "1px solid var(--app-divider)",
-        borderRadius: "var(--app-radius-card)",
-        background: isCompact ? "var(--app-accent-soft)" : "var(--app-surface)",
-      }}
-    >
-      <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 220 }}>
+    <section className={`${pushStyles.pushCard} ${isCompact ? pushStyles.pushCardCompact : ""}`}>
+      <div className={pushStyles.pushInfo}>
         <div
           aria-hidden
-          style={{
-            width: 36,
-            height: 36,
-            borderRadius: 8,
-            display: "grid",
-            placeItems: "center",
-            color: "var(--app-accent)",
-            background: isCompact ? "var(--app-surface)" : "var(--app-accent-soft)",
-          }}
+          className={`${pushStyles.pushIcon} ${isCompact ? pushStyles.pushIconCompact : ""}`}
         >
           <BellRing size={18} />
         </div>
         <div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-            <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: "var(--app-text)" }}>
+          <div className={pushStyles.pushTitleRow}>
+            <p className={pushStyles.pushTitle}>
               {title}
             </p>
             {badge}
           </div>
           <p
             aria-live="polite"
-            style={{ margin: "4px 0 0", fontSize: 13, color: "var(--app-text-muted)", lineHeight: 1.45 }}
+            className={pushStyles.pushText}
           >
             {message || helperText}
           </p>
         </div>
       </div>
 
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+      <div className={pushStyles.pushActions}>
         {snapshot.subscribed ? (
           <>
             <AppButton

@@ -50,32 +50,25 @@ export function AdminMetricCard({
       ? "urban-admin-display-md"
       : undefined;
 
-  const valueStyle: React.CSSProperties = isSm
-    ? {
-        fontSize: 22,
-        fontWeight: 600,
-        letterSpacing: -0.3,
-        color: accent ? "var(--admin-accent)" : "var(--admin-text)",
-      }
-    : {
-        color: accent ? "var(--admin-accent)" : "var(--admin-text)",
-      };
+  const valueClassName = [
+    valueClass,
+    styles.value,
+    isSm ? styles.valueSm : "",
+    accent ? styles.valueAccent : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <div
-      style={{
-        padding: isHero ? "32px 0" : isMd ? "24px 0" : "16px 0",
-        display: "flex",
-        flexDirection: "column",
-        gap: isSm ? 6 : 12,
-        ...style,
-      }}
+      className={`${styles.root} ${isHero ? styles.rootHero : isMd ? styles.rootMd : styles.rootSm}`}
+      style={style}
     >
       <div className={styles.labelRow}>
         {status && <AdminStatusDot kind={status} size={7} />}
         <p className="urban-admin-eyebrow-muted">{label}</p>
       </div>
-      <p className={valueClass} style={valueStyle}>
+      <p className={valueClassName}>
         {typeof value === "number" ? value.toLocaleString("pt-BR") : value}
       </p>
       {(sub || trend) && (
@@ -83,18 +76,7 @@ export function AdminMetricCard({
           className={styles.subRow}
         >
           {trend && (
-            <span
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 4,
-                color:
-                  trend === "up"
-                    ? "var(--admin-success)"
-                    : "var(--admin-danger)",
-                fontWeight: 600,
-              }}
-            >
+            <span className={`${styles.trend} ${trend === "up" ? styles.trendUp : styles.trendDown}`}>
               {trend === "up" ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
               {trendValue}
             </span>

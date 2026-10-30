@@ -168,7 +168,7 @@ function AceitarConvite() {
   return (
     <InviteShell title={heroTitle} subtitle={`${positionLabel} Crie sua senha para ativar o acesso.`}>
       <AppCard variant="elevated" className={styles.passwordFormCard}>
-        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+        <form onSubmit={handleSubmit} className={styles.passwordForm}>
           <AppInput
             label="E-mail"
             value={validation.email ?? ""}
@@ -251,11 +251,9 @@ function InviteShell({
 function LoadingCard({ label }: { label: string }) {
   return (
     <AppCard variant="elevated" className={styles.loadingCard}>
-      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+      <div className={styles.loadingRow}>
         <Spinner />
-        <p style={{ margin: 0, color: "var(--app-text-muted)", fontSize: 14 }}>
-          {label}
-        </p>
+        <p className={styles.loadingText}>{label}</p>
       </div>
     </AppCard>
   );
@@ -277,7 +275,7 @@ function PasswordInput({
   error?: string;
 }) {
   return (
-    <div style={{ position: "relative" }}>
+    <div className={styles.passwordField}>
       <AppInput
         label={label}
         type={show ? "text" : "password"}
@@ -293,21 +291,7 @@ function PasswordInput({
         type="button"
         aria-label={show ? "Ocultar senha" : "Mostrar senha"}
         onClick={onToggle}
-        style={{
-          position: "absolute",
-          right: 8,
-          top: 27,
-          height: 36,
-          width: 36,
-          display: "inline-flex",
-          alignItems: "center",
-          justifyContent: "center",
-          border: "none",
-          borderRadius: 8,
-          background: "transparent",
-          color: "var(--app-text-muted)",
-          cursor: "pointer",
-        }}
+        className={styles.passwordToggle}
       >
         {show ? <EyeOff size={16} /> : <Eye size={16} />}
       </button>
@@ -326,47 +310,17 @@ function PasswordRules({ checks }: { checks: PasswordChecks }) {
   ];
 
   return (
-    <div
-      style={{
-        padding: 16,
-        background: "var(--app-surface-muted)",
-        border: "1px solid var(--app-divider)",
-        borderRadius: 10,
-      }}
-    >
-      <p style={{ margin: "0 0 10px", fontSize: 13, fontWeight: 650 }}>
-        Regras da senha
-      </p>
-      <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
+    <div className={styles.rulesBox}>
+      <p className={styles.rulesTitle}>Regras da senha</p>
+      <ul className={styles.rulesList}>
         {rules.map(([key, label]) => (
           <li
             key={key}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              padding: "3px 0",
-              color: checks[key] ? "var(--app-text)" : "var(--app-text-muted)",
-              fontSize: 12,
-              lineHeight: 1.5,
-            }}
+            className={`${styles.ruleItem} ${checks[key] ? styles.ruleItemMet : ""}`}
           >
             <span
               aria-hidden
-              style={{
-                width: 16,
-                height: 16,
-                borderRadius: "50%",
-                background: checks[key] ? "var(--app-success)" : "var(--app-surface)",
-                border: checks[key]
-                  ? "1px solid var(--app-success)"
-                  : "1px solid var(--app-divider-strong)",
-                color: "#fff",
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                flexShrink: 0,
-              }}
+              className={`${styles.ruleCheck} ${checks[key] ? styles.ruleCheckMet : ""}`}
             >
               {checks[key] ? <Icons.Check size={10} /> : null}
             </span>
@@ -385,26 +339,12 @@ function InlineNotice({
   kind: "success" | "error";
   children: React.ReactNode;
 }) {
-  const color = kind === "success" ? "var(--app-success)" : "var(--app-danger)";
-  const bg = kind === "success" ? "rgba(22, 160, 107, 0.08)" : "rgba(194, 52, 46, 0.08)";
-  const border =
-    kind === "success" ? "rgba(22, 160, 107, 0.22)" : "rgba(194, 52, 46, 0.22)";
-
   return (
     <div
       role={kind === "error" ? "alert" : "status"}
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 10,
-        padding: "10px 12px",
-        borderRadius: 8,
-        border: `1px solid ${border}`,
-        background: bg,
-        color,
-        fontSize: 13,
-        lineHeight: 1.45,
-      }}
+      className={`${styles.notice} ${kind === "success" ? styles.noticeSuccess : styles.noticeError}`}
+      // Sem token de mesmo valor para a borda de sucesso (verde a 22%): fica inline.
+      style={kind === "success" ? { borderColor: "rgba(22, 160, 107, 0.22)" } : undefined}
     >
       {kind === "success" ? <Icons.Check size={14} /> : <Icons.AlertCircle size={14} />}
       <span>{children}</span>
@@ -413,24 +353,5 @@ function InlineNotice({
 }
 
 function Spinner() {
-  return (
-    <>
-      <style>{`
-        @keyframes urban-spin { to { transform: rotate(360deg); } }
-      `}</style>
-      <span
-        aria-hidden
-        style={{
-          display: "inline-block",
-          width: 28,
-          height: 28,
-          border: "3px solid var(--app-accent-soft)",
-          borderTopColor: "var(--app-accent)",
-          borderRadius: "50%",
-          animation: "urban-spin 0.9s linear infinite",
-          flexShrink: 0,
-        }}
-      />
-    </>
-  );
+  return <span aria-hidden className={styles.spinner} />;
 }

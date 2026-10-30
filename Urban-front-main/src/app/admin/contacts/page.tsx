@@ -310,7 +310,7 @@ export default function AdminContactsPage() {
                           {entry.email}
                         </a>
                         {entry.dueAt && (
-                          <span style={{ color: dueColor(entry.dueAt), marginLeft: 8 }}>
+                          <span className={styles.slaLabel} style={{ color: dueColor(entry.dueAt) }}>
                             SLA: {new Date(entry.dueAt).toLocaleDateString("pt-BR")}
                           </span>
                         )}

@@ -191,15 +191,7 @@ function SnapshotBox({
   tone?: "neutral" | "warn";
 }) {
   return (
-    <div
-      style={{
-        border: "1px solid var(--app-divider)",
-        borderRadius: 8,
-        padding: "10px 12px",
-        background:
-          tone === "warn" ? "rgba(200, 129, 14, 0.08)" : "var(--app-surface-muted)",
-      }}
-    >
+    <div className={`${styles.snapshotCard} ${tone === "warn" ? styles.snapshotCardWarn : ""}`}>
       <div
         className={styles.snapshotLabel}
       >

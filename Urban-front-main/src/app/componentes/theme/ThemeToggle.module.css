@@ -1,0 +1,72 @@
+/*
+ * ThemeToggle. `border` e `background` do grupo ficam inline em ThemeToggle.tsx
+ * porque os fallbacks encadeados contem cores cruas (rgba) sem token.
+ * O botao tem 3 tamanhos: padrao (icone 32px), compact (28px) e labels (flex 1).
+ * Desabilitado = ainda nao hidratado.
+ */
+.toggleGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  min-width: 0;
+  max-width: 100%;
+  padding: 3px;
+  border-radius: 999px;
+  color: var(--theme-toggle-muted, var(--app-text-muted, var(--admin-text-muted, currentColor)));
+  box-shadow: var(--theme-toggle-shadow, none);
+}
+
+.toggleButton {
+  height: 30px;
+  flex: 0 0 auto;
+  min-width: 0;
+  width: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  cursor: pointer;
+  opacity: 1;
+  font-family: var(--font-brand);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: 1;
+  transition: background 120ms, color 120ms;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.toggleButton:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.toggleButtonCompact {
+  height: 28px;
+  min-width: 28px;
+  width: 28px;
+}
+
+.toggleButtonLabels {
+  flex: 1 1 0;
+  width: auto;
+  padding: 0 8px;
+  gap: 7px;
+}
+
+.toggleButtonActive {
+  background: var(--theme-toggle-active-bg, var(--app-accent-soft, var(--admin-accent-soft, color-mix(in srgb, var(--app-accent, var(--admin-accent)) 14%, transparent))));
+  color: var(--theme-toggle-active-text, var(--app-accent, var(--admin-accent)));
+  font-weight: 700;
+}
+
+.toggleLabel {
+  min-width: 0;
+  overflow: hidden;
+}

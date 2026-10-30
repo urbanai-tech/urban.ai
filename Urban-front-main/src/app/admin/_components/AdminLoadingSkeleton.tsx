@@ -13,16 +13,16 @@ type Variant = "kpi" | "kpiHero" | "table" | "chart" | "card" | "text";
 function Bar({
   width,
   height = 12,
-  style,
+  className,
 }: {
   width: number | string;
   height?: number;
-  style?: React.CSSProperties;
+  className?: string;
 }) {
   return (
     <div
-      className="urban-admin-skeleton"
-      style={{ width, height, ...style }}
+      className={className ? `urban-admin-skeleton ${className}` : "urban-admin-skeleton"}
+      style={{ width, height }}
     />
   );
 }
@@ -40,7 +40,7 @@ export function AdminLoadingSkeleton({
 }) {
   if (variant === "kpiHero") {
     return (
-      <div style={{ padding: "32px 0", ...style }}>
+      <div className={styles.heroWrap} style={style}>
         <Bar width={120} height={11} />
         <div className={styles.headingSpacer} />
         <Bar width={"60%"} height={72} />
@@ -52,14 +52,7 @@ export function AdminLoadingSkeleton({
 
   if (variant === "kpi") {
     return (
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: `repeat(auto-fit, minmax(180px, 1fr))`,
-          gap: 32,
-          ...style,
-        }}
-      >
+      <div className={styles.kpiGrid} style={style}>
         {Array.from({ length: count }).map((_, i) => (
           <div key={i} className={styles.skeletonCard}>
             <Bar width={100} height={10} />
@@ -74,31 +67,14 @@ export function AdminLoadingSkeleton({
   if (variant === "table") {
     const cols = columns ?? 5;
     return (
-      <div style={style}>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: `repeat(${cols}, 1fr)`,
-            gap: 16,
-            paddingBottom: 12,
-            borderBottom: "1px solid var(--admin-divider)",
-          }}
-        >
+      <div style={{ ...style, "--table-cols": cols } as React.CSSProperties}>
+        <div className={styles.tableHeadRow}>
           {Array.from({ length: cols }).map((_, i) => (
             <Bar key={i} width={"60%"} height={10} />
           ))}
         </div>
         {Array.from({ length: count }).map((_, r) => (
-          <div
-            key={r}
-            style={{
-              display: "grid",
-              gridTemplateColumns: `repeat(${cols}, 1fr)`,
-              gap: 16,
-              padding: "16px 0",
-              borderBottom: "1px solid var(--admin-divider)",
-            }}
-          >
+          <div key={r} className={styles.tableRow}>
             {Array.from({ length: cols }).map((_, c) => (
               <Bar key={c} width={c === 0 ? "85%" : "60%"} height={14} />
             ))}
@@ -110,16 +86,16 @@ export function AdminLoadingSkeleton({
 
   if (variant === "chart") {
     return (
-      <div style={{ display: "flex", flexDirection: "column", gap: 8, ...style }}>
+      <div className={styles.skeletonStack} style={style}>
         <Bar width={180} height={11} />
-        <Bar width={"100%"} height={160} style={{ marginTop: 8 }} />
+        <Bar width={"100%"} height={160} className={styles.chartBar} />
       </div>
     );
   }
 
   if (variant === "card") {
     return (
-      <div style={{ display: "flex", flexDirection: "column", gap: 12, ...style }}>
+      <div className={styles.skeletonStackLoose} style={style}>
         <Bar width={"60%"} height={14} />
         <Bar width={"100%"} height={10} />
         <Bar width={"85%"} height={10} />
@@ -128,7 +104,7 @@ export function AdminLoadingSkeleton({
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 8, ...style }}>
+    <div className={styles.skeletonStack} style={style}>
       {Array.from({ length: count }).map((_, i) => (
         <Bar key={i} width={i % 2 === 0 ? "70%" : "55%"} height={12} />
       ))}

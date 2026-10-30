@@ -147,3 +147,13 @@
 .statusDot.statusDot {
   margin-top: 5px;
 }
+
+.tierTipName.tierTipName {
+  color: var(--admin-text);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.tierTipName.tierTipName.tierTipNameActive {
+  color: var(--admin-accent);
+}

@@ -2,6 +2,7 @@
 
 import React from "react";
 import type { Drivers } from "@/app/types/recommendation";
+import styles from "./DriverBar.module.css";
 
 /**
  * DriverBar — barra horizontal segmentada que explica POR QUE o preço
@@ -47,19 +48,12 @@ export function DriverBar({ drivers }: { drivers: Drivers }) {
   const safeTotal = total > 0 ? total : 1;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+    <div className={styles.driverBarRoot}>
       {/* Barra segmentada */}
       <div
         role="img"
         aria-label="Motivos que influenciaram a sugestão de preço"
-        style={{
-          display: "flex",
-          width: "100%",
-          height: 8,
-          borderRadius: 4,
-          overflow: "hidden",
-          background: "var(--app-surface-muted)",
-        }}
+        className={styles.segmentTrack}
       >
         {segments.map((seg) => {
           const pct = total > 0 ? (seg.weight / safeTotal) * 100 : 25;
@@ -70,12 +64,13 @@ export function DriverBar({ drivers }: { drivers: Drivers }) {
               key={seg.key}
               title={tooltip}
               aria-label={tooltip}
-              style={{
-                width: `${pct}%`,
-                background: seg.color,
-                transition: "filter 120ms",
-                cursor: "help",
-              }}
+              className={styles.segment}
+              style={
+                {
+                  "--seg-pct": `${pct}%`,
+                  "--seg-color": seg.color,
+                } as React.CSSProperties
+              }
             />
           );
         })}
@@ -83,16 +78,7 @@ export function DriverBar({ drivers }: { drivers: Drivers }) {
 
       {/* Legenda compacta */}
       <ul
-        style={{
-          listStyle: "none",
-          margin: 0,
-          padding: 0,
-          display: "flex",
-          flexWrap: "wrap",
-          gap: "8px 16px",
-          fontSize: 11,
-          color: "var(--app-text-muted)",
-        }}
+        className={styles.legend}
       >
         {segments.map((seg) => {
           const tooltip = `${seg.short}: ${Math.round(seg.weight)}% — ${seg.label}`;
@@ -100,26 +86,15 @@ export function DriverBar({ drivers }: { drivers: Drivers }) {
             <li
               key={seg.key}
               title={tooltip}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 6,
-                lineHeight: 1.4,
-              }}
+              className={styles.legendItem}
             >
               <span
                 aria-hidden
-                style={{
-                  display: "inline-block",
-                  width: 8,
-                  height: 8,
-                  borderRadius: 2,
-                  background: seg.color,
-                  flexShrink: 0,
-                }}
+                className={styles.legendSwatch}
+                style={{ "--seg-color": seg.color } as React.CSSProperties}
               />
-              <span style={{ color: "var(--app-text)" }}>{seg.short}</span>
-              <span style={{ color: "var(--app-text-muted)" }}>
+              <span className={styles.legendName}>{seg.short}</span>
+              <span className={styles.legendValue}>
                 {Math.round(seg.weight)}%
               </span>
             </li>

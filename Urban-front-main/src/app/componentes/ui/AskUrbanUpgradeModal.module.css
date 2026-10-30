@@ -1,0 +1,84 @@
+.modalRoot {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.modalBackdrop {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--app-text) 48%, transparent);
+  backdrop-filter: blur(4px);
+}
+
+.modalPanel {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  background: var(--app-surface-elevated, var(--app-surface));
+  border: 1px solid var(--app-divider-strong);
+  border-radius: 14px;
+  padding: 28px 28px 24px;
+  box-shadow: var(--app-shadow-overlay);
+  font-family: var(--font-brand);
+}
+
+.closeButton {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: transparent;
+  border: none;
+  color: var(--app-text-muted);
+  cursor: pointer;
+  padding: 8px;
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+  border-radius: 6px;
+}
+
+.betaChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: var(--app-accent-soft);
+  border: 1px solid var(--app-accent);
+  border-radius: 999px;
+  color: var(--app-accent);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+.modalTitle {
+  margin: 18px 0 10px;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  color: var(--app-text);
+  line-height: 1.25;
+}
+
+.modalText {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--app-text-muted);
+}
+
+.modalActions {
+  margin-top: 28px;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}

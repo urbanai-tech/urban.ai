@@ -21,3 +21,20 @@
   line-height: 0;
   padding: 2px;
 }
+
+.toast.toast {
+  pointer-events: auto;
+  min-width: 280px;
+  max-width: 420px;
+  padding: 12px 14px;
+  background: var(--admin-surface-elevated);
+  border: 1px solid var(--admin-divider-strong);
+  border-left: 2px solid var(--toast-accent);
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--admin-text);
+  box-shadow: 0 8px 24px var(--admin-backdrop);
+}

@@ -1,3 +1,60 @@
 .channelsCard.channelsCard {
   padding: 24px;
 }
+
+.loadingText {
+  color: var(--app-text-muted);
+  font-size: 14px;
+}
+
+.errorAlert {
+  margin-bottom: 20px;
+  border: 1px solid var(--theme-app-legacy-danger-22);
+  background: var(--theme-app-legacy-danger-06);
+  color: var(--app-danger);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 13px;
+}
+
+.itemList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.itemRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 0;
+  border-top: 1px solid var(--app-divider);
+  flex-wrap: wrap;
+}
+
+.itemInfo {
+  min-width: 240px;
+  flex: 1;
+}
+
+.itemTitleRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.itemTitle {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--app-text);
+}
+
+.itemBody {
+  margin: 5px 0 0;
+  font-size: 13px;
+  color: var(--app-text-muted);
+  line-height: 1.5;
+}

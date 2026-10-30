@@ -103,11 +103,9 @@ function CommandTile({
       className={styles.statCard}
     >
       <span
-        style={{
-          color: kind === "error" ? "var(--admin-danger)" : kind === "warn" ? "var(--admin-warning)" : "var(--admin-accent)",
-          lineHeight: 0,
-          marginTop: 1,
-        }}
+        className={`${styles.statIcon} ${
+          kind === "error" ? styles.statIconError : kind === "warn" ? styles.statIconWarn : ""
+        }`}
       >
         {icon}
       </span>
@@ -173,13 +171,16 @@ function HealthMeter({ label, value, detail }: { label: string; value: number; d
   const kind: AdminBadgeKind = clamped >= 70 ? "success" : clamped >= 45 ? "warn" : "error";
 
   return (
-    <div className={styles.healthCard}>
+    <div
+      className={styles.healthCard}
+      style={{ "--score-color": scoreColor(clamped), "--pct": `${clamped}%` } as React.CSSProperties}
+    >
       <div className={styles.healthHeader}>
         <p className="urban-admin-eyebrow-muted">{label}</p>
         <span className={styles.healthPercent}>{clamped}%</span>
       </div>
       <div className={styles.healthTrack}>
-        <div style={{ width: `${clamped}%`, height: "100%", background: scoreColor(clamped) }} />
+        <div className={styles.healthFill} />
       </div>
       <div className={styles.healthBadge}>
         <AdminBadge kind={kind}>{detail}</AdminBadge>

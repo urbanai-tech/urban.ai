@@ -191,18 +191,15 @@ export default function AdminStaysPage() {
             <div>
               <p className="urban-admin-eyebrow">PUSH SUCCESS RATE (30D)</p>
               <p
-                className="urban-admin-display-hero"
-                style={{
-                  marginTop: 12,
-                  color:
-                    successRate == null
-                      ? "var(--admin-text-muted)"
-                      : successRate >= 90
-                        ? "var(--admin-success)"
-                        : successRate >= 60
-                          ? "var(--admin-warning)"
-                          : "var(--admin-danger)",
-                }}
+                className={`urban-admin-display-hero ${styles.successRate} ${
+                  successRate == null
+                    ? ""
+                    : successRate >= 90
+                      ? styles.successRateGood
+                      : successRate >= 60
+                        ? styles.successRateWarn
+                        : styles.successRateBad
+                }`}
               >
                 {successRate == null ? "—" : `${successRate}%`}
               </p>
@@ -238,21 +235,9 @@ export default function AdminStaysPage() {
       {/* === Faixa slim beta-private === */}
       {data.readiness && (
         <section
-          style={{
-            marginBottom: 32,
-            padding: "14px 18px",
-            borderLeft: `2px solid ${
-              data.readiness.betaPrivate ? "var(--admin-warning)" : "var(--admin-success)"
-            }`,
-            background: data.readiness.betaPrivate
-              ? "color-mix(in srgb, var(--admin-warning) 6%, transparent)"
-              : "color-mix(in srgb, var(--admin-success) 5%, transparent)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 16,
-            flexWrap: "wrap",
-          }}
+          className={`${styles.readinessStrip} ${
+            data.readiness.betaPrivate ? styles.readinessStripBeta : styles.readinessStripReady
+          }`}
         >
           <div className={styles.readinessInfo}>
             <AdminStatusDot
@@ -316,11 +301,11 @@ export default function AdminStaysPage() {
                   <div
                     key={s}
                     title={`${s}: ${count}`}
+                    className={styles.statusSegment}
                     style={{
-                      width: `${(count / totalPushes) * 100}%`,
-                      background: pushStatusColor(s),
-                      transition: "background 120ms",
-                    }}
+                      "--pct": `${(count / totalPushes) * 100}%`,
+                      "--seg-color": pushStatusColor(s),
+                    } as React.CSSProperties}
                   />
                 );
               })}
@@ -397,21 +382,7 @@ export default function AdminStaysPage() {
                   key={s}
                   type="button"
                   onClick={() => setStatusFilter(s)}
-                  style={{
-                    background: "transparent",
-                    border: "none",
-                    borderRight: "1px solid var(--admin-divider)",
-                    borderBottom: active
-                      ? "2px solid var(--admin-accent)"
-                      : "2px solid transparent",
-                    color: active ? "var(--admin-text)" : "var(--admin-text-muted)",
-                    fontSize: 11,
-                    fontWeight: 600,
-                    letterSpacing: 1.5,
-                    textTransform: "uppercase",
-                    padding: "8px 14px",
-                    cursor: "pointer",
-                  }}
+                  className={`${styles.filterButton} ${active ? styles.filterButtonActive : ""}`}
                 >
                   {s === "all" ? "Todos" : s}
                 </button>

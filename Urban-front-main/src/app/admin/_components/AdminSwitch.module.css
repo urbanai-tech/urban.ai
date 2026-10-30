@@ -1,0 +1,17 @@
+.label.label {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  opacity: 1;
+  font-size: 12px;
+  color: var(--admin-text-muted);
+  font-weight: 500;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.label.label.labelDisabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}

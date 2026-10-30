@@ -305,13 +305,7 @@ function MarketIntelContent() {
           {/* ZONA 3 — Gráfico ADR */}
           <section
             aria-label="Comparativo de diária média"
-            style={{
-              padding: 24,
-              background: "var(--app-surface)",
-              border: "1px solid var(--app-divider)",
-              borderRadius: 12,
-              boxShadow: "0 1px 2px var(--theme-app-legacy-ink-04)",
-            }}
+            className={styles.chartSection}
           >
             <header className={styles.sectionHeader}>
               <p className="urban-app-eyebrow-muted">DIÁRIA MÉDIA · {period.label.toUpperCase()}</p>
@@ -386,15 +380,7 @@ function MarketIntelContent() {
 
 function KpiCardWrap({ children }: { children: React.ReactNode }) {
   return (
-    <div
-      style={{
-        padding: 20,
-        background: "var(--app-surface)",
-        border: "1px solid var(--app-divider)",
-        borderRadius: 12,
-        boxShadow: "0 1px 2px var(--theme-app-legacy-ink-04)",
-      }}
-    >
+    <div className={styles.kpiCard}>
       {children}
     </div>
   );

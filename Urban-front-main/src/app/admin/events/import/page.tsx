@@ -122,12 +122,7 @@ export default function ImportarCsvEventos() {
       width: 110,
       align: "right",
       render: (r) => (
-        <span
-          style={{
-            fontFamily: "monospace",
-            color: r.created > 0 ? "var(--admin-success)" : "var(--admin-text-dim)",
-          }}
-        >
+        <span className={`${styles.countCell} ${r.created > 0 ? styles.countSuccess : ""}`}>
           {r.created.toLocaleString("pt-BR")}
         </span>
       ),
@@ -138,12 +133,7 @@ export default function ImportarCsvEventos() {
       width: 120,
       align: "right",
       render: (r) => (
-        <span
-          style={{
-            fontFamily: "monospace",
-            color: r.updated > 0 ? "var(--admin-accent)" : "var(--admin-text-dim)",
-          }}
-        >
+        <span className={`${styles.countCell} ${r.updated > 0 ? styles.countAccent : ""}`}>
           {r.updated.toLocaleString("pt-BR")}
         </span>
       ),
@@ -154,12 +144,7 @@ export default function ImportarCsvEventos() {
       width: 110,
       align: "right",
       render: (r) => (
-        <span
-          style={{
-            fontFamily: "monospace",
-            color: r.skipped > 0 ? "var(--admin-danger)" : "var(--admin-text-dim)",
-          }}
-        >
+        <span className={`${styles.countCell} ${r.skipped > 0 ? styles.countDanger : ""}`}>
           {r.skipped.toLocaleString("pt-BR")}
         </span>
       ),
@@ -417,22 +402,7 @@ function ImportReadiness({ result }: { result: ImportResult }) {
   const ready = usefulRows >= BETA_IMPORT_TARGET;
 
   return (
-    <div
-      style={{
-        padding: 24,
-        borderRadius: 2,
-        border: "1px solid var(--admin-divider)",
-        borderLeft: `2px solid ${
-          ready ? "var(--admin-success)" : "var(--admin-warning)"
-        }`,
-        background: "var(--admin-surface)",
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "flex-start",
-        gap: 24,
-        flexWrap: "wrap",
-      }}
-    >
+    <div className={`${styles.readinessCard} ${ready ? styles.readinessCardReady : styles.readinessCardPending}`}>
       <div className={styles.progressInfo}>
         <div
           className={styles.progressBadgeRow}
@@ -468,10 +438,7 @@ function ImportReadiness({ result }: { result: ImportResult }) {
       </div>
       <div className={styles.progressPercent}>
         <p
-          className="urban-admin-display-sm"
-          style={{
-            color: ready ? "var(--admin-success)" : "var(--admin-warning)",
-          }}
+          className={`urban-admin-display-sm ${ready ? styles.progressValueReady : styles.progressValuePending}`}
         >
           {progress}%
         </p>

@@ -104,7 +104,7 @@ export default function CommunicationSettingsPage() {
   if (loading) {
     return (
       <AppPageShell maxWidth={900}>
-        <p style={{ color: "var(--app-text-muted)", fontSize: 14 }}>Carregando…</p>
+        <p className={styles.loadingText}>Carregando…</p>
       </AppPageShell>
     );
   }
@@ -132,15 +132,7 @@ export default function CommunicationSettingsPage() {
       {error && (
         <div
           role="alert"
-          style={{
-            marginBottom: 20,
-            border: "1px solid rgba(194, 52, 46, 0.22)",
-            background: "rgba(194, 52, 46, 0.06)",
-            color: "var(--app-danger)",
-            borderRadius: 8,
-            padding: "10px 12px",
-            fontSize: 13,
-          }}
+          className={styles.errorAlert}
         >
           {error}
         </div>
@@ -152,31 +144,23 @@ export default function CommunicationSettingsPage() {
           subtitle="Essas escolhas são salvas na sua conta e passam a orientar os próximos disparos."
         />
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <div className={styles.itemList}>
           {ITEMS.map((item) => {
             const enabled = Boolean(preferences[item.key]);
             const busy = saving === item.key;
             return (
               <div
                 key={item.key}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  gap: 16,
-                  padding: "16px 0",
-                  borderTop: "1px solid var(--app-divider)",
-                  flexWrap: "wrap",
-                }}
+                className={styles.itemRow}
               >
-                <div style={{ minWidth: 240, flex: 1 }}>
-                  <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-                    <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: "var(--app-text)" }}>
+                <div className={styles.itemInfo}>
+                  <div className={styles.itemTitleRow}>
+                    <p className={styles.itemTitle}>
                       {item.title}
                     </p>
                     {item.fixed && <AppBadge kind="neutral">ESSENCIAL</AppBadge>}
                   </div>
-                  <p style={{ margin: "5px 0 0", fontSize: 13, color: "var(--app-text-muted)", lineHeight: 1.5 }}>
+                  <p className={styles.itemBody}>
                     {item.body}
                   </p>
                 </div>

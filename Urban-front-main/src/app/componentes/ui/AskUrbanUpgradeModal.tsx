@@ -4,6 +4,7 @@ import React, { useRef } from "react";
 import { AppButton } from "./AppButton";
 import { Close, Sparkles } from "./Icons";
 import { useDialogFocus } from "./useDialogFocus";
+import styles from "./AskUrbanUpgradeModal.module.css";
 
 /**
  * Modal de upgrade para usuários no plano `starter` que tentam abrir o
@@ -34,80 +35,28 @@ export function AskUrbanUpgradeModal({
       role="dialog"
       aria-modal="true"
       aria-labelledby="ask-upgrade-title"
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 1200,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: 24,
-      }}
+      className={styles.modalRoot}
     >
       <div
         onClick={onClose}
         aria-hidden="true"
-        style={{
-          position: "absolute",
-          inset: 0,
-          background: "color-mix(in srgb, var(--app-text) 48%, transparent)",
-          backdropFilter: "blur(4px)",
-        }}
+        className={styles.modalBackdrop}
       />
       <div
         ref={panelRef}
         tabIndex={-1}
-        style={{
-          position: "relative",
-          width: "100%",
-          maxWidth: 480,
-          background: "var(--app-surface-elevated, var(--app-surface))",
-          border: "1px solid var(--app-divider-strong)",
-          borderRadius: 14,
-          padding: "28px 28px 24px",
-          boxShadow: "var(--app-shadow-overlay)",
-          fontFamily: "var(--font-brand)",
-        }}
+        className={styles.modalPanel}
       >
         <button
           onClick={onClose}
           aria-label="Fechar modal de upgrade"
-          className="urban-focus-ring"
-          style={{
-            position: "absolute",
-            top: 14,
-            right: 14,
-            background: "transparent",
-            border: "none",
-            color: "var(--app-text-muted)",
-            cursor: "pointer",
-            padding: 8,
-            minWidth: 44,
-            minHeight: 44,
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            lineHeight: 0,
-            borderRadius: 6,
-          }}
+          className={`urban-focus-ring ${styles.closeButton}`}
         >
           <Close size={16} />
         </button>
 
         <div
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 8,
-            padding: "6px 12px",
-            background: "var(--app-accent-soft)",
-            border: "1px solid var(--app-accent)",
-            borderRadius: 999,
-            color: "var(--app-accent)",
-            fontSize: 12,
-            fontWeight: 600,
-            letterSpacing: 0.3,
-          }}
+          className={styles.betaChip}
         >
           <Sparkles size={14} />
           <span>Ask Urban · BETA</span>
@@ -115,25 +64,13 @@ export function AskUrbanUpgradeModal({
 
         <h2
           id="ask-upgrade-title"
-          style={{
-            margin: "18px 0 10px",
-            fontSize: 22,
-            fontWeight: 600,
-            letterSpacing: -0.3,
-            color: "var(--app-text)",
-            lineHeight: 1.25,
-          }}
+          className={styles.modalTitle}
         >
           Disponível no plano Profissional
         </h2>
 
         <p
-          style={{
-            margin: 0,
-            fontSize: 14,
-            lineHeight: 1.6,
-            color: "var(--app-text-muted)",
-          }}
+          className={styles.modalText}
         >
           O Ask Urban é o assistente conversacional que responde sobre receita
           projetada, ocupação comparada com imóveis parecidos, eventos próximos
@@ -142,13 +79,7 @@ export function AskUrbanUpgradeModal({
         </p>
 
         <div
-          style={{
-            marginTop: 28,
-            display: "flex",
-            gap: 10,
-            justifyContent: "flex-end",
-            flexWrap: "wrap",
-          }}
+          className={styles.modalActions}
         >
           <AppButton variant="ghost" onClick={onClose}>
             Fechar

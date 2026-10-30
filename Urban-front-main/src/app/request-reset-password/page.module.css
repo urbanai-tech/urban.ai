@@ -1,3 +1,55 @@
 .formCard.formCard {
   padding: 28px;
 }
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.successIcon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--theme-app-legacy-success-10);
+  color: var(--app-success);
+}
+
+.successTitle {
+  margin: 0;
+  color: var(--app-text);
+  font-size: 18px;
+  line-height: 1.35;
+  font-weight: 650;
+}
+
+.successText {
+  margin: 8px 0 0;
+  color: var(--app-text-muted);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.successActions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.loginHint {
+  margin: 0;
+  text-align: center;
+  color: var(--app-text-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.loginLink {
+  color: var(--app-accent);
+  font-weight: 650;
+  text-decoration: none;
+}

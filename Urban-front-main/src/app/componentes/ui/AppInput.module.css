@@ -46,3 +46,27 @@
   resize: vertical;
   font-family: var(--font-brand);
 }
+
+/* Casca do campo: a prop `shellStyle` do caller segue inline e vence a classe. */
+.shell {
+  display: block;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.addonWrap {
+  position: relative;
+}
+
+.addon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--app-text-muted);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 600;
+}

@@ -139,3 +139,19 @@
 .legendLabel.legendLabel {
   letter-spacing: 0.4px;
 }
+
+.barsGrid.barsGrid {
+  display: grid;
+  grid-template-columns: repeat(var(--day-count), minmax(0, 1fr));
+  gap: 6px;
+  align-items: end;
+  min-height: 110px;
+}
+
+.legendDot.legendDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  background: var(--dot-color);
+  display: inline-block;
+}

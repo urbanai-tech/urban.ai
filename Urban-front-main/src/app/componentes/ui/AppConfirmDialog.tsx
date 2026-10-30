@@ -2,7 +2,7 @@
 
 import React, { useRef } from "react";
 import { AppButton } from "./AppButton";
-import { appRadius, appShadow, appVar } from "./styles";
+import styles from "./AppConfirmDialog.module.css";
 import { useDialogFocus } from "./useDialogFocus";
 
 /**
@@ -63,73 +63,15 @@ export function AppConfirmDialog({
       role="dialog"
       aria-modal="true"
       aria-labelledby="app-confirm-title"
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 1100,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: 24,
-      }}
+      className={styles.dialogRoot}
     >
-      <div
-        onClick={onClose}
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          inset: 0,
-          background: "var(--app-backdrop)",
-          backdropFilter: "blur(4px)",
-        }}
-      />
-      <div
-        ref={dialogRef}
-        tabIndex={-1}
-        style={{
-          position: "relative",
-          width: "100%",
-          maxWidth: 460,
-          background: appVar.surfaceElevated,
-          border: `1px solid ${appVar.dividerStrong}`,
-          borderRadius: appRadius.dialog,
-          padding: "28px 28px 24px",
-          boxShadow: appShadow.overlay,
-        }}
-      >
-        <h2
-          id="app-confirm-title"
-          style={{
-            fontSize: 18,
-            fontWeight: 600,
-            letterSpacing: -0.2,
-            color: appVar.text,
-            margin: 0,
-            lineHeight: 1.3,
-          }}
-        >
+      <div onClick={onClose} aria-hidden="true" className={styles.dialogBackdrop} />
+      <div ref={dialogRef} tabIndex={-1} className={styles.dialogPanel}>
+        <h2 id="app-confirm-title" className={styles.dialogTitle}>
           {title}
         </h2>
-        {body && (
-          <div
-            style={{
-              marginTop: 12,
-              fontSize: 14,
-              lineHeight: 1.6,
-              color: appVar.textMuted,
-            }}
-          >
-            {body}
-          </div>
-        )}
-        <div
-          style={{
-            marginTop: 28,
-            display: "flex",
-            gap: 10,
-            justifyContent: "flex-end",
-          }}
-        >
+        {body && <div className={styles.dialogBody}>{body}</div>}
+        <div className={styles.dialogActions}>
           <AppButton ref={cancelRef} variant="ghost" onClick={onClose} disabled={loading}>
             {cancelLabel}
           </AppButton>

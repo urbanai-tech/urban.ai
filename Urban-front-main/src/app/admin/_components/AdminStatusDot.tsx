@@ -3,15 +3,16 @@
  * Sem fill saturado: usa cor semântica + texto descritivo ao lado.
  */
 import React from "react";
+import styles from "./AdminStatusDot.module.css";
 
 export type AdminStatusKind = "success" | "warn" | "error" | "neutral" | "accent";
 
-const colors: Record<AdminStatusKind, string> = {
-  success: "var(--admin-success)",
-  warn: "var(--admin-warning)",
-  error: "var(--admin-danger)",
-  neutral: "var(--admin-text-muted)",
-  accent: "var(--admin-accent)",
+const kindClass: Record<AdminStatusKind, string> = {
+  success: styles.success,
+  warn: styles.warn,
+  error: styles.error,
+  neutral: styles.neutral,
+  accent: styles.accent,
 };
 
 export function AdminStatusDot({
@@ -30,17 +31,10 @@ export function AdminStatusDot({
   return (
     <span
       aria-hidden
-      className={className}
+      className={[styles.dot, kindClass[kind], className].filter(Boolean).join(" ")}
       style={{
-        display: "inline-block",
         width: size,
         height: size,
-        borderRadius: "50%",
-        background: colors[kind],
-        boxShadow: pulse
-          ? `0 0 0 0 ${colors[kind]}88`
-          : `0 0 0 2px ${colors[kind]}22`,
-        flexShrink: 0,
         animation: pulse ? "urban-admin-pulse 2s infinite" : undefined,
         ...style,
       }}

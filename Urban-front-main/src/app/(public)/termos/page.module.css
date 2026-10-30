@@ -1,0 +1,38 @@
+.updatedAt.updatedAt {
+  margin: 0 0 32px;
+  font-size: 14px;
+}
+
+.document {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+.documentTitle.documentTitle {
+  margin: 0;
+  font-weight: 700;
+}
+
+.documentSection {
+  width: 100%;
+  padding-top: 16px;
+}
+
+.documentSectionFirst {
+  padding-top: 0;
+}
+
+.documentDivider {
+  margin: 0 0 16px;
+  border: 0;
+  border-top: 1px solid var(--theme-public-soft);
+}
+
+.documentParagraph.documentParagraph {
+  margin: 0;
+  white-space: pre-wrap;
+}

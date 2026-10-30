@@ -203,37 +203,21 @@ function PropertyThumb({
         src={thumbnail}
         alt={`Foto de ${name}`}
         onError={() => setErrored(true)}
-        style={{
-          width: size,
-          height: size,
-          borderRadius: "50%",
-          objectFit: "cover",
-          flexShrink: 0,
-          border: "1px solid var(--app-divider)",
-          background: "var(--app-surface-muted)",
-        }}
+        className={styles.thumbImage}
+        style={{ "--thumb-size": `${size}px` } as React.CSSProperties}
       />
     );
   }
   return (
     <div
       aria-hidden="true"
-      style={{
-        width: size,
-        height: size,
-        borderRadius: "50%",
-        flexShrink: 0,
-        background: "var(--app-surface-muted)",
-        border: "1px solid var(--app-divider)",
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        fontSize: Math.round(size * 0.36),
-        fontWeight: 600,
-        color: "var(--app-text-muted)",
-        fontFamily: "'Inter', sans-serif",
-        letterSpacing: 0.5,
-      }}
+      className={styles.thumbInitials}
+      style={
+        {
+          "--thumb-size": `${size}px`,
+          "--thumb-font-size": `${Math.round(size * 0.36)}px`,
+        } as React.CSSProperties
+      }
     >
       {initialsFromName(name)}
     </div>
@@ -291,18 +275,8 @@ function StyledCheckbox({
 function SkeletonRow({ top }: { top: number }) {
   return (
     <div
-      style={{
-        position: "absolute",
-        top,
-        left: 0,
-        right: 0,
-        height: ROW_HEIGHT,
-        display: "flex",
-        alignItems: "center",
-        gap: 12,
-        padding: "0 16px",
-        borderBottom: "1px solid var(--app-divider)",
-      }}
+      className={styles.skeletonRow}
+      style={{ "--row-top": `${top}px` } as React.CSSProperties}
     >
       <div
         className={`urban-app-skeleton ${styles.skeletonAvatar}`}
@@ -484,27 +458,20 @@ export function PortfolioCalendar({
         aria-busy="true"
         aria-label="Carregando portfólio"
         className={styles.loadingCard}
+        style={
+          {
+            "--header-height": `${HEADER_HEIGHT}px`,
+            "--row-height": `${ROW_HEIGHT}px`,
+            "--skeleton-height": `${ROW_HEIGHT * skeletonCount}px`,
+          } as React.CSSProperties
+        }
       >
-        <div
-          style={{
-            height: HEADER_HEIGHT,
-            background: "var(--app-surface-muted)",
-            borderBottom: "1px solid var(--app-divider)",
-            display: "flex",
-            alignItems: "center",
-            padding: "0 16px",
-          }}
-        >
+        <div className={styles.loadingHeader}>
           <div
             className={`urban-app-skeleton ${styles.skeletonHeaderLine}`}
           />
         </div>
-        <div
-          style={{
-            position: "relative",
-            height: ROW_HEIGHT * skeletonCount,
-          }}
-        >
+        <div className={styles.loadingBody}>
           {Array.from({ length: skeletonCount }).map((_, i) => (
             <SkeletonRow key={i} top={i * ROW_HEIGHT} />
           ))}
@@ -524,19 +491,7 @@ export function PortfolioCalendar({
         action={
           <Link
             href="/properties"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 6,
-              padding: "10px 18px",
-              borderRadius: 8,
-              background: "var(--app-accent)",
-              color: "var(--app-bg)",
-              fontWeight: 600,
-              fontSize: 14,
-              textDecoration: "none",
-              fontFamily: "'Inter', sans-serif",
-            }}
+            className={styles.emptyStateLink}
           >
             Cadastrar primeiro imóvel
           </Link>
@@ -550,7 +505,10 @@ export function PortfolioCalendar({
   // ============================================================
   if (isMobile) {
     return (
-      <div className={styles.mobileList}>
+      <div
+        className={styles.mobileList}
+        style={{ "--mobile-day-width": `${MOBILE_DAY_WIDTH}px` } as React.CSSProperties}
+      >
         {/* Topbar com select-all */}
         <div
           className={styles.mobileSelectAllBar}
@@ -635,32 +593,16 @@ export function PortfolioCalendar({
                           ? ` · sugestão ${fmtBRLFull(day.sugestao)}`
                           : ""
                       }`}
-                      className="urban-focus-ring"
-                      style={{
-                        all: "unset",
-                        scrollSnapAlign: "start",
-                        flexShrink: 0,
-                        width: MOBILE_DAY_WIDTH,
-                        height: 76,
-                        minHeight: 44,
-                        cursor: onDayClick ? "pointer" : "default",
-                        borderRadius: 8,
-                        border: isActive || isSelectedDay
-                          ? "2px solid var(--app-accent)"
-                          : "1px solid var(--app-divider)",
-                        background: isSelectedDay
-                          ? "var(--app-accent-soft)"
-                          : weekend
-                          ? "var(--app-surface-muted)"
-                          : "var(--app-surface)",
-                        position: "relative",
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        gap: 2,
-                        padding: "6px 4px",
-                      }}
+                      className={[
+                        "urban-focus-ring",
+                        styles.mobileDayCell,
+                        weekend ? styles.mobileDayCellWeekend : "",
+                        isSelectedDay ? styles.mobileDayCellSelected : "",
+                        isActive || isSelectedDay ? styles.mobileDayCellMarked : "",
+                        onDayClick ? styles.mobileDayCellClickable : "",
+                      ]
+                        .filter(Boolean)
+                        .join(" ")}
                     >
                       {isSelectedDay && (
                         <span
@@ -716,32 +658,22 @@ export function PortfolioCalendar({
   return (
     <div
       className={styles.desktopGridCard}
+      style={
+        {
+          "--header-height": `${HEADER_HEIGHT}px`,
+          "--row-height": `${ROW_HEIGHT}px`,
+          "--left-col-width": `${LEFT_COL_WIDTH}px`,
+          "--day-col-width": `${DAY_COL_WIDTH}px`,
+          "--dates-width": `${dates.length * DAY_COL_WIDTH}px`,
+          "--grid-width": `${totalGridWidth}px`,
+          "--body-height": `${totalBodyHeight}px`,
+        } as React.CSSProperties
+      }
     >
       {/* ===== HEADER STICKY ===== */}
-      <div
-        style={{
-          display: "flex",
-          background: "var(--app-surface-muted)",
-          borderBottom: "1px solid var(--app-divider-strong)",
-          height: HEADER_HEIGHT,
-        }}
-      >
+      <div className={styles.gridHeaderRow}>
         {/* Header esquerdo fixo (select all + contador) */}
-        <div
-          style={{
-            width: LEFT_COL_WIDTH,
-            flexShrink: 0,
-            borderRight: "1px solid var(--app-divider-strong)",
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-            padding: "0 16px",
-            background: "var(--app-surface-muted)",
-            position: "sticky",
-            left: 0,
-            zIndex: 2,
-          }}
-        >
+        <div className={styles.gridHeaderLeft}>
           <StyledCheckbox
             id="portfolio-select-all"
             checked={allSelected}
@@ -761,39 +693,20 @@ export function PortfolioCalendar({
           ref={headerScrollRef}
           className={styles.headerDatesScroller}
         >
-          <div
-            style={{
-              width: dates.length * DAY_COL_WIDTH,
-              height: HEADER_HEIGHT,
-              display: "flex",
-            }}
-          >
+          <div className={styles.gridHeaderDates}>
             {dates.map((d) => {
               const weekend = isWeekend(d);
               const isActiveCol = activeDate === d;
               return (
                 <div
                   key={d}
-                  style={{
-                    width: DAY_COL_WIDTH,
-                    flexShrink: 0,
-                    height: HEADER_HEIGHT,
-                    borderRight: "1px solid var(--app-divider)",
-                    background: weekend
-                      ? "var(--app-surface-muted)"
-                      : "transparent",
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: 2,
-                    color: isActiveCol
-                      ? "var(--app-accent)"
-                      : "var(--app-text-muted)",
-                    fontFamily: "'Inter', sans-serif",
-                    fontWeight: isActiveCol ? 700 : 600,
-                    letterSpacing: 0.3,
-                  }}
+                  className={[
+                    styles.gridHeaderDay,
+                    weekend ? styles.gridHeaderDayWeekend : "",
+                    isActiveCol ? styles.gridHeaderDayActive : "",
+                  ]
+                    .filter(Boolean)
+                    .join(" ")}
                 >
                   <span className={styles.headerWeekday}>
                     {fmtWeekday(d)}
@@ -816,13 +729,7 @@ export function PortfolioCalendar({
         onScroll={handleBodyScroll}
         className={styles.bodyScroller}
       >
-        <div
-          style={{
-            position: "relative",
-            width: totalGridWidth,
-            height: totalBodyHeight,
-          }}
-        >
+        <div className={styles.gridBodyInner}>
           {visibleRows.map((prop, localIdx) => {
             const i = startIndex + localIdx;
             const selected = selectedPropertyIds.has(prop.propertyId);
@@ -830,45 +737,11 @@ export function PortfolioCalendar({
             return (
               <div
                 key={prop.propertyId}
-                style={{
-                  position: "absolute",
-                  top: i * ROW_HEIGHT,
-                  left: 0,
-                  height: ROW_HEIGHT,
-                  width: totalGridWidth,
-                  display: "flex",
-                  borderBottom: "1px solid var(--app-divider)",
-                  background: isActiveRow
-                    ? "var(--app-accent-soft)"
-                    : "transparent",
-                  transition: "background 120ms ease",
-                }}
+                className={`${styles.gridRow} ${isActiveRow ? styles.gridRowActive : ""}`}
+                style={{ "--row-top": `${i * ROW_HEIGHT}px` } as React.CSSProperties}
               >
                 {/* Coluna esquerda sticky (imóvel) */}
-                <div
-                  style={{
-                    width: LEFT_COL_WIDTH,
-                    flexShrink: 0,
-                    height: ROW_HEIGHT,
-                    background: "var(--app-surface)",
-                    borderRight: "1px solid var(--app-divider-strong)",
-                    position: "sticky",
-                    left: 0,
-                    zIndex: 1,
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 10,
-                    padding: "0 16px",
-                  }}
-                  onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLDivElement).style.background =
-                      "var(--app-surface-muted)";
-                  }}
-                  onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLDivElement).style.background =
-                      "var(--app-surface)";
-                  }}
-                >
+                <div className={styles.gridRowLeft}>
                   <StyledCheckbox
                     id={`portfolio-row-${prop.propertyId}`}
                     checked={selected}
@@ -922,31 +795,16 @@ export function PortfolioCalendar({
                           ? ` · sugestão ${fmtBRLFull(day.sugestao)}`
                           : ""
                       }`}
-                      className="urban-focus-ring"
-                      style={{
-                        all: "unset",
-                        width: DAY_COL_WIDTH,
-                        flexShrink: 0,
-                        height: ROW_HEIGHT,
-                        cursor: onDayClick ? "pointer" : "default",
-                        borderRight: "1px solid var(--app-divider)",
-                        background: isSelectedDay
-                          ? "var(--app-accent-soft)"
-                          : weekend
-                          ? "var(--app-surface-muted)"
-                          : "transparent",
-                        position: "relative",
-                        boxSizing: "border-box",
-                        outline: isActive || isSelectedDay
-                          ? "2px solid var(--app-accent)"
-                          : "none",
-                        outlineOffset: -2,
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        gap: 4,
-                      }}
+                      className={[
+                        "urban-focus-ring",
+                        styles.dayCell,
+                        weekend ? styles.dayCellWeekend : "",
+                        isSelectedDay ? styles.dayCellSelected : "",
+                        isActive || isSelectedDay ? styles.dayCellMarked : "",
+                        onDayClick ? styles.dayCellClickable : "",
+                      ]
+                        .filter(Boolean)
+                        .join(" ")}
                     >
                       {isSelectedDay && (
                         <span
@@ -964,33 +822,7 @@ export function PortfolioCalendar({
                           />
                           <span
                             aria-hidden="true"
-                            style={{
-                              position: "absolute",
-                              top: 6,
-                              left: 6,
-                              maxWidth: DAY_COL_WIDTH - 14,
-                              height: 14,
-                              padding: "0 4px",
-                              borderRadius: 999,
-                              background:
-                                day.evento!.impacto === "alta"
-                                  ? "var(--app-accent-soft)"
-                                  : "var(--app-surface-muted)",
-                              fontSize: 8,
-                              color:
-                                day.evento!.impacto === "alta"
-                                  ? "var(--app-accent)"
-                                  : "var(--app-text-muted)",
-                              textOverflow: "ellipsis",
-                              overflow: "hidden",
-                              whiteSpace: "nowrap",
-                              fontFamily: "'Inter', sans-serif",
-                              letterSpacing: 0.4,
-                              textTransform: "uppercase",
-                              fontWeight: 750,
-                              lineHeight: "14px",
-                              pointerEvents: "none",
-                            }}
+                            className={`${styles.eventTag} ${day.evento!.impacto === "alta" ? styles.eventTagHigh : ""}`}
                           >
                             {day.evento!.impacto === "alta" ? "Alta" : "Evento"}
                           </span>

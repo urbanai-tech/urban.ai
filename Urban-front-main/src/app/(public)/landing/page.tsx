@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Building2, Check, MapPinned, ShieldCheck } from "lucide-react";
 import { JsonLd, buildSeoMetadata, faqPageJsonLd } from "../../lib/seo";
+import styles from "./page.module.css";
 import {
   CheckList,
   FinalCommercialCta,
@@ -136,22 +137,22 @@ export default function LandingPage() {
           <div className="public-article-grid">
             <article className="public-content-card">
               <MapPinned aria-hidden size={22} />
-              <h3 style={{ marginTop: 28 }}>Anfitriões profissionais</h3>
+              <h3 className={styles.cardTitle}>Anfitriões profissionais</h3>
               <p>Priorize datas importantes, entenda os sinais locais e aplique recomendações diretamente pelo painel.</p>
             </article>
             <article className="public-content-card">
               <Building2 aria-hidden size={22} />
-              <h3 style={{ marginTop: 28 }}>Gestoras de temporada</h3>
+              <h3 className={styles.cardTitle}>Gestoras de temporada</h3>
               <p>Organize imóveis por operação, defina limites e reduza o trabalho repetitivo de revisar calendários.</p>
             </article>
             <article className="public-content-card">
               <ShieldCheck aria-hidden size={22} />
-              <h3 style={{ marginTop: 28 }}>Operações com governança</h3>
+              <h3 className={styles.cardTitle}>Operações com governança</h3>
               <p>Mantenha decisão humana, consentimento de integração e rastreabilidade das alterações de preço.</p>
             </article>
             <article className="public-content-card">
               <Check aria-hidden size={22} />
-              <h3 style={{ marginTop: 28 }}>Quem já usa planilha</h3>
+              <h3 className={styles.cardTitle}>Quem já usa planilha</h3>
               <p>Preserve metas e custos internos, enquanto o My Urban monitora exceções e contexto externo.</p>
             </article>
           </div>

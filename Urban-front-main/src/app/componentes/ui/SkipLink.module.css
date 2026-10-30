@@ -1,0 +1,38 @@
+/*
+ * SkipLink: escondido ate receber foco. O estado focado usa seletor triplicado
+ * para vencer `.urban-app a:focus-visible` (outline), como o inline vencia.
+ * Branco = --theme-app-legacy-white (#FFFFFF nos dois temas).
+ */
+.skipLink {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border-radius: 6px;
+  background: var(--app-accent);
+  color: var(--theme-app-legacy-white);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 650;
+  outline: none;
+  outline-offset: 2px;
+}
+
+.skipLinkFocused.skipLinkFocused.skipLinkFocused {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: auto;
+  height: auto;
+  padding: 8px 16px;
+  overflow: visible;
+  clip: auto;
+  outline: 2px solid var(--theme-app-legacy-white);
+  outline-offset: 2px;
+}

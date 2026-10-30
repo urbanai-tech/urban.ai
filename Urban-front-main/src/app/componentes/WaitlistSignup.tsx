@@ -18,6 +18,7 @@ import {
   type MarketingAttribution,
 } from "./Analytics";
 import { AppBadge, AppButton, AppCard, AppInput, Icons } from "./ui";
+import styles from "./WaitlistSignup.module.css";
 
 const STORAGE_KEY = "urban-ai-waitlist-code-v1";
 
@@ -132,12 +133,10 @@ export function WaitlistSignup({
 
   if (phase === "loading-existing") {
     return (
-      <AppCard variant="elevated" style={{ padding: 28, width: "100%", maxWidth: 520 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+      <AppCard variant="elevated" className={styles.signupCard}>
+        <div className={styles.loadingRow}>
           <Spinner />
-          <p style={{ margin: 0, color: "var(--app-text-muted)", fontSize: 14 }}>
-            Carregando sua posição na fila…
-          </p>
+          <p className={styles.loadingText}>Carregando sua posição na fila…</p>
         </div>
       </AppCard>
     );
@@ -161,22 +160,13 @@ export function WaitlistSignup({
   }
 
   return (
-    <AppCard variant="elevated" style={{ padding: 28, width: "100%", maxWidth: 520 }}>
-      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+    <AppCard variant="elevated" className={styles.signupCard}>
+      <form onSubmit={handleSubmit} className={styles.form}>
+        <div className={styles.formHeader}>
           <AppBadge kind="accent">Acesso por convite</AppBadge>
           <div>
-            <h2 style={{ margin: 0, color: "var(--app-text)", fontSize: 22, lineHeight: 1.25 }}>
-              Garanta seu lugar antes da abertura
-            </h2>
-            <p
-              style={{
-                margin: "8px 0 0",
-                color: "var(--app-text-muted)",
-                fontSize: 14,
-                lineHeight: 1.65,
-              }}
-            >
+            <h2 className={styles.formTitle}>Garanta seu lugar antes da abertura</h2>
+            <p className={styles.subtitle}>
               Cadastre-se na lista de espera e receba o convite quando seu acesso for liberado.
             </p>
           </div>
@@ -236,23 +226,9 @@ export function WaitlistSignup({
           Entrar na lista
         </AppButton>
 
-        <p
-          style={{
-            margin: 0,
-            textAlign: "center",
-            color: "var(--app-text-muted)",
-            fontSize: 13,
-          }}
-        >
+        <p className={styles.loginPrompt}>
           Já tem convite?{" "}
-          <NextLink
-            href="/"
-            style={{
-              color: "var(--app-accent)",
-              fontWeight: 650,
-              textDecoration: "none",
-            }}
-          >
+          <NextLink href="/" className={styles.loginLink}>
             Fazer login
           </NextLink>
         </p>
@@ -310,106 +286,46 @@ function WaitlistStatusCard({
   }
 
   return (
-    <AppCard variant="elevated" style={{ padding: 28, width: "100%", maxWidth: 560 }}>
-      <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
-        <div style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
-          <span
-            aria-hidden
-            style={{
-              width: 42,
-              height: 42,
-              borderRadius: 10,
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              background: "rgba(22, 160, 107, 0.10)",
-              color: "var(--app-success)",
-              flexShrink: 0,
-            }}
-          >
+    <AppCard variant="elevated" className={styles.statusCard}>
+      <div className={styles.statusContent}>
+        <div className={styles.statusHeader}>
+          <span aria-hidden className={styles.statusIcon}>
             <Icons.Check size={20} />
           </span>
           <div>
             <AppBadge kind="success">Cadastro recebido</AppBadge>
-            <h2 style={{ margin: "10px 0 0", fontSize: 22, lineHeight: 1.25 }}>
-              Você está na fila
-            </h2>
-            <p
-              style={{
-                margin: "8px 0 0",
-                color: "var(--app-text-muted)",
-                fontSize: 14,
-                lineHeight: 1.65,
-              }}
-            >
+            <h2 className={styles.statusTitle}>Você está na fila</h2>
+            <p className={styles.subtitle}>
               Avisaremos por e-mail assim que seu acesso for liberado.
             </p>
           </div>
         </div>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))",
-            gap: 10,
-          }}
-        >
+        <div className={styles.metricsGrid}>
           <StatusMetric label="Posição" value={`#${result.position}`} />
           <StatusMetric label="Na frente" value={result.aheadOfYou.toLocaleString("pt-BR")} />
           <StatusMetric label="Indicações" value={referralsCount.toLocaleString("pt-BR")} />
         </div>
 
-        <div
-          style={{
-            padding: 16,
-            background: "var(--app-surface-muted)",
-            border: "1px solid var(--app-divider)",
-            borderRadius: 10,
-          }}
-        >
-          <div style={{ display: "flex", justifyContent: "space-between", gap: 12, marginBottom: 12 }}>
+        <div className={styles.referralBox}>
+          <div className={styles.referralHeader}>
             <div>
-              <p style={{ margin: 0, fontSize: 13, fontWeight: 650 }}>Link de indicação</p>
-              <p style={{ margin: "4px 0 0", color: "var(--app-text-muted)", fontSize: 12 }}>
+              <p className={styles.referralTitle}>Link de indicação</p>
+              <p className={styles.referralHint}>
                 Cada cadastro pelo seu link melhora sua posição.
               </p>
             </div>
             <AppBadge kind="accent">+1</AppBadge>
           </div>
 
-          <div
-            style={{
-              display: "flex",
-              gap: 8,
-              alignItems: "stretch",
-            }}
-          >
-            <div
-              style={{
-                minWidth: 0,
-                flex: 1,
-                display: "flex",
-                alignItems: "center",
-                padding: "0 12px",
-                minHeight: 40,
-                borderRadius: 8,
-                border: "1px solid var(--app-divider-strong)",
-                background: "var(--app-surface)",
-                color: "var(--app-text-muted)",
-                fontSize: 12,
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-              }}
-            >
-              {referralUrl}
-            </div>
+          <div className={styles.referralRow}>
+            <div className={styles.referralUrl}>{referralUrl}</div>
             <AppButton type="button" variant="secondary" size="md" onClick={copyLink} leftIcon={<Copy size={14} />}>
               {copyState === "copied" ? "Copiado" : "Copiar"}
             </AppButton>
           </div>
 
-          <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
+          <div className={styles.shareRow}>
             <AppButton type="button" variant="secondary" size="sm" onClick={shareWhatsApp} leftIcon={<MessageCircle size={13} />}>
               WhatsApp
             </AppButton>
@@ -419,23 +335,7 @@ function WaitlistStatusCard({
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={onReset}
-          style={{
-            alignSelf: "flex-start",
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 8,
-            border: "none",
-            background: "transparent",
-            color: "var(--app-text-muted)",
-            fontSize: 13,
-            fontWeight: 650,
-            cursor: "pointer",
-            padding: 0,
-          }}
-        >
+        <button type="button" onClick={onReset} className={styles.resetButton}>
           <RotateCcw size={13} />
           Cadastrar outro e-mail
         </button>
@@ -446,29 +346,9 @@ function WaitlistStatusCard({
 
 function StatusMetric({ label, value }: { label: string; value: string }) {
   return (
-    <div
-      style={{
-        padding: "14px 12px",
-        border: "1px solid var(--app-divider)",
-        borderRadius: 10,
-        background: "var(--app-surface)",
-      }}
-    >
-      <p
-        style={{
-          margin: 0,
-          color: "var(--app-text-muted)",
-          fontSize: 10,
-          fontWeight: 700,
-          letterSpacing: 1.2,
-          textTransform: "uppercase",
-        }}
-      >
-        {label}
-      </p>
-      <strong style={{ display: "block", marginTop: 6, fontSize: 20, lineHeight: 1 }}>
-        {value}
-      </strong>
+    <div className={styles.metric}>
+      <p className={styles.metricLabel}>{label}</p>
+      <strong className={styles.metricValue}>{value}</strong>
     </div>
   );
 }
@@ -480,26 +360,12 @@ function InlineNotice({
   kind: "success" | "error";
   children: React.ReactNode;
 }) {
-  const color = kind === "success" ? "var(--app-success)" : "var(--app-danger)";
-  const bg = kind === "success" ? "rgba(22, 160, 107, 0.08)" : "rgba(194, 52, 46, 0.08)";
-  const border =
-    kind === "success" ? "rgba(22, 160, 107, 0.22)" : "rgba(194, 52, 46, 0.22)";
-
   return (
     <div
       role={kind === "error" ? "alert" : "status"}
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 10,
-        padding: "10px 12px",
-        borderRadius: 8,
-        border: `1px solid ${border}`,
-        background: bg,
-        color,
-        fontSize: 13,
-        lineHeight: 1.45,
-      }}
+      className={`${styles.notice} ${kind === "success" ? styles.noticeSuccess : styles.noticeError}`}
+      // Sem token de mesmo valor para a borda de sucesso (verde a 22%): fica inline.
+      style={kind === "success" ? { borderColor: "rgba(22, 160, 107, 0.22)" } : undefined}
     >
       {kind === "success" ? <Icons.Check size={14} /> : <Icons.AlertCircle size={14} />}
       <span>{children}</span>
@@ -508,24 +374,5 @@ function InlineNotice({
 }
 
 function Spinner() {
-  return (
-    <>
-      <style>{`
-        @keyframes urban-spin { to { transform: rotate(360deg); } }
-      `}</style>
-      <span
-        aria-hidden
-        style={{
-          width: 28,
-          height: 28,
-          borderRadius: "50%",
-          border: "3px solid var(--app-accent-soft)",
-          borderTopColor: "var(--app-accent)",
-          animation: "urban-spin 0.9s linear infinite",
-          display: "inline-block",
-          flexShrink: 0,
-        }}
-      />
-    </>
-  );
+  return <span aria-hidden className={styles.spinner} />;
 }

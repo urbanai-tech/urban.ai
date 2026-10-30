@@ -58,3 +58,8 @@
 .actions.actions {
   flex-shrink: 0;
 }
+
+/* Seletor triplicado para vencer `.urban-app .urban-app-eyebrow-muted` (margin: 0). */
+.eyebrow.eyebrow.eyebrow {
+  margin-bottom: 6px;
+}

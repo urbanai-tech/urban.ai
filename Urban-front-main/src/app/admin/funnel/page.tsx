@@ -185,7 +185,8 @@ function FunnelChart({ stages, max }: { stages: Stage[]; max: number }) {
           <svg
             viewBox={`0 0 100 ${totalHeight}`}
             preserveAspectRatio="none"
-            style={{ width: "100%", height: totalHeight, display: "block" }}
+            className={styles.funnelSvg}
+            style={{ "--funnel-h": `${totalHeight}px` } as React.CSSProperties}
           >
             {stages.map((s, i) => {
               const prev = i === 0 ? max : stages[i - 1].value;
@@ -221,16 +222,7 @@ function FunnelChart({ stages, max }: { stages: Stage[]; max: number }) {
               return (
                 <div
                   key={s.key}
-                  style={{
-                    height: stageHeight,
-                    marginBottom: gap,
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    textAlign: "center",
-                    pointerEvents: "none",
-                  }}
+                  className={styles.stageLabel}
                 >
                   <p
                     className={styles.stageLabelTitle}

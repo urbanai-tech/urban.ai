@@ -222,3 +222,25 @@
   font-size: 11px;
   font-weight: 600;
 }
+
+.envBadge.envBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  border: 1px solid var(--admin-divider-strong);
+  border-radius: 2px;
+  color: var(--env-color);
+}
+
+.envBadgeDot.envBadgeDot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  background: var(--env-color);
+  border-radius: 50%;
+}

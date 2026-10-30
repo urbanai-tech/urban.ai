@@ -107,3 +107,8 @@
   position: relative;
   padding: 32px;
 }
+
+.subscriptionCardCanceled.subscriptionCardCanceled {
+  opacity: 0.6;
+  background: var(--app-surface-muted);
+}

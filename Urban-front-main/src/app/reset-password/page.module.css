@@ -5,3 +5,139 @@
 .passwordInput.passwordInput {
   padding-right: 44px;
 }
+
+.successStack {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.successIcon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--theme-app-legacy-success-10);
+  color: var(--app-success);
+}
+
+.successTitle {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.35;
+}
+
+.successText {
+  margin: 8px 0 0;
+  color: var(--app-text-muted);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.passwordField {
+  position: relative;
+}
+
+.passwordToggle {
+  position: absolute;
+  right: 8px;
+  top: 27px;
+  height: 36px;
+  width: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--app-text-muted);
+  cursor: pointer;
+}
+
+.rulesPanel {
+  padding: 16px;
+  background: var(--app-surface-muted);
+  border: 1px solid var(--app-divider);
+  border-radius: 10px;
+}
+
+.rulesHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.rulesTitle {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.strengthLabel {
+  font-size: 12px;
+}
+
+.strengthStrong {
+  color: var(--app-success);
+}
+
+.strengthMedium {
+  color: var(--app-warning-text);
+}
+
+.strengthWeak {
+  color: var(--app-danger);
+}
+
+.rulesList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ruleItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 0;
+  color: var(--app-text-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.ruleItemMet {
+  color: var(--app-text);
+}
+
+.ruleMark {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--app-surface);
+  border: 1px solid var(--app-divider-strong);
+  color: var(--theme-app-legacy-white);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.ruleMarkMet {
+  background: var(--app-success);
+  border: 1px solid var(--app-success);
+}
+
+.inlineAlert {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--theme-app-legacy-danger-25);
+  background: var(--theme-app-legacy-danger-08);
+  color: var(--app-danger);
+  font-size: 13px;
+}

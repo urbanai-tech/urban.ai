@@ -414,29 +414,10 @@ function EnvBadge({ env }: { env: string }) {
   const it = kindMap[env] ?? { label: env.toUpperCase(), color: "var(--admin-text-muted)" };
   return (
     <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 6,
-        padding: "4px 8px",
-        fontSize: 10,
-        fontWeight: 600,
-        letterSpacing: 1.5,
-        textTransform: "uppercase",
-        border: "1px solid var(--admin-divider-strong)",
-        borderRadius: 2,
-        color: it.color,
-      }}
+      className={styles.envBadge}
+      style={{ "--env-color": it.color } as React.CSSProperties}
     >
-      <span
-        style={{
-          display: "inline-block",
-          width: 6,
-          height: 6,
-          background: it.color,
-          borderRadius: "50%",
-        }}
-      />
+      <span className={styles.envBadgeDot} />
       {it.label}
     </span>
   );

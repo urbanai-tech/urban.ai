@@ -311,3 +311,58 @@
 .detailBadge.detailBadge.detailBadge {
   max-width: 100%;
 }
+
+.heatmapCell.heatmapCell {
+  min-height: 158px;
+  padding: 14px;
+  border: 1px solid var(--admin-divider);
+  border-top: 3px solid color-mix(in srgb, var(--app-accent, var(--admin-accent)) var(--border-pct), transparent);
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--app-accent, var(--admin-accent)) var(--bg-pct), transparent);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
+
+.radarBubble.radarBubble {
+  position: absolute;
+  left: var(--left);
+  top: var(--top);
+  width: var(--size);
+  height: var(--size);
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--app-accent, var(--admin-accent)) var(--border-pct), transparent);
+  background: color-mix(in srgb, var(--app-accent, var(--admin-accent)) var(--bg-pct), transparent);
+  color: var(--admin-accent);
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 8px;
+  box-shadow: 0 14px 30px var(--admin-backdrop);
+}
+
+.radarRing.radarRing {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--size);
+  aspect-ratio: 1 / 1;
+  transform: translate(-50%, -50%);
+  border: 1px solid var(--admin-divider);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.cellMeta.cellMeta {
+  margin: 5px 0 0;
+  font-size: 10px;
+  color: var(--admin-text-muted);
+  overflow-wrap: anywhere;
+}
+
+.cellMeta.cellMeta.cellMetaCompact {
+  margin: 6px 0 0;
+}

@@ -9,6 +9,7 @@ import { useToastCompat } from "../componentes/ui";
 import { api, verificarUsuarioState } from "../service/api";
 import { trackEvent } from "../service/tracking";
 import { stashPendingEmail } from "@/app/lib/auth-links";
+import styles from "./page.module.css";
 
 /**
  * /(home) — Tela de login.
@@ -95,157 +96,43 @@ export default function Login() {
   }
 
   return (
-    <div
-      className="urban-app"
-      style={{
-        minHeight: "100vh",
-        width: "100%",
-        display: "flex",
-        background: "var(--app-bg)",
-        overflow: "hidden",
-        fontFamily: "Inter, system-ui, sans-serif",
-      }}
-    >
+    <div className={`urban-app ${styles.loginRoot}`}>
       {/* ============== ESQUERDA — manifesto editorial dark ============== */}
       <div
-        className="urban-manifesto urban-grain"
-        style={{
-          display: "none",
-          position: "relative",
-          width: "50%",
-          minHeight: "100vh",
-          background: "var(--theme-public-bg)",
-          color: "var(--theme-public-text)",
-          overflow: "hidden",
-        }}
+        className={`urban-manifesto urban-grain ${styles.manifestoPanel}`}
         data-login-side
       >
-        <div
-          className="urban-glow"
-          style={{
-            width: 800,
-            height: 800,
-            top: "-15%",
-            left: "-20%",
-            position: "absolute",
-          }}
-        />
-        <div
-          className="urban-glow"
-          style={{
-            width: 600,
-            height: 600,
-            bottom: "-15%",
-            right: "-15%",
-            position: "absolute",
-          }}
-        />
+        <div className={`urban-glow ${styles.glowTopLeft}`} />
+        <div className={`urban-glow ${styles.glowBottomRight}`} />
 
         {/* Wordmark URBAN AI no topo */}
-        <div
-          style={{
-            position: "absolute",
-            top: 32,
-            left: 48,
-            zIndex: 2,
-            display: "flex",
-            alignItems: "baseline",
-            gap: 6,
-          }}
-        >
-          <span
-            className="urban-display"
-            style={{
-              fontSize: 24,
-              fontWeight: 400,
-              letterSpacing: 0,
-              textTransform: "uppercase",
-              color: "var(--theme-public-text)",
-              lineHeight: 1,
-            }}
-          >
+        <div className={styles.wordmark}>
+          <span className={`urban-display ${styles.wordmarkPart} ${styles.wordmarkBrand}`}>
             URBAN
           </span>
-          <span
-            className="urban-display"
-            style={{
-              fontSize: 24,
-              fontWeight: 400,
-              letterSpacing: 0,
-              textTransform: "uppercase",
-              color: "var(--theme-public-accent)",
-              lineHeight: 1,
-            }}
-          >
+          <span className={`urban-display ${styles.wordmarkPart} ${styles.wordmarkAccent}`}>
             AI
           </span>
         </div>
 
         {/* Hero text vertical center */}
-        <div
-          style={{
-            position: "relative",
-            zIndex: 2,
-            height: "100vh",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            boxSizing: "border-box",
-            padding: "64px 64px 112px",
-          }}
-        >
-          <p
-            style={{
-              fontSize: 11,
-              letterSpacing: 4,
-              textTransform: "uppercase",
-              color: "var(--theme-public-accent)",
-              fontWeight: 600,
-              margin: 0,
-              marginBottom: 28,
-            }}
-          >
+        <div className={styles.hero}>
+          <p className={styles.heroEyebrow}>
             PRECIFICAÇÃO POR EVENTOS
           </p>
-          <div className="urban-enter" style={{ animationDuration: "700ms" }}>
-            <h1
-              className="urban-display"
-              style={{
-                fontSize: "clamp(64px, min(8vw, 15.5vh), 140px)",
-                lineHeight: 0.88,
-                letterSpacing: 0,
-                fontWeight: 400,
-                margin: 0,
-                textTransform: "uppercase",
-              }}
-            >
+          <div className={`urban-enter ${styles.heroTitleEnter}`}>
+            <h1 className={`urban-display ${styles.heroTitle}`}>
               CADA NOITE
               <br />
               QUE A CIDADE
               <br />
-              <span style={{ color: "var(--theme-public-accent)" }}>SE MEXE,</span>
+              <span className={styles.heroTitleAccent}>SE MEXE,</span>
               <br />
               VOCÊ GANHA.
             </h1>
           </div>
-          <div
-            className="urban-enter"
-            style={{
-              animationDuration: "700ms",
-              animationDelay: "150ms",
-              marginTop: 40,
-              maxWidth: 480,
-            }}
-          >
-            <p
-              style={{
-                fontSize: 18,
-                lineHeight: 1.65,
-                fontWeight: 300,
-                color: "var(--theme-public-muted)",
-                margin: 0,
-              }}
-            >
+          <div className={`urban-enter ${styles.heroLeadEnter}`}>
+            <p className={styles.heroLead}>
               O My Urban acompanha eventos na sua região e recomenda quando revisar o preço
               das suas diárias. Você só precisa entrar.
             </p>
@@ -253,137 +140,43 @@ export default function Login() {
         </div>
 
         {/* Pull-quote rodapé */}
-        <div
-          style={{
-            position: "absolute",
-            bottom: 40,
-            left: 64,
-            right: 64,
-            zIndex: 2,
-            paddingTop: 24,
-            borderTop: "1px solid var(--theme-public-soft)",
-            display: "flex",
-            justifyContent: "space-between",
-            fontSize: 11,
-            letterSpacing: 2,
-            textTransform: "uppercase",
-            color: "var(--theme-public-muted)",
-            fontWeight: 500,
-          }}
-        >
+        <div className={styles.panelFooter}>
           <span>PRECIFICAÇÃO INTELIGENTE · BRASIL</span>
           <span>PRODUTO DISPONÍVEL</span>
         </div>
       </div>
 
       {/* ============== DIREITA — form light premium ============== */}
-      <div
-        style={{
-          flex: 1,
-          minWidth: 0,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: "40px 24px",
-          background: "var(--app-bg)",
-        }}
-      >
-        <div
-          className="urban-enter"
-          style={{
-            animationDuration: "500ms",
-            animationDelay: "100ms",
-            width: "100%",
-            maxWidth: 420,
-          }}
-        >
+      <div className={styles.formPane}>
+        <div className={`urban-enter ${styles.formEnter}`}>
           {/* Mobile-only logo */}
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              marginBottom: 32,
-            }}
-            data-mobile-only-logo
-          >
-            <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
-              <span
-                className="urban-app-display"
-                style={{
-                  fontSize: 28,
-                  fontWeight: 400,
-                  textTransform: "uppercase",
-                  color: "var(--app-text)",
-                  lineHeight: 1,
-                }}
-              >
+          <div className={styles.mobileLogo} data-mobile-only-logo>
+            <div className={styles.mobileWordmark}>
+              <span className={`urban-app-display ${styles.mobileWordmarkPart} ${styles.mobileWordmarkBrand}`}>
                 URBAN
               </span>
-              <span
-                className="urban-app-display"
-                style={{
-                  fontSize: 28,
-                  fontWeight: 400,
-                  textTransform: "uppercase",
-                  color: "var(--app-accent)",
-                  lineHeight: 1,
-                }}
-              >
+              <span className={`urban-app-display ${styles.mobileWordmarkPart} ${styles.mobileWordmarkAccent}`}>
                 AI
               </span>
             </div>
           </div>
 
-          <p className="urban-app-eyebrow" style={{ marginBottom: 14 }}>
+          <p className={`urban-app-eyebrow ${styles.formEyebrow}`}>
             ENTRAR · ANFITRIÃO
           </p>
-          <h2
-            className="urban-app-display"
-            style={{
-              fontSize: 48,
-              lineHeight: 1,
-              letterSpacing: 0,
-              fontWeight: 400,
-              margin: 0,
-              textTransform: "uppercase",
-              color: "var(--app-text)",
-            }}
-          >
+          <h2 className={`urban-app-display ${styles.formTitle}`}>
             Bem-vindo
             <br />
-            <span style={{ color: "var(--app-accent)" }}>de volta.</span>
+            <span className={styles.formTitleAccent}>de volta.</span>
           </h2>
-          <p
-            style={{
-              fontSize: 14,
-              color: "var(--app-text-muted)",
-              lineHeight: 1.6,
-              margin: "16px 0 36px",
-            }}
-          >
+          <p className={styles.formLead}>
             Entre com seu e-mail e senha para acessar suas recomendações.
           </p>
 
-          <form
-            onSubmit={handleLogin}
-            style={{ display: "flex", flexDirection: "column", gap: 24 }}
-          >
+          <form onSubmit={handleLogin} className={styles.form}>
             {/* Email */}
-            <label style={{ display: "block" }}>
-              <span
-                style={{
-                  display: "block",
-                  fontSize: 11,
-                  fontWeight: 600,
-                  letterSpacing: 2,
-                  textTransform: "uppercase",
-                  color: focusEmail
-                    ? "var(--app-accent)"
-                    : "var(--app-text-muted)",
-                  marginBottom: 8,
-                  transition: "color 120ms",
-                }}
-              >
+            <label className={styles.field}>
+              <span className={`${styles.fieldLabel} ${focusEmail ? styles.fieldLabelFocus : ""}`}>
                 E-mail
               </span>
               <input
@@ -400,43 +193,16 @@ export default function Login() {
                 placeholder="você@email.com"
                 autoComplete="email"
                 disabled={loading}
-                style={{
-                  width: "100%",
-                  padding: "14px 0",
-                  background: "transparent",
-                  border: "none",
-                  borderBottom: focusEmail
-                    ? "1.5px solid var(--app-accent)"
-                    : "1.5px solid var(--app-divider-strong)",
-                  color: "var(--app-text)",
-                  fontSize: 16,
-                  fontWeight: 400,
-                  outline: "none",
-                  transition: "border-color 150ms",
-                  fontFamily: "Inter, system-ui, sans-serif",
-                }}
+                className={`${styles.fieldInput} ${focusEmail ? styles.fieldInputFocus : ""}`}
               />
             </label>
 
             {/* Senha */}
-            <label style={{ display: "block" }}>
-              <span
-                style={{
-                  display: "block",
-                  fontSize: 11,
-                  fontWeight: 600,
-                  letterSpacing: 2,
-                  textTransform: "uppercase",
-                  color: focusPwd
-                    ? "var(--app-accent)"
-                    : "var(--app-text-muted)",
-                  marginBottom: 8,
-                  transition: "color 120ms",
-                }}
-              >
+            <label className={styles.field}>
+              <span className={`${styles.fieldLabel} ${focusPwd ? styles.fieldLabelFocus : ""}`}>
                 Senha
               </span>
-              <div style={{ position: "relative" }}>
+              <div className={styles.passwordWrap}>
                 <input
                   type={showPassword ? "text" : "password"}
                   value={password}
@@ -451,38 +217,13 @@ export default function Login() {
                   placeholder="••••••••"
                   autoComplete="current-password"
                   disabled={loading}
-                  style={{
-                    width: "100%",
-                    padding: "14px 36px 14px 0",
-                    background: "transparent",
-                    border: "none",
-                    borderBottom: focusPwd
-                      ? "1.5px solid var(--app-accent)"
-                      : "1.5px solid var(--app-divider-strong)",
-                    color: "var(--app-text)",
-                    fontSize: 16,
-                    fontWeight: 400,
-                    outline: "none",
-                    transition: "border-color 150ms",
-                    fontFamily: "Inter, system-ui, sans-serif",
-                  }}
+                  className={`${styles.fieldInput} ${styles.fieldInputPassword} ${focusPwd ? styles.fieldInputFocus : ""}`}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
                   aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
-                  style={{
-                    position: "absolute",
-                    right: 0,
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    background: "transparent",
-                    border: "none",
-                    color: "var(--app-text-muted)",
-                    cursor: "pointer",
-                    padding: 8,
-                    lineHeight: 0,
-                  }}
+                  className={styles.passwordToggle}
                 >
                   {showPassword ? <EyeOff /> : <Eye />}
                 </button>
@@ -500,24 +241,10 @@ export default function Login() {
             )}
 
             {/* Forgot + create */}
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                gap: 12,
-                fontSize: 13,
-              }}
-            >
+            <div className={styles.formLinks}>
               <NextLink
                 href="/request-reset-password"
-                style={{
-                  color: "var(--app-text-muted)",
-                  textDecoration: "none",
-                  fontWeight: 500,
-                  borderBottom: "1px solid transparent",
-                  transition: "color 120ms, border-color 120ms",
-                }}
+                className={styles.linkMuted}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.color = "var(--app-accent)";
                   e.currentTarget.style.borderBottomColor = "var(--app-accent)";
@@ -531,13 +258,7 @@ export default function Login() {
               </NextLink>
               <NextLink
                 href="/create"
-                style={{
-                  color: "var(--app-accent)",
-                  textDecoration: "none",
-                  fontWeight: 600,
-                  borderBottom: "1px solid transparent",
-                  transition: "border-color 120ms",
-                }}
+                className={styles.linkAccent}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.borderBottomColor = "var(--app-accent)";
                 }}
@@ -553,28 +274,8 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              style={{
-                marginTop: 12,
-                height: 56,
-                padding: "0 28px",
-                background: "var(--app-accent)",
-                color: "var(--theme-page-bg)",
-                border: "none",
-                borderRadius: 12,
-                fontSize: 15,
-                fontWeight: 600,
-                letterSpacing: 0.3,
-                cursor: loading ? "wait" : "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 10,
-                transition: "background 180ms, transform 80ms",
-                fontFamily: "Inter, system-ui, sans-serif",
-                boxShadow: loading
-                  ? "none"
-                  : "0 8px 24px rgba(232, 80, 10, 0.20)",
-              }}
+              className={`${styles.submitButton} ${loading ? styles.submitButtonLoading : ""}`}
+              style={loading ? undefined : { boxShadow: "0 8px 24px rgba(232, 80, 10, 0.20)" }}
               onMouseEnter={(e) => {
                 if (!loading) {
                   e.currentTarget.style.background = "var(--app-accent-hover)";
@@ -605,17 +306,7 @@ export default function Login() {
             </button>
           </form>
 
-          <p
-            style={{
-              marginTop: 40,
-              fontSize: 11,
-              letterSpacing: 2,
-              textTransform: "uppercase",
-              color: "var(--app-text-dim)",
-              fontWeight: 500,
-              textAlign: "center",
-            }}
-          >
+          <p className={styles.secureNote}>
             Acesso seguro · My Urban
           </p>
         </div>
@@ -694,25 +385,5 @@ function ArrowRight() {
   );
 }
 function Spinner() {
-  return (
-    <span
-      style={{
-        display: "inline-block",
-        width: 18,
-        height: 18,
-        border: "2px solid var(--theme-public-strong)",
-        borderTopColor: "var(--theme-public-text)",
-        borderRadius: "50%",
-        animation: "urban-spin 0.7s linear infinite",
-      }}
-    >
-      <style jsx>{`
-        @keyframes urban-spin {
-          to {
-            transform: rotate(360deg);
-          }
-        }
-      `}</style>
-    </span>
-  );
+  return <span className={styles.spinner} />;
 }

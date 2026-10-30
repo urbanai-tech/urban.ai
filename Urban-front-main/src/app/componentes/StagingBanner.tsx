@@ -1,5 +1,7 @@
 "use client";
 
+import styles from "./StagingBanner.module.css";
+
 /**
  * Banner fixo que só aparece fora de produção.
  * Lê NEXT_PUBLIC_APP_ENV; se for "staging", "development" ou qualquer valor
@@ -19,27 +21,8 @@ export function StagingBanner() {
     <div
       role="status"
       aria-label={`Ambiente ${label}`}
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 9999,
-        backgroundColor: "#f59e0b",
-        color: "#1f2937",
-        textAlign: "center",
-        minHeight: "24px",
-        boxSizing: "border-box",
-        fontSize: "10px",
-        lineHeight: "16px",
-        fontWeight: 600,
-        letterSpacing: "0.03em",
-        padding: "4px 8px",
-        whiteSpace: "nowrap",
-        overflow: "hidden",
-        textOverflow: "ellipsis",
-        fontFamily: "system-ui, -apple-system, sans-serif",
-      }}
+      className={styles.stagingBanner}
+      style={{ backgroundColor: "#f59e0b", color: "#1f2937" }}
     >
       {label} · dados aqui não são reais · não compartilhar com clientes
     </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import styles from "./AdminSwitch.module.css";
 
 /**
  * Toggle switch admin Urban AI — usa CSS `.urban-admin-switch` em globals.css.
@@ -23,18 +24,7 @@ export function AdminSwitch({
   return (
     <label
       htmlFor={id}
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 10,
-        cursor: disabled ? "not-allowed" : "pointer",
-        opacity: disabled ? 0.5 : 1,
-        fontSize: 12,
-        color: "var(--admin-text-muted)",
-        fontWeight: 500,
-        letterSpacing: 1.5,
-        textTransform: "uppercase",
-      }}
+      className={`${styles.label} ${disabled ? styles.labelDisabled : ""}`}
     >
       <button
         type="button"

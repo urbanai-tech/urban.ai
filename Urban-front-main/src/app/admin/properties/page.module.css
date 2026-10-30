@@ -106,3 +106,16 @@
   flex: 1;
   max-width: 480px;
 }
+
+.kpiInlineValue.kpiInlineValue.kpiInlineValue {
+  margin-top: 10px;
+  color: var(--admin-text);
+}
+
+.kpiInlineValue.kpiInlineValue.kpiInlineValue.kpiInlineValueWarn {
+  color: var(--admin-warning);
+}
+
+.kpiInlineValue.kpiInlineValue.kpiInlineValue.kpiInlineValueAccent {
+  color: var(--admin-accent);
+}

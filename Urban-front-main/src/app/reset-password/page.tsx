@@ -137,33 +137,15 @@ export default function PasswordConfirmation() {
     >
       <AppCard variant="elevated" className={styles.formCard}>
         {success ? (
-          <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-            <div
-              style={{
-                width: 42,
-                height: 42,
-                borderRadius: 10,
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                background: "rgba(22, 160, 107, 0.10)",
-                color: "var(--app-success)",
-              }}
-            >
+          <div className={styles.successStack}>
+            <div className={styles.successIcon}>
               <Icons.Check size={20} />
             </div>
             <div>
-              <h2 style={{ margin: 0, fontSize: 18, lineHeight: 1.35 }}>
+              <h2 className={styles.successTitle}>
                 Senha atualizada
               </h2>
-              <p
-                style={{
-                  margin: "8px 0 0",
-                  color: "var(--app-text-muted)",
-                  fontSize: 14,
-                  lineHeight: 1.65,
-                }}
-              >
+              <p className={styles.successText}>
                 Agora você já pode acessar o My Urban com sua nova senha.
               </p>
             </div>
@@ -179,7 +161,7 @@ export default function PasswordConfirmation() {
             </AppButton>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+          <form onSubmit={handleSubmit} className={styles.successStack}>
             <PasswordInput
               label="Nova senha"
               value={password}
@@ -244,7 +226,7 @@ function PasswordInput({
   error?: string;
 }) {
   return (
-    <div style={{ position: "relative" }}>
+    <div className={styles.passwordField}>
       <AppInput
         label={label}
         type={show ? "text" : "password"}
@@ -260,21 +242,7 @@ function PasswordInput({
         type="button"
         aria-label={show ? "Ocultar senha" : "Mostrar senha"}
         onClick={onToggle}
-        style={{
-          position: "absolute",
-          right: 8,
-          top: 27,
-          height: 36,
-          width: 36,
-          display: "inline-flex",
-          alignItems: "center",
-          justifyContent: "center",
-          border: "none",
-          borderRadius: 8,
-          background: "transparent",
-          color: "var(--app-text-muted)",
-          cursor: "pointer",
-        }}
+        className={styles.passwordToggle}
       >
         {show ? <EyeOff size={16} /> : <Eye size={16} />}
       </button>
@@ -290,67 +258,30 @@ function PasswordRulesPanel({
   strength: string;
 }) {
   return (
-    <div
-      style={{
-        padding: 16,
-        background: "var(--app-surface-muted)",
-        border: "1px solid var(--app-divider)",
-        borderRadius: 10,
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          gap: 12,
-          marginBottom: 10,
-        }}
-      >
-        <p style={{ margin: 0, fontSize: 13, fontWeight: 650 }}>Regras da senha</p>
+    <div className={styles.rulesPanel}>
+      <div className={styles.rulesHeader}>
+        <p className={styles.rulesTitle}>Regras da senha</p>
         <strong
-          style={{
-            color:
-              strength === "Forte"
-                ? "var(--app-success)"
-                : strength === "Media"
-                  ? "var(--app-warning-text)"
-                  : "var(--app-danger)",
-            fontSize: 12,
-          }}
+          className={`${styles.strengthLabel} ${
+            strength === "Forte"
+              ? styles.strengthStrong
+              : strength === "Media"
+                ? styles.strengthMedium
+                : styles.strengthWeak
+          }`}
         >
           {strength}
         </strong>
       </div>
-      <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
+      <ul className={styles.rulesList}>
         {PASSWORD_RULES.map((rule) => (
           <li
             key={rule.key}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              padding: "3px 0",
-              color: checks[rule.key] ? "var(--app-text)" : "var(--app-text-muted)",
-              fontSize: 12,
-              lineHeight: 1.5,
-            }}
+            className={`${styles.ruleItem} ${checks[rule.key] ? styles.ruleItemMet : ""}`}
           >
             <span
               aria-hidden
-              style={{
-                width: 16,
-                height: 16,
-                borderRadius: "50%",
-                background: checks[rule.key] ? "var(--app-success)" : "var(--app-surface)",
-                border: checks[rule.key]
-                  ? "1px solid var(--app-success)"
-                  : "1px solid var(--app-divider-strong)",
-                color: "#fff",
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                flexShrink: 0,
-              }}
+              className={`${styles.ruleMark} ${checks[rule.key] ? styles.ruleMarkMet : ""}`}
             >
               {checks[rule.key] ? <Icons.Check size={10} /> : null}
             </span>
@@ -366,17 +297,7 @@ function InlineAlert({ children }: { children: React.ReactNode }) {
   return (
     <div
       role="alert"
-      style={{
-        display: "flex",
-        gap: 10,
-        alignItems: "center",
-        padding: "10px 12px",
-        borderRadius: 8,
-        border: "1px solid rgba(194, 52, 46, 0.25)",
-        background: "rgba(194, 52, 46, 0.08)",
-        color: "var(--app-danger)",
-        fontSize: 13,
-      }}
+      className={styles.inlineAlert}
     >
       <Icons.AlertCircle size={14} />
       <span>{children}</span>
