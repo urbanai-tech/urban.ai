@@ -67,22 +67,8 @@ export function AdminToastProvider({ children }: { children: React.ReactNode }) 
           <div
             key={t.id}
             role="status"
-            style={{
-              pointerEvents: "auto",
-              minWidth: 280,
-              maxWidth: 420,
-              padding: "12px 14px",
-              background: "var(--admin-surface-elevated)",
-              border: "1px solid var(--admin-divider-strong)",
-              borderLeft: `2px solid ${kindColor(t.kind)}`,
-              borderRadius: 2,
-              display: "flex",
-              alignItems: "center",
-              gap: 12,
-              fontSize: 13,
-              color: "var(--admin-text)",
-              boxShadow: "0 8px 24px var(--admin-backdrop)",
-            }}
+            className={styles.toast}
+            style={{ "--toast-accent": kindColor(t.kind) } as React.CSSProperties}
           >
             <AdminStatusDot kind={t.kind} size={8} />
             <span className={styles.toastMessage}>{t.message}</span>

@@ -112,3 +112,20 @@
   margin: 0;
   font-weight: 500;
 }
+
+.smallStatValue.smallStatValue {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--admin-text);
+  margin: 4px 0 0;
+  font-family: var(--font-display);
+  letter-spacing: -0.3px;
+}
+
+.smallStatValue.smallStatValue.smallStatValueSuccess {
+  color: var(--admin-success);
+}
+
+.smallStatValue.smallStatValue.smallStatValueError {
+  color: var(--admin-danger);
+}

@@ -331,3 +331,69 @@
 .sourceShell.sourceShell.sourceShell {
   width: 240px;
 }
+
+.relevanceCell.relevanceCell {
+  --relevance-text: var(--admin-text);
+  --relevance-fill: var(--admin-text-muted);
+}
+
+.relevanceCell.relevanceCell.relevanceAccent {
+  --relevance-text: var(--admin-accent);
+  --relevance-fill: var(--admin-accent);
+}
+
+.relevanceCell.relevanceCell.relevanceWarn {
+  --relevance-text: var(--admin-warning);
+  --relevance-fill: var(--admin-warning);
+}
+
+.relevanceValue.relevanceValue {
+  font-family: monospace;
+  font-weight: 600;
+  color: var(--relevance-text);
+  font-size: 13px;
+}
+
+.relevanceFill.relevanceFill {
+  height: 100%;
+  width: var(--pct);
+  background: var(--relevance-fill);
+}
+
+.segmentedButton.segmentedButton {
+  background: transparent;
+  border: none;
+  border-right: 1px solid var(--admin-divider);
+  border-bottom: 2px solid transparent;
+  color: var(--admin-text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: color 120ms, border-color 120ms;
+}
+
+.segmentedButton.segmentedButton.segmentedButtonActive {
+  border-bottom: 2px solid var(--admin-accent);
+  color: var(--admin-text);
+}
+
+.barFill.barFill {
+  height: 100%;
+  width: var(--pct);
+  background: var(--admin-accent);
+}
+
+.timelineOut.timelineOut {
+  height: var(--bar-h);
+  background: var(--admin-accent);
+  opacity: 0.35;
+}
+
+.timelineIn.timelineIn {
+  height: var(--bar-h);
+  background: var(--admin-text);
+  opacity: 0.9;
+}

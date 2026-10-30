@@ -321,18 +321,13 @@ function KpiInline({
   accent?: boolean;
   kind?: "warn" | "neutral";
 }) {
-  const color =
-    kind === "warn"
-      ? "var(--admin-warning)"
-      : accent
-        ? "var(--admin-accent)"
-        : "var(--admin-text)";
   return (
     <div>
       <p className="urban-admin-eyebrow-muted">{label}</p>
       <p
-        className="urban-admin-display-md"
-        style={{ marginTop: 10, color }}
+        className={`urban-admin-display-md ${styles.kpiInlineValue} ${
+          kind === "warn" ? styles.kpiInlineValueWarn : accent ? styles.kpiInlineValueAccent : ""
+        }`}
       >
         {typeof value === "number" ? value.toLocaleString("pt-BR") : value}
       </p>

@@ -6,6 +6,7 @@ import CasaCard from "../componentes/CasaCard";
 import { Pagination } from "../componentes/Pagination";
 import { AppEmptyState, AppPageShell, AppSectionHeader, Icons } from "../componentes/ui";
 import { getUserProperties } from "../service/api";
+import styles from "./page.module.css";
 
 export type Evento = {
   id: string;
@@ -63,7 +64,7 @@ export default function CasaEventosProximosPage() {
   if (loading) {
     return (
       <AppPageShell>
-        <div style={{ minHeight: "60vh", display: "grid", placeItems: "center" }}>
+        <div className={styles.loadingBox}>
           <Spinner />
         </div>
       </AppPageShell>
@@ -86,7 +87,7 @@ export default function CasaEventosProximosPage() {
           icon={<Icons.MapPin size={32} />}
         />
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+        <div className={styles.houseList}>
           {houses.map((casa) => (
             <CasaCard
               key={casa.id}
@@ -110,16 +111,7 @@ function Spinner() {
     <span
       role="status"
       aria-label="Carregando"
-      style={{
-        width: 36,
-        height: 36,
-        borderRadius: "50%",
-        border: "3px solid var(--app-accent-soft)",
-        borderTopColor: "var(--app-accent)",
-        animation: "near-events-spin 0.9s linear infinite",
-      }}
-    >
-      <style>{`@keyframes near-events-spin { to { transform: rotate(360deg); } }`}</style>
-    </span>
+      className={styles.spinner}
+    />
   );
 }

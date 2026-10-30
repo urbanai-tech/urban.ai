@@ -378,17 +378,7 @@ function StickySaveFooter({
     <div
       role="region"
       aria-label="Ações de salvamento"
-      style={{
-        position: "fixed",
-        left: 0,
-        right: 0,
-        bottom: 0,
-        zIndex: 50,
-        padding: "12px 20px",
-        background: "var(--app-surface, var(--theme-app-legacy-white))",
-        borderTop: "1px solid var(--app-divider-strong)",
-        boxShadow: "0 -8px 24px var(--theme-app-legacy-ink-08)",
-      }}
+      className={styles.saveBar}
     >
       <div
         className={styles.footerInner}

@@ -176,3 +176,38 @@
 .roleShell.roleShell.roleShell {
   width: 180px;
 }
+
+.futureRecsCount.futureRecsCount {
+  color: var(--admin-text-dim);
+  font-weight: 600;
+}
+
+.futureRecsCount.futureRecsCount.futureRecsCountActive {
+  color: var(--admin-accent);
+}
+
+.th.th {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--admin-text-muted);
+  font-weight: 600;
+}
+
+.td.td {
+  padding: 14px 16px;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.th.th.alignRight,
+.td.td.alignRight {
+  text-align: right;
+}
+
+.th.th.alignCenter,
+.td.td.alignCenter {
+  text-align: center;
+}

@@ -94,17 +94,14 @@ export function PortfolioToolbar({
         // Estilo inline mantido de propósito: o @media do <style> abaixo (barra inferior no
         // celular) tem a mesma especificidade de uma classe e, se este bloco virasse classe,
         // passaria a valer e mudaria o layout atual. Inline preserva o comportamento visível.
+        className={styles.toolbarSurface}
         style={{
           position: "sticky",
           top: 64,
           zIndex: 30,
-          background: "var(--app-surface-elevated, var(--theme-app-legacy-white))",
           border: "1px solid var(--app-divider)",
           padding: "16px 18px",
-          display: "grid",
           gridTemplateColumns: hasSelection ? "minmax(260px, 1fr) auto" : "1fr",
-          alignItems: "start",
-          gap: "14px 20px",
           borderRadius: 12,
           boxShadow: "0 10px 28px var(--theme-app-legacy-ink-08)",
           marginBottom: 20,
@@ -127,22 +124,7 @@ export function PortfolioToolbar({
             <div
               className={styles.selectionSummary}
             >
-              <span
-                aria-hidden
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  minWidth: 28,
-                  height: 24,
-                  padding: "0 8px",
-                  borderRadius: 999,
-                  background: "var(--app-accent-soft)",
-                  color: "var(--app-accent, #2A928A)",
-                  fontSize: 12,
-                  fontWeight: 700,
-                }}
-              >
+              <span aria-hidden className={styles.selectedCountBadge}>
                 {selectedCount}
               </span>
               <span>

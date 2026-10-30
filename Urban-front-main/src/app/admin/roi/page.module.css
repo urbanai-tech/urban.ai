@@ -166,3 +166,44 @@
 .heroCard.heroCard.heroCard {
   padding: 40px 40px 36px;
 }
+
+.heroAttributed.heroAttributed.heroAttributed {
+  margin-top: 12px;
+  color: var(--admin-text);
+}
+
+.heroAttributed.heroAttributed.heroAttributed.heroAttributedEmpty {
+  color: var(--admin-text-muted);
+}
+
+.netValue.netValue.netValue {
+  margin-top: 12px;
+}
+
+.netValue.netValue.netValue.netValuePositive {
+  color: var(--admin-success);
+}
+
+.netValue.netValue.netValue.netValueNegative {
+  color: var(--admin-danger);
+}
+
+.segmentedButton.segmentedButton {
+  background: transparent;
+  border: none;
+  border-right: 1px solid var(--admin-divider);
+  border-bottom: 2px solid transparent;
+  color: var(--admin-text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: color 120ms, border-color 120ms;
+}
+
+.segmentedButton.segmentedButton.segmentedButtonActive {
+  border-bottom: 2px solid var(--admin-accent);
+  color: var(--admin-text);
+}

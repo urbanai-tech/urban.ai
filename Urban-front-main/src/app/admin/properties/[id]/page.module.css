@@ -165,3 +165,30 @@
 .accentIcon.accentIcon {
   color: var(--admin-accent);
 }
+
+.healthCheck.healthCheck {
+  padding: 12px 14px;
+  border: 1px solid var(--admin-divider);
+  border-radius: 2px;
+}
+
+.healthCheck.healthCheck.healthCheckOk {
+  background: color-mix(in srgb, var(--admin-success) 4%, transparent);
+}
+
+.healthCheck.healthCheck.healthCheckWarn {
+  background: color-mix(in srgb, var(--admin-warning) 4%, transparent);
+}
+
+.deltaValue.deltaValue {
+  font-family: monospace;
+  font-weight: 600;
+}
+
+.deltaValue.deltaValue.deltaPositive {
+  color: var(--admin-success);
+}
+
+.deltaValue.deltaValue.deltaNegative {
+  color: var(--admin-danger);
+}

@@ -176,3 +176,49 @@
 .invalidRowsCard.invalidRowsCard.invalidRowsCard {
   margin-top: 24px;
 }
+
+.countCell.countCell {
+  font-family: monospace;
+  color: var(--admin-text-dim);
+}
+
+.countCell.countCell.countSuccess {
+  color: var(--admin-success);
+}
+
+.countCell.countCell.countAccent {
+  color: var(--admin-accent);
+}
+
+.countCell.countCell.countDanger {
+  color: var(--admin-danger);
+}
+
+.readinessCard.readinessCard {
+  padding: 24px;
+  border-radius: 2px;
+  border: 1px solid var(--admin-divider);
+  border-left: 2px solid var(--admin-warning);
+  background: var(--admin-surface);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.readinessCard.readinessCard.readinessCardReady {
+  border-left-color: var(--admin-success);
+}
+
+.readinessCard.readinessCard.readinessCardPending {
+  border-left-color: var(--admin-warning);
+}
+
+.progressValueReady.progressValueReady.progressValueReady {
+  color: var(--admin-success);
+}
+
+.progressValuePending.progressValuePending.progressValuePending {
+  color: var(--admin-warning);
+}

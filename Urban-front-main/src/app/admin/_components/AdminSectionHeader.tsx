@@ -38,19 +38,7 @@ export function AdminSectionHeader({
         : "urban-admin-display-sm";
 
   return (
-    <header
-      style={{
-        display: "flex",
-        alignItems: "flex-end",
-        justifyContent: "space-between",
-        gap: 24,
-        flexWrap: "wrap",
-        paddingBottom: 24,
-        borderBottom: "1px solid var(--admin-divider)",
-        marginBottom: 32,
-        ...style,
-      }}
-    >
+    <header className={styles.root} style={style}>
       <div className={styles.headerText}>
         {eyebrow && (
           <p className={`urban-admin-eyebrow ${styles.eyebrow}`}>

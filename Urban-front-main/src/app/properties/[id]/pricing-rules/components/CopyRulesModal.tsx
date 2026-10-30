@@ -85,30 +85,13 @@ export function CopyRulesModal({
       <div
         onClick={onClose}
         aria-hidden="true"
-        style={{
-          position: "absolute",
-          inset: 0,
-          background: "var(--theme-app-legacy-ink-45)",
-          backdropFilter: "blur(4px)",
-        }}
+        className={styles.modalBackdrop}
       />
 
       <div
         ref={panelRef}
         tabIndex={-1}
-        style={{
-          position: "relative",
-          width: "100%",
-          maxWidth: 520,
-          maxHeight: "85vh",
-          display: "flex",
-          flexDirection: "column",
-          background: "var(--app-surface-elevated, var(--theme-app-legacy-white))",
-          border: "1px solid var(--app-divider-strong)",
-          borderRadius: 14,
-          boxShadow: "0 18px 48px var(--theme-app-legacy-ink-12)",
-          overflow: "hidden",
-        }}
+        className={styles.modalPanel}
       >
         <header
           className={styles.modalHeader}
@@ -158,14 +141,7 @@ export function CopyRulesModal({
             <div
               role="alert"
               aria-live="assertive"
-              style={{
-                padding: "16px",
-                border: "1px solid var(--theme-app-legacy-danger-25)",
-                background: "var(--theme-app-legacy-danger-06)",
-                borderRadius: 10,
-                color: "var(--app-danger)",
-                fontSize: 13,
-              }}
+              className={styles.fetchError}
             >
               {fetchError}
             </div>

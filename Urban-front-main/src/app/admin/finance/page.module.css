@@ -219,3 +219,42 @@
 .heroCard.heroCard.heroCard {
   padding: 40px 40px 36px;
 }
+
+.marginHero.marginHero.marginHero {
+  margin-top: 12px;
+  color: var(--admin-text);
+}
+
+.marginHero.marginHero.marginHero.marginHeroGood {
+  color: var(--admin-success);
+}
+
+.marginHero.marginHero.marginHero.marginHeroBad {
+  color: var(--admin-danger);
+}
+
+.categoryBarFill.categoryBarFill {
+  height: 100%;
+  width: var(--pct);
+  background: var(--admin-accent);
+}
+
+.actionButton.actionButton {
+  background: transparent;
+  border: 1px solid var(--admin-divider-strong);
+  border-radius: 2px;
+  color: var(--admin-text-muted);
+  padding: 6px;
+  cursor: pointer;
+  display: inline-flex;
+  line-height: 0;
+}
+
+.actionButton.actionButton.actionButtonDanger {
+  border-color: color-mix(in srgb, var(--admin-danger) 30%, transparent);
+  color: var(--admin-danger);
+}
+
+.actionButton.actionButton:disabled {
+  cursor: not-allowed;
+}

@@ -157,3 +157,7 @@
 .rowStatusShell.rowStatusShell.rowStatusShell {
   width: 180px;
 }
+
+.slaLabel.slaLabel {
+  margin-left: 8px;
+}

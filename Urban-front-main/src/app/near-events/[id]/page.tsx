@@ -104,13 +104,13 @@ export default function CasaEventosProximosPage() {
       />
 
       {endereco && (
-        <div style={{ marginBottom: 32 }}>
+        <div className={styles.propertyCardWrap}>
           <CasaCard key={endereco.id} casa={endereco} />
         </div>
       )}
 
       {loading ? (
-        <div style={{ minHeight: 260, display: "grid", placeItems: "center" }}>
+        <div className={styles.loadingBox}>
           <Spinner />
         </div>
       ) : eventos.length === 0 ? (
@@ -121,32 +121,18 @@ export default function CasaEventosProximosPage() {
           icon={<Icons.Calendar size={32} />}
         />
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-              gap: 16,
-            }}
-          >
+        <div className={styles.eventsSection}>
+          <div className={styles.eventGrid}>
             {eventos.map((ev: Evento) => (
               <AppCard key={ev.id} variant="default" className={styles.eventCard}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={ev?.imagem_url}
                   alt={ev.enderecoCompleto}
-                  style={{ width: "100%", height: 180, objectFit: "cover", display: "block" }}
+                  className={styles.eventImage}
                 />
-                <div style={{ padding: 16 }}>
-                  <p
-                    style={{
-                      margin: "0 0 8px",
-                      color: "var(--app-text)",
-                      fontSize: 15,
-                      lineHeight: 1.35,
-                      fontWeight: 650,
-                    }}
-                  >
+                <div className={styles.eventBody}>
+                  <p className={styles.eventTitle}>
                     {ev.nome ?? ev.enderecoCompleto}
                   </p>
                   <MetaRow icon={<Icons.Calendar size={12} />}>
@@ -158,14 +144,7 @@ export default function CasaEventosProximosPage() {
                   <MetaRow icon={<Icons.MapPin size={12} />}>
                     {ev.enderecoCompleto}
                   </MetaRow>
-                  <p
-                    style={{
-                      margin: "12px 0 0",
-                      color: "var(--app-accent)",
-                      fontSize: 14,
-                      fontWeight: 750,
-                    }}
-                  >
+                  <p className={styles.eventDistance}>
                     {(Number(ev.distancia_metros) / 1000).toFixed(1)} {t('casas_proximas.km')}
                   </p>
                 </div>
@@ -185,21 +164,11 @@ export default function CasaEventosProximosPage() {
 
 function MetaRow({ icon, children }: { icon: React.ReactNode; children: React.ReactNode }) {
   return (
-    <p
-      style={{
-        margin: "0 0 4px",
-        display: "flex",
-        alignItems: "center",
-        gap: 6,
-        color: "var(--app-text-muted)",
-        fontSize: 12,
-        lineHeight: 1.45,
-      }}
-    >
-      <span style={{ display: "inline-flex", color: "var(--app-text-muted)", flexShrink: 0 }}>
+    <p className={styles.metaRow}>
+      <span className={styles.metaIcon}>
         {icon}
       </span>
-      <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+      <span className={styles.metaText}>
         {children}
       </span>
     </p>
@@ -211,16 +180,7 @@ function Spinner() {
     <span
       role="status"
       aria-label="Carregando"
-      style={{
-        width: 36,
-        height: 36,
-        borderRadius: "50%",
-        border: "3px solid var(--app-accent-soft)",
-        borderTopColor: "var(--app-accent)",
-        animation: "near-events-detail-spin 0.9s linear infinite",
-      }}
-    >
-      <style>{`@keyframes near-events-detail-spin { to { transform: rotate(360deg); } }`}</style>
-    </span>
+      className={styles.spinner}
+    />
   );
 }

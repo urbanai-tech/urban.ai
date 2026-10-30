@@ -23,3 +23,204 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+.loadingBox {
+  min-height: 480px;
+  display: grid;
+  place-items: center;
+}
+
+.detailGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+  gap: 22px;
+}
+
+.heroMedia {
+  height: 340px;
+  background: var(--app-surface-muted);
+}
+
+.heroBody {
+  padding: 22px;
+}
+
+.badgeRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.description.description {
+  margin: 0 0 18px;
+  color: var(--app-text-muted);
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+.metricGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.sourceLinks {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+}
+
+.sourceLink.sourceLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 12px;
+  min-width: 0;
+  max-width: 100%;
+  border-radius: 8px;
+  border: 1px solid var(--app-divider-strong);
+  color: var(--app-text);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.interpretation.interpretation {
+  margin: 0;
+  color: var(--app-text);
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+.driverList {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.driverItem {
+  border-top: 1px solid var(--app-divider);
+  padding-top: 10px;
+  min-width: 0;
+}
+
+.driverHead {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.driverLabel.driverLabel {
+  margin: 0;
+  color: var(--app-text);
+  font-size: 13px;
+  font-weight: 750;
+  overflow-wrap: anywhere;
+}
+
+.driverWeight.driverWeight {
+  color: var(--app-text-muted);
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.driverExplanation.driverExplanation {
+  margin: 4px 0 0;
+  color: var(--app-text-muted);
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.emptyDriversText.emptyDriversText {
+  margin: 0;
+  color: var(--app-text-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.flagRow {
+  margin-top: 18px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.radarAction {
+  margin-top: 22px;
+}
+
+.sectionGap {
+  margin-top: 24px;
+}
+
+.simulationStatus.simulationStatus {
+  margin: 10px 0 0;
+  color: var(--app-text-muted);
+  font-size: 12px;
+}
+
+.simulationError.simulationError {
+  margin: 10px 0 0;
+  color: var(--app-danger);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.relatedSection {
+  margin-top: 28px;
+}
+
+.relatedGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.metricCard {
+  padding: 14px;
+  border-radius: 8px;
+  background: var(--app-surface-muted);
+  border: 1px solid var(--app-divider);
+}
+
+.metricLabel.metricLabel {
+  margin: 0 0 4px;
+  color: var(--app-text-muted);
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+
+.metricValue.metricValue {
+  margin: 0;
+  color: var(--app-text);
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.spinner {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 3px solid var(--app-accent-soft);
+  border-top-color: var(--app-accent);
+  animation: eventDetailSpin 0.9s linear infinite;
+}
+
+@keyframes eventDetailSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}

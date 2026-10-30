@@ -31,3 +31,45 @@
 .tableSection.tableSection {
   margin-top: 48px;
 }
+
+.heroWrap.heroWrap {
+  padding: 32px 0;
+}
+
+.kpiGrid.kpiGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 32px;
+}
+
+.tableHeadRow.tableHeadRow {
+  display: grid;
+  grid-template-columns: repeat(var(--table-cols), 1fr);
+  gap: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--admin-divider);
+}
+
+.tableRow.tableRow {
+  display: grid;
+  grid-template-columns: repeat(var(--table-cols), 1fr);
+  gap: 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--admin-divider);
+}
+
+.skeletonStack.skeletonStack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skeletonStackLoose.skeletonStackLoose {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.chartBar.chartBar {
+  margin-top: 8px;
+}

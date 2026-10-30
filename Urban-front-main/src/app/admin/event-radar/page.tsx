@@ -42,7 +42,6 @@ import {
   formatDate,
   formatDateTime,
   integer,
-  modeColor,
   prioritizeEvents,
   severityKind,
   uniqueList,
@@ -588,7 +587,7 @@ export default function AdminEventRadarPage() {
         className={styles.pageFooter}
       >
         Snapshot em {formatDateTime(radar.generatedAt)} · modo{" "}
-        <strong style={{ color: modeColor(radar.contractMode) }}>{radar.contractMode}</strong>. O objetivo desta
+        <strong className={radar.contractMode === "backend" ? styles.modeBackend : styles.modeOther}>{radar.contractMode}</strong>. O objetivo desta
         tela é priorizar operação: corrigir dados que travam pricing, abrir cobertura onde há demanda e reprocessar
         eventos com maior potencial financeiro.
       </footer>

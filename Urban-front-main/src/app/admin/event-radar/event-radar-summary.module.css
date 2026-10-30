@@ -134,3 +134,23 @@
   color: var(--admin-warning);
   margin-top: 2px;
 }
+
+.statIcon.statIcon {
+  color: var(--admin-accent);
+  line-height: 0;
+  margin-top: 1px;
+}
+
+.statIcon.statIcon.statIconError {
+  color: var(--admin-danger);
+}
+
+.statIcon.statIcon.statIconWarn {
+  color: var(--admin-warning);
+}
+
+.healthFill.healthFill {
+  width: var(--pct);
+  height: 100%;
+  background: var(--score-color);
+}

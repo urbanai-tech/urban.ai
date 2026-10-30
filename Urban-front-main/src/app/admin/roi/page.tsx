@@ -237,14 +237,9 @@ export default function AdminRoiPage() {
             <div>
               <p className="urban-admin-eyebrow">RECEITA ATRIBUIDA A IA</p>
               <p
-                className="urban-admin-display-hero"
-                style={{
-                  marginTop: 12,
-                  color:
-                    data.totals.totalAttributedCents > 0
-                      ? "var(--admin-text)"
-                      : "var(--admin-text-muted)",
-                }}
+                className={`urban-admin-display-hero ${styles.heroAttributed} ${
+                  data.totals.totalAttributedCents > 0 ? "" : styles.heroAttributedEmpty
+                }`}
               >
                 {fmt(data.totals.totalAttributedCents)}
               </p>
@@ -277,14 +272,9 @@ export default function AdminRoiPage() {
             <div className={styles.summaryBox}>
               <p className="urban-admin-eyebrow-muted">Valor liquido</p>
               <p
-                className="urban-admin-display-md"
-                style={{
-                  marginTop: 12,
-                  color:
-                    data.totals.netValueCents >= 0
-                      ? "var(--admin-success)"
-                      : "var(--admin-danger)",
-                }}
+                className={`urban-admin-display-md ${styles.netValue} ${
+                  data.totals.netValueCents >= 0 ? styles.netValuePositive : styles.netValueNegative
+                }`}
               >
                 {fmt(data.totals.netValueCents)}
               </p>
@@ -420,22 +410,7 @@ function SegmentedControl<T extends string | number>({
             key={String(opt)}
             type="button"
             onClick={() => onChange(opt)}
-            style={{
-              background: "transparent",
-              border: "none",
-              borderRight: "1px solid var(--admin-divider)",
-              borderBottom: active
-                ? "2px solid var(--admin-accent)"
-                : "2px solid transparent",
-              color: active ? "var(--admin-text)" : "var(--admin-text-muted)",
-              fontSize: 11,
-              fontWeight: 600,
-              letterSpacing: 1.5,
-              textTransform: "uppercase",
-              padding: "8px 14px",
-              cursor: "pointer",
-              transition: "color 120ms, border-color 120ms",
-            }}
+            className={`${styles.segmentedButton} ${active ? styles.segmentedButtonActive : ""}`}
           >
             {renderLabel(opt)}
           </button>

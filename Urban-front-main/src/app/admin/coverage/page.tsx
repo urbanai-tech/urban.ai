@@ -176,8 +176,7 @@ export default function CoverageAdminPage() {
           }
           disabled={busyId === r.id}
           shellClassName={styles.statusSelectShell}
-          className={styles.statusSelect}
-          style={{ cursor: busyId === r.id ? "not-allowed" : "pointer" }}
+          className={`${styles.statusSelect} ${busyId === r.id ? styles.statusSelectBusy : ""}`}
         >
           <option value="active">active</option>
           <option value="bootstrap">bootstrap</option>
@@ -210,16 +209,7 @@ export default function CoverageAdminPage() {
           disabled={busyId === r.id}
           aria-label={`Remover ${r.name}`}
           title="Remover"
-          style={{
-            background: "transparent",
-            border: "1px solid color-mix(in srgb, var(--admin-danger) 30%, transparent)",
-            borderRadius: 2,
-            color: "var(--admin-danger)",
-            padding: 6,
-            cursor: busyId === r.id ? "not-allowed" : "pointer",
-            display: "inline-flex",
-            lineHeight: 0,
-          }}
+          className={`${styles.deleteButton} ${busyId === r.id ? styles.deleteButtonBusy : ""}`}
         >
           <Icons.Trash size={12} />
         </button>
@@ -445,22 +435,7 @@ function CheckPointForm() {
       </AdminButton>
 
       {result !== null && (
-        <div
-          style={{
-            marginTop: 8,
-            padding: "14px 16px",
-            border: `1px solid ${result ? "color-mix(in srgb, var(--admin-success) 30%, transparent)" : "color-mix(in srgb, var(--admin-danger) 30%, transparent)"}`,
-            borderRadius: 2,
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 10,
-            color: result ? "var(--admin-success)" : "var(--admin-danger)",
-            fontSize: 13,
-            fontWeight: 600,
-            letterSpacing: 1.5,
-            textTransform: "uppercase",
-          }}
-        >
+        <div className={`${styles.testResult} ${result ? styles.testResultOk : styles.testResultFail}`}>
           {result ? <Icons.Check size={14} /> : <Icons.Close size={14} />}
           {result ? "Dentro da cobertura" : "Fora da cobertura"}
         </div>

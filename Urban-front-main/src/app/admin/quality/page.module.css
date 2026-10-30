@@ -230,3 +230,26 @@
 .heroCard.heroCard.heroCard {
   padding: 40px 40px 36px;
 }
+
+.mapeValue.mapeValue.mapeValue {
+  margin-top: 12px;
+  color: var(--admin-text);
+}
+
+.mapeValue.mapeValue.mapeValue.mapeGood {
+  color: var(--admin-success);
+}
+
+.mapeValue.mapeValue.mapeValue.mapeWarn {
+  color: var(--admin-warning);
+}
+
+.mapeValue.mapeValue.mapeValue.mapeBad {
+  color: var(--admin-danger);
+}
+
+.barFill.barFill {
+  height: 100%;
+  width: var(--pct);
+  background: var(--admin-accent);
+}

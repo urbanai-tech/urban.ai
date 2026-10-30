@@ -187,14 +187,14 @@ export default function AdminQualityPage() {
 
   const mape = quality?.mapePercent ?? null;
   const mapeThreshold = quality?.qualityGate.threshold ?? 20;
-  const mapeColor =
+  const mapeToneClass =
     mape == null
-      ? "var(--admin-text)"
+      ? ""
       : mape <= mapeThreshold
-        ? "var(--admin-success)"
+        ? styles.mapeGood
         : mape <= mapeThreshold * 1.5
-          ? "var(--admin-warning)"
-          : "var(--admin-danger)";
+          ? styles.mapeWarn
+          : styles.mapeBad;
 
   return (
     <div className={styles.pageContainer}>
@@ -233,8 +233,7 @@ export default function AdminQualityPage() {
                     MAPE (ULTIMOS {quality.windowDays} DIAS)
                   </p>
                   <p
-                    className="urban-admin-display-hero"
-                    style={{ marginTop: 12, color: mapeColor }}
+                    className={`urban-admin-display-hero ${styles.mapeValue} ${mapeToneClass}`}
                   >
                     {mape != null ? `${mape}%` : "—"}
                   </p>
@@ -516,11 +515,8 @@ function BarList({ rows }: { rows: Array<{ label: string; value: number }> }) {
           </div>
           <div className={styles.barTrack}>
             <div
-              style={{
-                height: "100%",
-                width: `${(r.value / max) * 100}%`,
-                background: "var(--admin-accent)",
-              }}
+              className={styles.barFill}
+              style={{ "--pct": `${(r.value / max) * 100}%` } as React.CSSProperties}
             />
           </div>
         </li>

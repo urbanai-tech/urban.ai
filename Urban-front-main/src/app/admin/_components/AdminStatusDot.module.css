@@ -1,0 +1,26 @@
+.dot.dot {
+  display: inline-block;
+  border-radius: 50%;
+  background: var(--admin-text-muted);
+  flex-shrink: 0;
+}
+
+.success.success.success {
+  background: var(--admin-success);
+}
+
+.warn.warn.warn {
+  background: var(--admin-warning);
+}
+
+.error.error.error {
+  background: var(--admin-danger);
+}
+
+.neutral.neutral.neutral {
+  background: var(--admin-text-muted);
+}
+
+.accent.accent.accent {
+  background: var(--admin-accent);
+}

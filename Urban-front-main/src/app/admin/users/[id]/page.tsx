@@ -425,13 +425,9 @@ export default function AdminUserDetailPage() {
                     </Td>
                     <Td align="right">
                       <span
-                        style={{
-                          color:
-                            (p.futureRecommendationsCount ?? 0) > 0
-                              ? "var(--admin-accent)"
-                              : "var(--admin-text-dim)",
-                          fontWeight: 600,
-                        }}
+                        className={`${styles.futureRecsCount} ${
+                          (p.futureRecommendationsCount ?? 0) > 0 ? styles.futureRecsCountActive : ""
+                        }`}
                       >
                         {p.futureRecommendationsCount ?? 0}
                       </span>
@@ -542,6 +538,10 @@ function Field({ label, value }: { label: string; value: string }) {
   );
 }
 
+function alignClass(align: "left" | "right" | "center") {
+  return align === "right" ? styles.alignRight : align === "center" ? styles.alignCenter : "";
+}
+
 function Th({
   children,
   align = "left",
@@ -550,17 +550,7 @@ function Th({
   align?: "left" | "right" | "center";
 }) {
   return (
-    <th
-      style={{
-        padding: "12px 16px",
-        textAlign: align,
-        fontSize: 10,
-        letterSpacing: 2,
-        textTransform: "uppercase",
-        color: "var(--admin-text-muted)",
-        fontWeight: 600,
-      }}
-    >
+    <th className={`${styles.th} ${alignClass(align)}`}>
       {children}
     </th>
   );
@@ -574,7 +564,7 @@ function Td({
   align?: "left" | "right" | "center";
 }) {
   return (
-    <td style={{ padding: "14px 16px", textAlign: align, verticalAlign: "middle" }}>
+    <td className={`${styles.td} ${alignClass(align)}`}>
       {children}
     </td>
   );

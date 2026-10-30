@@ -197,3 +197,11 @@
 .runButton.runButton.runButton {
   align-self: flex-start;
 }
+
+.shortcutItem.shortcutItem {
+  border-bottom: 1px solid var(--admin-divider);
+}
+
+.shortcutItem.shortcutItem:last-child {
+  border-bottom: none;
+}

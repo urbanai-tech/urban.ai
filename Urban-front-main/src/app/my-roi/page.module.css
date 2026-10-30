@@ -2,3 +2,22 @@
   padding: 40px 40px 36px;
   margin-bottom: 32px;
 }
+
+.propertySelectWrap.propertySelectWrap {
+  min-width: 0;
+  width: 320px;
+  max-width: 100%;
+}
+
+.heroAmount.heroAmount.heroAmount {
+  margin-top: 12px;
+  color: var(--app-accent);
+}
+
+.roiLabel.roiLabel.roiLabel {
+  margin-top: 12px;
+}
+
+.progressFill.progressFill.progressFill {
+  width: var(--pct);
+}

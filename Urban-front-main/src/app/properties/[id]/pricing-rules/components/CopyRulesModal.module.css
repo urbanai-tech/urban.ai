@@ -119,3 +119,33 @@
   gap: 10px;
   justify-content: flex-end;
 }
+
+.modalBackdrop.modalBackdrop {
+  position: absolute;
+  inset: 0;
+  background: var(--theme-app-legacy-ink-45);
+  backdrop-filter: blur(4px);
+}
+
+.modalPanel.modalPanel {
+  position: relative;
+  width: 100%;
+  max-width: 520px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--app-surface-elevated, var(--theme-app-legacy-white));
+  border: 1px solid var(--app-divider-strong);
+  border-radius: 14px;
+  box-shadow: 0 18px 48px var(--theme-app-legacy-ink-12);
+  overflow: hidden;
+}
+
+.fetchError.fetchError {
+  padding: 16px;
+  border: 1px solid var(--theme-app-legacy-danger-25);
+  background: var(--theme-app-legacy-danger-06);
+  border-radius: 10px;
+  color: var(--app-danger);
+  font-size: 13px;
+}

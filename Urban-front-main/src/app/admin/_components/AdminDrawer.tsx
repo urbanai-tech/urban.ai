@@ -58,17 +58,8 @@ export function AdminDrawer({
       <aside
         ref={drawerRef}
         tabIndex={-1}
-        className="urban-admin-drawer-panel"
-        style={{
-          position: "relative",
-          width: "100%",
-          maxWidth: width,
-          background: "var(--admin-surface-elevated)",
-          borderLeft: "1px solid var(--admin-divider)",
-          display: "flex",
-          flexDirection: "column",
-          height: "100%",
-        }}
+        className={`urban-admin-drawer-panel ${styles.panel}`}
+        style={{ "--drawer-max-width": `${width}px` } as React.CSSProperties}
       >
         <header
           className={styles.header}

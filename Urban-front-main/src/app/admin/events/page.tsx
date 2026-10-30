@@ -559,34 +559,18 @@ function RelevanceCell({ value }: { value: number | null }) {
   else if (value >= 60) kind = "warn";
   const pct = Math.min(100, Math.max(0, value));
   return (
-    <div className={styles.relevanceCell}>
-      <span
-        style={{
-          fontFamily: "monospace",
-          fontWeight: 600,
-          color:
-            kind === "accent"
-              ? "var(--admin-accent)"
-              : kind === "warn"
-                ? "var(--admin-warning)"
-                : "var(--admin-text)",
-          fontSize: 13,
-        }}
-      >
+    <div
+      className={`${styles.relevanceCell} ${
+        kind === "accent" ? styles.relevanceAccent : kind === "warn" ? styles.relevanceWarn : ""
+      }`}
+    >
+      <span className={styles.relevanceValue}>
         {value}
       </span>
       <div className={styles.progressTrack}>
         <div
-          style={{
-            height: "100%",
-            width: `${pct}%`,
-            background:
-              kind === "accent"
-                ? "var(--admin-accent)"
-                : kind === "warn"
-                  ? "var(--admin-warning)"
-                  : "var(--admin-text-muted)",
-          }}
+          className={styles.relevanceFill}
+          style={{ "--pct": `${pct}%` } as React.CSSProperties}
         />
       </div>
     </div>
@@ -615,20 +599,7 @@ function SegmentedControl<T extends string | number>({
             key={String(opt)}
             type="button"
             onClick={() => onChange(opt)}
-            style={{
-              background: "transparent",
-              border: "none",
-              borderRight: "1px solid var(--admin-divider)",
-              borderBottom: active ? "2px solid var(--admin-accent)" : "2px solid transparent",
-              color: active ? "var(--admin-text)" : "var(--admin-text-muted)",
-              fontSize: 11,
-              fontWeight: 600,
-              letterSpacing: 1.5,
-              textTransform: "uppercase",
-              padding: "8px 14px",
-              cursor: "pointer",
-              transition: "color 120ms, border-color 120ms",
-            }}
+            className={`${styles.segmentedButton} ${active ? styles.segmentedButtonActive : ""}`}
           >
             {renderLabel(opt)}
           </button>
@@ -665,11 +636,8 @@ function BarList({ rows }: { rows: Array<{ label: string; value: number }> }) {
           </div>
           <div className={styles.progressTrack}>
             <div
-              style={{
-                height: "100%",
-                width: `${(r.value / max) * 100}%`,
-                background: "var(--admin-accent)",
-              }}
+              className={styles.barFill}
+              style={{ "--pct": `${(r.value / max) * 100}%` } as React.CSSProperties}
             />
           </div>
         </li>
@@ -721,20 +689,14 @@ function TimelineChart({ data }: { data: EventsTimelineResponse }) {
             >
               {b.outOfScope > 0 && (
                 <div
-                  style={{
-                    height: `${outHeight}%`,
-                    background: "var(--admin-accent)",
-                    opacity: 0.35,
-                  }}
+                  className={styles.timelineOut}
+                  style={{ "--bar-h": `${outHeight}%` } as React.CSSProperties}
                 />
               )}
               {b.inScope > 0 && (
                 <div
-                  style={{
-                    height: `${inHeight}%`,
-                    background: "var(--admin-text)",
-                    opacity: 0.9,
-                  }}
+                  className={styles.timelineIn}
+                  style={{ "--bar-h": `${inHeight}%` } as React.CSSProperties}
                 />
               )}
             </div>

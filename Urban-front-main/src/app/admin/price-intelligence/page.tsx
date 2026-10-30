@@ -216,12 +216,8 @@ export default function AdminPriceIntelligencePage() {
       />
 
       <section
-        style={{
-          padding: "20px 24px",
-          borderLeft: `3px solid ${healthColor(data.health)}`,
-          background: "var(--admin-surface)",
-          marginBottom: 32,
-        }}
+        className={styles.healthStrip}
+        style={{ "--health-color": healthColor(data.health) } as React.CSSProperties}
       >
         <div className={styles.healthHeader}>
           <div className={styles.healthSummary}>
@@ -566,7 +562,7 @@ function BarRow({ label, value, max, sub }: { label: string; value: number; max:
         <span className={styles.smallMuted}>{integer.format(value)}</span>
       </div>
       <div className={styles.barTrack}>
-        <div style={{ width, height: "100%", background: "var(--admin-accent)" }} />
+        <div className={styles.barFill} style={{ "--bar-w": width } as React.CSSProperties} />
       </div>
       <p className={styles.subText}>{sub}</p>
     </div>

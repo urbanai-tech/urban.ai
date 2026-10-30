@@ -325,12 +325,6 @@ function SmallStat({
   value: number;
   kind?: "success" | "error" | "neutral";
 }) {
-  const color =
-    kind === "success"
-      ? "var(--admin-success)"
-      : kind === "error"
-        ? "var(--admin-danger)"
-        : "var(--admin-text)";
   return (
     <div>
       <p
@@ -339,14 +333,9 @@ function SmallStat({
         {label}
       </p>
       <p
-        style={{
-          fontSize: 22,
-          fontWeight: 600,
-          color,
-          margin: "4px 0 0",
-          fontFamily: "var(--font-display)",
-          letterSpacing: -0.3,
-        }}
+        className={`${styles.smallStatValue} ${
+          kind === "success" ? styles.smallStatValueSuccess : kind === "error" ? styles.smallStatValueError : ""
+        }`}
       >
         {value.toLocaleString("pt-BR")}
       </p>

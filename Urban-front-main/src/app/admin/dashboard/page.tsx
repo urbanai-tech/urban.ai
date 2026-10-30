@@ -145,12 +145,8 @@ export default function AdminDashboardPage() {
 
       {/* === Saúde geral — faixa horizontal === */}
       <section
-        style={{
-          padding: "20px 24px",
-          borderLeft: `3px solid ${healthBorderColor}`,
-          background: "var(--admin-surface)",
-          marginBottom: 32,
-        }}
+        className={styles.healthStrip}
+        style={{ "--health-color": healthBorderColor } as React.CSSProperties}
       >
         <div
           className={styles.healthHeader}
@@ -600,11 +596,8 @@ export default function AdminDashboardPage() {
                       className={styles.sourceBarTrack}
                     >
                       <div
-                        style={{
-                          height: "100%",
-                          width: `${pct}%`,
-                          background: "var(--admin-accent)",
-                        }}
+                        className={styles.sourceBarFill}
+                        style={{ "--pct": `${pct}%` } as React.CSSProperties}
                       />
                     </div>
                   </li>
@@ -692,19 +685,9 @@ function SmallStat({
         </p>
       </div>
       <p
-        style={{
-          fontSize: 22,
-          fontWeight: 600,
-          color:
-            status === "error"
-              ? "var(--admin-danger)"
-              : status === "warn"
-                ? "var(--admin-warning)"
-                : "var(--admin-text)",
-          margin: 0,
-          letterSpacing: -0.3,
-          fontFamily: typeof value === "number" ? "var(--font-display)" : "var(--font-brand)",
-        }}
+        className={`${styles.statValue} ${
+          status === "error" ? styles.statValueError : status === "warn" ? styles.statValueWarn : ""
+        } ${typeof value === "number" ? styles.statValueNumeric : ""}`}
       >
         {typeof value === "number" ? value.toLocaleString("pt-BR") : value}
       </p>
@@ -802,20 +785,14 @@ function MiniTimeline({
             >
               {b.outOfScope > 0 && (
                 <div
-                  style={{
-                    height: `${outHeight}%`,
-                    background: "var(--admin-accent)",
-                    opacity: 0.35,
-                  }}
+                  className={styles.timelineOut}
+                  style={{ "--bar-h": `${outHeight}%` } as React.CSSProperties}
                 />
               )}
               {b.inScope > 0 && (
                 <div
-                  style={{
-                    height: `${inHeight}%`,
-                    background: "var(--admin-text)",
-                    opacity: 0.85,
-                  }}
+                  className={styles.timelineIn}
+                  style={{ "--bar-h": `${inHeight}%` } as React.CSSProperties}
                 />
               )}
             </div>

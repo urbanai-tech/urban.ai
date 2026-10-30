@@ -187,3 +187,41 @@
 .ruleCardEnabled.ruleCardEnabled {
   border-left: 3px solid var(--app-accent);
 }
+
+.switchKnob.switchKnob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--theme-app-legacy-white);
+  box-shadow: 0 1px 2px var(--theme-app-legacy-ink-20);
+  transition: left 140ms;
+}
+
+.switchKnob.switchKnob.switchKnobOn {
+  left: 20px;
+}
+
+.exampleSummary.exampleSummary {
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--app-accent);
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.numberInput.numberInput {
+  width: 100%;
+  height: 36px;
+  padding: 0 12px;
+  background: var(--app-surface);
+  border: 1px solid var(--app-divider-strong);
+  border-radius: 8px;
+  color: var(--app-text);
+  font-size: 14px;
+  font-weight: 400;
+  font-family: var(--font-brand);
+}

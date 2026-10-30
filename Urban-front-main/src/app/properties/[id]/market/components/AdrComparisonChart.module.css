@@ -70,3 +70,31 @@
   height: 0;
   border-top: 2px dashed var(--app-text-muted);
 }
+
+.chartSvg.chartSvg {
+  width: 100%;
+  height: var(--chart-h);
+  display: block;
+}
+
+.hoverZone.hoverZone {
+  cursor: crosshair;
+}
+
+.tooltip.tooltip {
+  position: absolute;
+  left: var(--tooltip-left);
+  top: 4px;
+  transform: translateX(-50%);
+  background: var(--app-surface);
+  border: 1px solid var(--app-divider-strong);
+  border-radius: 8px;
+  padding: 10px 14px;
+  box-shadow: 0 4px 16px var(--theme-app-legacy-ink-10);
+  font-size: 12px;
+  color: var(--app-text);
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 2;
+  font-family: var(--font-brand);
+}

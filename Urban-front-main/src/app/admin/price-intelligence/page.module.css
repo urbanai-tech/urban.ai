@@ -301,3 +301,16 @@
   color: var(--admin-accent);
   flex-shrink: 0;
 }
+
+.healthStrip.healthStrip {
+  padding: 20px 24px;
+  border-left: 3px solid var(--health-color);
+  background: var(--admin-surface);
+  margin-bottom: 32px;
+}
+
+.barFill.barFill {
+  width: var(--bar-w);
+  height: 100%;
+  background: var(--admin-accent);
+}

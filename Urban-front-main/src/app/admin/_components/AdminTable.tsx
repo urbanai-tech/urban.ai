@@ -38,6 +38,10 @@ type Props<T> = {
   style?: React.CSSProperties;
 };
 
+function alignClass(align: Column<unknown>["align"]) {
+  return align === "right" ? styles.alignRight : align === "center" ? styles.alignCenter : "";
+}
+
 export function AdminTable<T>({
   columns,
   rows,
@@ -54,24 +58,12 @@ export function AdminTable<T>({
 
   return (
     <div
-      style={{
-        position: "relative",
-        overflowX: "auto",
-        overflowY: maxHeight ? "auto" : "visible",
-        maxHeight,
-        border: "1px solid var(--admin-divider)",
-        borderRadius: 2,
-        ...style,
-      }}
+      className={`${styles.wrapper} ${maxHeight ? styles.wrapperScroll : ""}`}
+      style={{ maxHeight, ...style }}
     >
       <table
-        style={{
-          width: "100%",
-          minWidth: tableMinWidth,
-          borderCollapse: "collapse",
-          fontSize: 13,
-          color: "var(--admin-text)",
-        }}
+        className={styles.table}
+        style={{ minWidth: tableMinWidth }}
       >
         {caption && (
           <caption
@@ -80,31 +72,13 @@ export function AdminTable<T>({
             {caption}
           </caption>
         )}
-        <thead
-          style={{
-            position: stickyHeader ? "sticky" : "static",
-            top: 0,
-            background: "var(--admin-surface-elevated)",
-            backdropFilter: "blur(8px)",
-            zIndex: 1,
-          }}
-        >
+        <thead className={`${styles.thead} ${stickyHeader ? styles.theadSticky : ""}`}>
           <tr>
             {columns.map((col) => (
               <th
                 key={col.key}
-                style={{
-                  padding: "12px 16px",
-                  textAlign: col.align ?? "left",
-                  fontSize: 10,
-                  letterSpacing: 2,
-                  textTransform: "uppercase",
-                  color: "var(--admin-text-muted)",
-                  fontWeight: 600,
-                  borderBottom: "1px solid var(--admin-divider)",
-                  width: col.width,
-                  whiteSpace: "nowrap",
-                }}
+                className={`${styles.th} ${alignClass(col.align)}`}
+                style={{ width: col.width }}
               >
                 {col.header}
               </th>
@@ -122,21 +96,13 @@ export function AdminTable<T>({
             rows.map((row, i) => (
               <tr
                 key={rowKey(row, i)}
-                className="urban-admin-row"
+                className={`urban-admin-row ${styles.row} ${onRowClick ? styles.rowClickable : ""}`}
                 onClick={onRowClick ? () => onRowClick(row) : undefined}
-                style={{
-                  cursor: onRowClick ? "pointer" : "default",
-                  borderBottom: "1px solid var(--admin-divider)",
-                }}
               >
                 {columns.map((col) => (
                   <td
                     key={col.key}
-                    style={{
-                      padding: "14px 16px",
-                      textAlign: col.align ?? "left",
-                      verticalAlign: "middle",
-                    }}
+                    className={`${styles.td} ${alignClass(col.align)}`}
                   >
                     {col.render(row)}
                   </td>

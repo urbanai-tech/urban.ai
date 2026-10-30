@@ -131,3 +131,15 @@
 .skeletonCard.skeletonCard {
   padding: 18px 20px;
 }
+
+.saveBar.saveBar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+  padding: 12px 20px;
+  background: var(--app-surface, var(--theme-app-legacy-white));
+  border-top: 1px solid var(--app-divider-strong);
+  box-shadow: 0 -8px 24px var(--theme-app-legacy-ink-08);
+}

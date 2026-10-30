@@ -180,3 +180,67 @@
 .heroCard.heroCard.heroCard {
   padding: 40px 40px 36px;
 }
+
+.successRate.successRate.successRate {
+  margin-top: 12px;
+  color: var(--admin-text-muted);
+}
+
+.successRate.successRate.successRate.successRateGood {
+  color: var(--admin-success);
+}
+
+.successRate.successRate.successRate.successRateWarn {
+  color: var(--admin-warning);
+}
+
+.successRate.successRate.successRate.successRateBad {
+  color: var(--admin-danger);
+}
+
+.readinessStrip.readinessStrip {
+  margin-bottom: 32px;
+  padding: 14px 18px;
+  border-left: 2px solid var(--admin-success);
+  background: color-mix(in srgb, var(--admin-success) 5%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.readinessStrip.readinessStrip.readinessStripBeta {
+  border-left-color: var(--admin-warning);
+  background: color-mix(in srgb, var(--admin-warning) 6%, transparent);
+}
+
+.readinessStrip.readinessStrip.readinessStripReady {
+  border-left-color: var(--admin-success);
+  background: color-mix(in srgb, var(--admin-success) 5%, transparent);
+}
+
+.statusSegment.statusSegment {
+  width: var(--pct);
+  background: var(--seg-color);
+  transition: background 120ms;
+}
+
+.filterButton.filterButton {
+  background: transparent;
+  border: none;
+  border-right: 1px solid var(--admin-divider);
+  border-bottom: 2px solid transparent;
+  color: var(--admin-text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 8px 14px;
+  cursor: pointer;
+}
+
+.filterButton.filterButton.filterButtonActive {
+  border-bottom: 2px solid var(--admin-accent);
+  color: var(--admin-text);
+}

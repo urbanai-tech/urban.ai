@@ -134,13 +134,8 @@ export function PreviewStrip({
       <div
         role="img"
         aria-label="Preview de preço base vs preço com regras nos próximos 14 dias"
-        style={{
-          display: "grid",
-          gridTemplateColumns: `repeat(${data.days.length}, minmax(0, 1fr))`,
-          gap: 6,
-          alignItems: "end",
-          minHeight: 110,
-        }}
+        className={styles.barsGrid}
+        style={{ "--day-count": data.days.length } as React.CSSProperties}
       >
         {data.days.map((day) => {
           const label = formatDayLabel(day.date);
@@ -209,13 +204,8 @@ function LegendDot({ color, label }: { color: string; label: string }) {
   return (
     <span className={styles.legendItem}>
       <span
-        style={{
-          width: 10,
-          height: 10,
-          borderRadius: 2,
-          background: color,
-          display: "inline-block",
-        }}
+        className={styles.legendDot}
+        style={{ "--dot-color": color } as React.CSSProperties}
       />
       <span className={styles.legendLabel}>{label}</span>
     </span>
