@@ -1,4 +1,11 @@
 import { NextResponse, type NextRequest } from "next/server";
+import {
+  CSP_ENFORCE_HEADER,
+  CSP_REPORT_ONLY_HEADER,
+  NONCE_HEADER,
+  generateNonce,
+  resolveCsp,
+} from "./app/lib/csp";
 
 /**
  * Middleware do Next.js para roteamento por host (Opção B — subdomain split).
@@ -138,20 +145,26 @@ function withNoIndex(response: NextResponse): NextResponse {
 
 // ===== Middleware principal =====
 
-export function middleware(request: NextRequest) {
-  const host = request.headers.get("host") ?? "";
-  const { pathname } = request.nextUrl;
-
-  // Skip rotas internas do Next/static — não fazemos host routing aqui
-  if (
+// Skip rotas internas do Next/static — não fazemos host routing nem CSP aqui.
+function isAssetOrInternalPath(pathname: string): boolean {
+  return (
     pathname.startsWith("/_next") ||
     pathname.startsWith("/api") ||
     pathname.startsWith("/static") ||
     pathname.startsWith("/uploads") ||
     pathname.includes(".")
-  ) {
-    return NextResponse.next();
-  }
+  );
+}
+
+type ForwardInit = { request: { headers: Headers } };
+
+/**
+ * Roteamento por host. Toda resposta que segue para o app (next/rewrite)
+ * carrega os headers de request com o nonce, para o layout e o Next lerem.
+ */
+function routeRequest(request: NextRequest, forward: ForwardInit): NextResponse {
+  const host = request.headers.get("host") ?? "";
+  const { pathname } = request.nextUrl;
 
   if (pathname === "/plans/v2") {
     const target = new URL(request.url);
@@ -161,12 +174,12 @@ export function middleware(request: NextRequest) {
 
   // Em dev local, passa direto sem nenhum gating.
   if (isLocalDev(host)) {
-    return NextResponse.next();
+    return NextResponse.next(forward);
   }
 
   // Preview fica aberto para QA, mas nunca indexavel.
   if (isPreviewHost(host)) {
-    return withNoIndex(NextResponse.next());
+    return withNoIndex(NextResponse.next(forward));
   }
 
   // Staging espelha a vitrine pública na raiz para revisão e E2E, mas nunca
@@ -174,9 +187,9 @@ export function middleware(request: NextRequest) {
   // app continuam acessíveis diretamente para validar cadastro e autenticação.
   if (isStagingHost(host)) {
     if (pathname === "/") {
-      return withNoIndex(NextResponse.rewrite(new URL("/landing", request.url)));
+      return withNoIndex(NextResponse.rewrite(new URL("/landing", request.url), forward));
     }
-    return withNoIndex(NextResponse.next());
+    return withNoIndex(NextResponse.next(forward));
   }
 
   // ============== Redirects ativos ==============
@@ -216,7 +229,7 @@ export function middleware(request: NextRequest) {
   }
 
   if (isPublicHost(host) && pathname === "/") {
-    return NextResponse.rewrite(new URL("/landing", request.url));
+    return NextResponse.rewrite(new URL("/landing", request.url), forward);
   }
 
   // 4. App subdomain pedindo rota PÚBLICA → 301 para apex
@@ -242,15 +255,47 @@ export function middleware(request: NextRequest) {
   //    público é aplicado.
 
   if (isAppHost(host)) {
-    return withNoIndex(NextResponse.next());
+    return withNoIndex(NextResponse.next(forward));
   }
 
   // Qualquer host nao reconhecido nao deve ser indexado por acidente.
   if (!isPublicHost(host)) {
-    return withNoIndex(NextResponse.next());
+    return withNoIndex(NextResponse.next(forward));
   }
 
-  return NextResponse.next();
+  return NextResponse.next(forward);
+}
+
+/**
+ * CSP com nonce por requisição (ver src/app/lib/csp.ts). Assets e rotas
+ * internas/API passam direto, sem CSP: só documentos HTML precisam dela.
+ * `CSP_ENFORCE=true` troca o header Report-Only pelo bloqueante.
+ */
+export function middleware(request: NextRequest) {
+  if (isAssetOrInternalPath(request.nextUrl.pathname)) {
+    return NextResponse.next();
+  }
+
+  const nonce = generateNonce();
+  const csp = resolveCsp({
+    nonce,
+    enforce: process.env.CSP_ENFORCE,
+    isDev: process.env.NODE_ENV === "development",
+    apiUrl: process.env.NEXT_PUBLIC_API_URL,
+  });
+
+  const requestHeaders = new Headers(request.headers);
+  // Nunca confiar em nonce/CSP vindos do cliente: o Next lê o nonce do header
+  // CSP da request e o layout lê x-nonce.
+  requestHeaders.delete(CSP_ENFORCE_HEADER);
+  requestHeaders.delete(CSP_REPORT_ONLY_HEADER);
+  requestHeaders.set(NONCE_HEADER, nonce);
+  requestHeaders.set(csp.headerName, csp.value);
+
+  const response = routeRequest(request, { request: { headers: requestHeaders } });
+  response.headers.set(csp.headerName, csp.value);
+  response.headers.set("Reporting-Endpoints", csp.reportingEndpoints);
+  return response;
 }
 
 /**

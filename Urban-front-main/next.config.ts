@@ -1,22 +1,9 @@
 import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
 
-const contentSecurityPolicyReportOnly = [
-  "default-src 'self'",
-  "base-uri 'self'",
-  "object-src 'none'",
-  "frame-ancestors 'self'",
-  "form-action 'self' https://*.stripe.com",
-  "script-src 'self' 'unsafe-inline' https://js.stripe.com https://www.googletagmanager.com",
-  "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob: https:",
-  "font-src 'self' data:",
-  "connect-src 'self' https: wss:",
-  "frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://www.google.com",
-  "worker-src 'self' blob:",
-  "manifest-src 'self'",
-  'upgrade-insecure-requests',
-].join('; ');
+// A Content-Security-Policy é gerada por requisição em src/middleware.ts
+// (nonce + strict-dynamic; report-only por padrão, CSP_ENFORCE=true bloqueia).
+// Aqui ficam só os headers de segurança estáticos.
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
@@ -40,7 +27,6 @@ const nextConfig: NextConfig = {
       {
         source: '/:path*',
         headers: [
-          { key: 'Content-Security-Policy-Report-Only', value: contentSecurityPolicyReportOnly },
           { key: 'Cross-Origin-Opener-Policy', value: 'same-origin-allow-popups' },
           { key: 'Cross-Origin-Resource-Policy', value: 'same-site' },
           { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), payment=(self "https://js.stripe.com")' },

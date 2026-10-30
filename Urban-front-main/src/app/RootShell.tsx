@@ -13,13 +13,13 @@ const AppProviders = dynamic(() => import("./providers").then((m) => m.Providers
 // Analytics (já condicionado a consentimento) e PWA saem do caminho crítico.
 const DeferredChrome = dynamic(() => import("./DeferredChrome"), { ssr: false });
 
-function InteractionChrome() {
+function InteractionChrome({ nonce }: { nonce?: string }) {
   const [ready, setReady] = useState(false);
   useEffect(() => runOnFirstInteraction(() => setReady(true)), []);
-  return ready ? <DeferredChrome /> : null;
+  return ready ? <DeferredChrome nonce={nonce} /> : null;
 }
 
-export function RootShell({ children }: { children: React.ReactNode }) {
+export function RootShell({ children, nonce }: { children: React.ReactNode; nonce?: string }) {
   const pathname = usePathname();
 
   if (isLightPath(pathname)) {
@@ -27,7 +27,7 @@ export function RootShell({ children }: { children: React.ReactNode }) {
       <ThemeProvider>
         {children}
         <CookieConsent />
-        <InteractionChrome />
+        <InteractionChrome nonce={nonce} />
       </ThemeProvider>
     );
   }
@@ -36,7 +36,7 @@ export function RootShell({ children }: { children: React.ReactNode }) {
     <AppProviders>
       {children}
       <CookieConsent />
-      <DeferredChrome />
+      <DeferredChrome nonce={nonce} />
     </AppProviders>
   );
 }
