@@ -35,12 +35,12 @@ test('environment banner reserves space without covering public navigation', asy
   const [layout, marketingStyles, banner] = await Promise.all([
     readFile(new URL('../src/app/layout.tsx', import.meta.url), 'utf8'),
     readFile(new URL('../src/app/globals.css', import.meta.url), 'utf8'),
-    readFile(new URL('../src/app/componentes/StagingBanner.tsx', import.meta.url), 'utf8'),
+    readFile(new URL('../src/app/componentes/StagingBanner.module.css', import.meta.url), 'utf8'),
   ]);
   assert.match(layout, /has-environment-banner/);
   assert.match(marketingStyles, /--environment-banner-height/);
   assert.match(marketingStyles, /public-header[\s\S]*inset-block-start: var\(--environment-banner-height/);
-  assert.match(banner, /whiteSpace: "nowrap"/);
+  assert.match(banner, /white-space:\s*nowrap/);
 });
 
 test('public funnel uses an explicit login route on staging and production', async () => {
