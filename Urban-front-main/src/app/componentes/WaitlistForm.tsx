@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { signupWaitlist, type WaitlistSignupResult } from "../service/api";
+import { WaitlistTermsConsent } from "./WaitlistTermsConsent";
+import { TURNSTILE_SITE_KEY, TurnstileWidget } from "./TurnstileWidget";
 import {
   attributionEventParams,
   captureAttribution,
@@ -43,6 +45,10 @@ export function WaitlistForm({
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<Status>("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [termsError, setTermsError] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [captchaReset, setCaptchaReset] = useState(0);
   const [result, setResult] = useState<WaitlistSignupResult | null>(null);
   const [attribution, setAttribution] = useState<MarketingAttribution>({
     firstTouch: null,
@@ -65,8 +71,22 @@ export function WaitlistForm({
       return;
     }
 
+    if (!acceptedTerms) {
+      setTermsError(true);
+      return;
+    }
+
+    // O captcha só vale para o backend próprio (endpoint externo não o verifica).
+    const captchaRequired = Boolean(TURNSTILE_SITE_KEY) && !endpoint;
+    if (captchaRequired && !captchaToken) {
+      setStatus("error");
+      setErrorMessage("Confirme a verificação de segurança para continuar.");
+      return;
+    }
+
     setStatus("loading");
     setErrorMessage(null);
+    setTermsError(false);
 
     try {
       const attributionParams = attributionEventParams(attribution);
@@ -82,6 +102,7 @@ export function WaitlistForm({
             email: trimmed,
             source: waitlistSource,
             referredBy,
+            acceptedTerms: true,
             attribution: attributionParams,
           }),
         });
@@ -94,6 +115,8 @@ export function WaitlistForm({
           email: trimmed,
           source: waitlistSource,
           referredBy,
+          acceptedTerms: true,
+          captchaToken: captchaToken ?? undefined,
         });
         // E-mail já cadastrado: resposta genérica, sem posição.
         signupResult = response.alreadyRegistered ? null : response;
@@ -111,6 +134,7 @@ export function WaitlistForm({
         ...attributionParams,
       });
     } catch (err) {
+      setCaptchaReset((n) => n + 1);
       setStatus("error");
       setErrorMessage(
         err instanceof Error
@@ -157,6 +181,16 @@ export function WaitlistForm({
           aria-invalid={status === "error"}
           className={styles.emailInput}
         />
+        <WaitlistTermsConsent
+          checked={acceptedTerms}
+          onChange={(next) => {
+            setAcceptedTerms(next);
+            if (next) setTermsError(false);
+          }}
+          invalid={termsError}
+          disabled={status === "loading"}
+        />
+        {!endpoint && <TurnstileWidget onToken={setCaptchaToken} resetKey={captchaReset} />}
         <button
           type="submit"
           disabled={status === "loading"}

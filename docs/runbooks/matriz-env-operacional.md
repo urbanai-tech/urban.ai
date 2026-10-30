@@ -56,6 +56,7 @@
 |---|---|---|
 | `BREVO_API_KEY`, `EMAIL_SENDER`, `EMAIL_SENDER_NAME`, `RESET_PASS_URL` | Obr. | Reset de senha, confirmação, notificações. |
 | `BREVO_API_BASE_URL`, `WAITLIST_SIGNUP_EMAIL_DISABLED` | Opc. | |
+| `TURNSTILE_SECRET_KEY`, `TURNSTILE_FAIL_OPEN` | Opc. | Captcha Cloudflare Turnstile no `POST /waitlist`. Sem o segredo, nada é verificado (aviso único no boot). Com ele, token ausente/inválido => 400; Cloudflare fora do ar => 503 (fail closed) a menos que `TURNSTILE_FAIL_OPEN=true`. Liga junto com `NEXT_PUBLIC_TURNSTILE_SITE_KEY` no front. |
 | `SUPPORT_EMAIL`, `PRIVACY_EMAIL`, `SUPPORT_OWNER_EMAIL`, `PRIVACY_OWNER_EMAIL`, `ADMIN_ALERT_EMAIL`, `OPS_ALERT_EMAIL` | Obr. antes de beta pago | O domínio não tem MX hoje: caixas `@myurbanai.com` não recebem e-mail (ver pendências na arquitetura). |
 
 ### Mapas, IA e dados de mercado
@@ -124,6 +125,7 @@ Removidas desta matriz por não serem lidas no código do backend: `MAPBOX_TOKEN
 | `NEXT_PUBLIC_SENTRY_DSN`; `SENTRY_AUTH_TOKEN` | DSN recomendado; token só no build | Token apenas para upload de sourcemaps. |
 | `NEXT_PUBLIC_GA4_ID`, `NEXT_PUBLIC_META_PIXEL_ID` | Opc. | Vazias = scripts não carregam. |
 | `NEXT_PUBLIC_WAITLIST_ENDPOINT`, `NEXT_PUBLIC_PRELAUNCH_MODE` | Opc. | Pré-lançamento. |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Opc. | Site key do Turnstile (captcha da waitlist). Vazia = sem widget. Exige `TURNSTILE_SECRET_KEY` no backend e `challenges.cloudflare.com` no CSP. |
 | `NEXT_PUBLIC_CHAINLIT_URL` | Opc. | Vazia = rewrites do copilot omitidos. |
 | `NEXT_PUBLIC_ADMIN_ALPHA_DEFAULT_EMAIL`, `NEXT_PUBLIC_ENABLE_CONTRACT_FALLBACK` | Opc. | Utilidades de admin/contrato. |
 | `SEO_GSC_SITE_URL`, `SEO_GA4_PROPERTY_ID`, `SEO_GOOGLE_CLIENT_EMAIL`, `SEO_GOOGLE_PRIVATE_KEY`, `SEO_BOT_LOG_ENDPOINT`, `SEO_BOT_LOG_TOKEN`, `SEO_BOT_LOG_SOURCE`, `SEO_BOT_LOG_LOCAL_PATH`, `SEO_AI_MONITOR_ENDPOINT`, `SEO_AI_MONITOR_API_KEY`, `SEO_AI_MONITOR_SOURCE`, `SEO_AI_MONITOR_DATASET_PATH` | Opc. | Conectores server-side do painel SEO/GEO. |

@@ -17,6 +17,8 @@ import {
   trackWaitlistSignup,
   type MarketingAttribution,
 } from "./Analytics";
+import { WaitlistTermsConsent } from "./WaitlistTermsConsent";
+import { TURNSTILE_SITE_KEY, TurnstileWidget } from "./TurnstileWidget";
 import { AppBadge, AppButton, AppCard, AppInput, Icons } from "./ui";
 import styles from "./WaitlistSignup.module.css";
 
@@ -36,6 +38,10 @@ export function WaitlistSignup({
   const [email, setEmail] = useState(defaultEmail);
   const [name, setName] = useState(defaultName);
   const [phone, setPhone] = useState("");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [termsError, setTermsError] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [captchaReset, setCaptchaReset] = useState(0);
   const [result, setResult] = useState<WaitlistSignupResult | null>(null);
   const [statusReferrals, setStatusReferrals] = useState(0);
   const [errorMessage, setErrorMessage] = useState("");
@@ -85,8 +91,19 @@ export function WaitlistSignup({
       return;
     }
 
+    if (!acceptedTerms) {
+      setTermsError(true);
+      return;
+    }
+
+    if (TURNSTILE_SITE_KEY && !captchaToken) {
+      setErrorMessage("Confirme a verificação de segurança para continuar.");
+      return;
+    }
+
     setSubmitting(true);
     setErrorMessage("");
+    setTermsError(false);
 
     try {
       const attributionParams = attributionEventParams(attribution);
@@ -98,6 +115,8 @@ export function WaitlistSignup({
         phone: phone.trim() || undefined,
         source: waitlistSource,
         referredBy: referralCode ?? undefined,
+        acceptedTerms: true,
+        captchaToken: captchaToken ?? undefined,
       });
 
       if (r.alreadyRegistered) {
@@ -126,6 +145,8 @@ export function WaitlistSignup({
         err?.message ||
         "Não foi possível registrar agora. Tente em instantes.";
       setErrorMessage(typeof message === "string" ? message : "Erro inesperado.");
+      // O token do captcha é de uso único: pede um novo desafio após qualquer falha.
+      setCaptchaReset((n) => n + 1);
     } finally {
       setSubmitting(false);
     }
@@ -212,6 +233,18 @@ export function WaitlistSignup({
           helper="Opcional"
           leftAddon={<Phone size={14} />}
         />
+
+        <WaitlistTermsConsent
+          checked={acceptedTerms}
+          onChange={(next) => {
+            setAcceptedTerms(next);
+            if (next) setTermsError(false);
+          }}
+          invalid={termsError}
+          disabled={submitting}
+        />
+
+        <TurnstileWidget onToken={setCaptchaToken} resetKey={captchaReset} />
 
         {errorMessage && <InlineNotice kind="error">{errorMessage}</InlineNotice>}
 

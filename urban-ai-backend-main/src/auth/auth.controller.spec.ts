@@ -308,7 +308,7 @@ describe('AuthController', () => {
     });
 
     it.each([
-      [{ LAUNCH_MODE: 'prelaunch' }, { 'x-forwarded-for': '10.0.0.1, 10.0.0.2', 'user-agent': 'ua' }, '10.0.0.1'],
+      [{ LAUNCH_MODE: 'prelaunch' }, { 'x-forwarded-for': '10.0.0.1, 10.0.0.2', 'user-agent': 'ua' }, '127.0.0.1'], // X-Forwarded-For cru é ignorado: vale req.ip (trust proxy)
       [{ PRELAUNCH_MODE: 'true' }, {}, '127.0.0.1'],
     ])('routes a prelaunch signup to the waitlist', async (env, headers, expectedIp) => {
       process.env = { ...originalEnv, ...env };

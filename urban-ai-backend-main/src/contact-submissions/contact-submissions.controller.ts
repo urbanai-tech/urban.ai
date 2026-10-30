@@ -24,10 +24,8 @@ export class ContactSubmissionsController {
   @ApiOperation({ summary: 'Receber mensagem do formulário público de contato' })
   @Post('contact-submissions')
   create(@Body() body: CreateContactSubmissionDto, @Req() req: Request) {
-    const ipAddress =
-      (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() ||
-      req.ip ||
-      null;
+    // IP real: `req.ip` já respeita o trust proxy; X-Forwarded-For cru é forjável.
+    const ipAddress = req.ip || null;
     const userAgent = (req.headers['user-agent'] as string) ?? null;
     return this.contacts.create(body, { ipAddress, userAgent });
   }

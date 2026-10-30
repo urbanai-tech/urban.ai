@@ -1,4 +1,5 @@
 import { randomInt } from 'crypto';
+import { TERMS_VERSION } from '../auth/terms.constants';
 import { WaitlistService, WaitlistSignupOutcome } from './waitlist.service';
 
 jest.mock('crypto', () => {
@@ -79,6 +80,22 @@ describe('WaitlistService.signup', () => {
     expect(result.referralCode).toEqual(expect.any(String));
     expect(result.aheadOfYou).toBe(9);
     expect(result.totalSignups).toBe(10);
+  });
+
+  it('grava data e versão dos termos quando acceptedTerms é true', async () => {
+    await service.signup({ email: 'novo@exemplo.com', acceptedTerms: true });
+
+    const saved = repo.save.mock.calls[0][0];
+    expect(saved.termsVersion).toBe(TERMS_VERSION);
+    expect(saved.termsAcceptedAt).toBeInstanceOf(Date);
+  });
+
+  it('não grava aceite quando acceptedTerms não vem (ex.: fluxos antigos)', async () => {
+    await service.signup({ email: 'novo@exemplo.com' });
+
+    const saved = repo.save.mock.calls[0][0];
+    expect(saved.termsVersion).toBeNull();
+    expect(saved.termsAcceptedAt).toBeNull();
   });
 
   it('e-mail já cadastrado recebe resposta genérica, sem position/referralCode', async () => {

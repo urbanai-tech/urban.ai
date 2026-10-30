@@ -52,7 +52,7 @@ Categorias presentes no schema (detalhe coluna a coluna na seção gerada "Colun
 ## Resumo
 
 - Tabelas (entidades TypeORM): **46**
-- Colunas: **757**
+- Colunas: **759**
 - Chaves estrangeiras: **72**
 - Tabela de controle de migrations (`migrations`) não é entidade e não consta aqui.
 
@@ -1761,6 +1761,8 @@ Relações:
 | `inviteTokenExpiresAt` | `inviteTokenExpiresAt` | datetime | sim |  |  |  |
 | `signupIp` | `signupIp` | varchar(45) | sim |  |  | IP de origem do cadastro (auditoria + antifraude). |
 | `userAgent` | `userAgent` | varchar(255) | sim |  |  | UA do navegador no cadastro. |
+| `termsAcceptedAt` | `termsAcceptedAt` | datetime | sim |  |  | Aceite dos Termos de Uso/Política de Privacidade no cadastro (prova de consentimento). null = linhas anteriores ao campo. |
+| `termsVersion` | `termsVersion` | varchar(32) | sim |  |  | Versão dos termos aceita (`TERMS_VERSION` no momento do cadastro). |
 | `notes` | `notes` | text | sim |  |  | Notas internas do admin (motivo de prioridade, contexto). |
 | `createdAt` | `createdAt` | datetime | não | CURRENT_TIMESTAMP(6) |  |  |
 | `updatedAt` | `updatedAt` | datetime | não | CURRENT_TIMESTAMP(6) |  |  |

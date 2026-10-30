@@ -173,16 +173,15 @@ export class AuthController {
     // retorna { mode: 'waitlist', ...stats }. Front detecta `mode` e mostra
     // a tela de "você é o #N na fila" em vez de tentar fazer login.
     if (this.isPrelaunchMode()) {
-      const ip =
-        (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() ||
-        req.ip ||
-        null;
+      // IP real: `req.ip` já respeita o trust proxy; X-Forwarded-For cru é forjável.
+      const ip = req.ip || null;
       const ua = (req.headers['user-agent'] as string) ?? null;
       const result = await this.waitlistService.signup({
         email: data.email,
         name: data.username,
         source: data.source ?? 'auth-register',
         referredBy: data.referredBy,
+        acceptedTerms: data.termsAccepted === true,
         signupIp: ip ?? undefined,
         userAgent: ua ?? undefined,
       });
