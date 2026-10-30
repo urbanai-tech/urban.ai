@@ -18,6 +18,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 import { WaitlistService } from './waitlist.service';
+import { TurnstileService } from './turnstile.service';
 import { AdminAuditService } from '../admin-audit/admin-audit.service';
 import { UpdateWaitlistNotesDto, WaitlistSignupDto } from './waitlist.dto';
 import { AdminAuditedInHandler } from '../admin-audit/admin-audit.decorator';
@@ -43,6 +44,7 @@ export class WaitlistController {
   constructor(
     private readonly waitlist: WaitlistService,
     private readonly audit: AdminAuditService,
+    private readonly turnstile: TurnstileService,
   ) {}
 
   // ================== PÚBLICO ==================
@@ -61,6 +63,8 @@ export class WaitlistController {
     // IP real do cliente: `req.ip` já considera o `trust proxy` (TRUST_PROXY_HOPS).
     // Ler X-Forwarded-For cru deixava qualquer cliente forjar o IP gravado.
     const ip = req.ip || null;
+    // Captcha (Turnstile): só verifica quando TURNSTILE_SECRET_KEY está definida.
+    await this.turnstile.verify(body.captchaToken, ip);
     const ua = (req.headers['user-agent'] as string) ?? null;
     return this.waitlist.signup({
       email: body.email,

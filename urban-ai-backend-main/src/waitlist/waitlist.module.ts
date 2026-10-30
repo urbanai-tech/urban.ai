@@ -4,6 +4,7 @@ import { Waitlist } from '../entities/waitlist.entity';
 import { User } from '../entities/user.entity';
 import { WaitlistService } from './waitlist.service';
 import { WaitlistController } from './waitlist.controller';
+import { TurnstileService } from './turnstile.service';
 import { MailerModule } from '../mailer/mailer.module';
 import { AuthModule } from '../auth/auth.module';
 import { AdminAuditModule } from '../admin-audit/admin-audit.module';
@@ -24,7 +25,7 @@ import { AdminAuditModule } from '../admin-audit/admin-audit.module';
     AdminAuditModule,
   ],
   controllers: [WaitlistController],
-  providers: [WaitlistService],
+  providers: [WaitlistService, TurnstileService],
   exports: [WaitlistService],
 })
 export class WaitlistModule {}

@@ -34,3 +34,19 @@ test("o aceite é um checkbox obrigatório e acessível com links para termos e 
 test("o cliente da API tipa acceptedTerms como obrigatório", () => {
   assert.match(read("src/app/service/api/admin.ts"), /acceptedTerms: true;/);
 });
+
+test("captcha Turnstile só aparece com site key e envia captchaToken", () => {
+  const widget = read("src/app/componentes/TurnstileWidget.tsx");
+  assert.match(widget, /NEXT_PUBLIC_TURNSTILE_SITE_KEY/);
+  assert.match(widget, /https:\/\/challenges\.cloudflare\.com\/turnstile\/v0\/api\.js/);
+  assert.match(widget, /strategy="lazyOnload"/);
+  assert.match(widget, /if \(!TURNSTILE_SITE_KEY\) return null;/, "sem chave: nada é renderizado nem carregado");
+  assert.doesNotMatch(widget, /style=\{\{/, "sem estilo inline");
+
+  for (const file of forms) {
+    const source = read(file);
+    assert.match(source, /<TurnstileWidget/, `${file} deve renderizar o widget`);
+    assert.match(source, /captchaToken: captchaToken \?\? undefined/, `${file} deve enviar captchaToken`);
+  }
+  assert.match(read("src/app/service/api/admin.ts"), /captchaToken\?: string;/);
+});

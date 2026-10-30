@@ -28,6 +28,10 @@ export class WaitlistSignupDto {
   /** Aceite obrigatório dos Termos de Uso e da Política de Privacidade (prova de consentimento). */
   @Equals(true, { message: 'É necessário aceitar os Termos de Uso e a Política de Privacidade' })
   acceptedTerms!: true;
+
+  /** Token do widget Cloudflare Turnstile (obrigatório só quando TURNSTILE_SECRET_KEY está definida). */
+  @IsOptional() @IsString() @MaxLength(2048)
+  captchaToken?: string;
 }
 
 export class UpdateWaitlistNotesDto {
