@@ -1,0 +1,32 @@
+.emptyState {
+  padding: 48px 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  border: 1px dashed var(--app-divider-strong);
+  border-radius: 12px;
+  background: var(--app-surface-muted);
+}
+
+.emptyIcon {
+  color: var(--app-text-dim);
+  margin-bottom: 4px;
+}
+
+.emptyTitle {
+  text-transform: uppercase;
+}
+
+.emptyBody.emptyBody {
+  font-size: 14px;
+  color: var(--app-text-muted);
+  max-width: 480px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.emptyAction {
+  margin-top: 4px;
+}

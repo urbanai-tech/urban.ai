@@ -12,6 +12,7 @@ import { ThemeToggle } from './theme/ThemeToggle';
 import { useDialogFocus } from './ui/useDialogFocus';
 import { BrandLogo } from './ui/BrandLogo';
 import '../../../i18n';
+import styles from './SideBar.module.css';
 
 /**
  * Shell de navegação do app autenticado — sprint design premium 2026-05-16.
@@ -232,32 +233,10 @@ export default function SideBar() {
       {/* ============================ DESKTOP SIDEBAR ============================ */}
       <aside
         data-host-sidebar
-        className="urban-host-sidebar"
-        style={{
-          width: collapsed ? 76 : 248,
-          flexShrink: 0,
-          height: '100vh',
-          position: 'sticky',
-          top: 0,
-          background: 'var(--app-nav-bg)',
-          borderRight: '1px solid var(--app-nav-border)',
-          transition: 'width 220ms cubic-bezier(0.16, 1, 0.3, 1)',
-          flexDirection: 'column',
-          color: 'var(--app-nav-text)',
-          fontFamily: 'Inter, system-ui, sans-serif',
-        }}
+        className={`urban-host-sidebar ${styles.sidebar} ${collapsed ? styles.sidebarCollapsed : ''}`}
       >
         {/* Header: wordmark + toggle */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: collapsed ? 'center' : 'space-between',
-            padding: collapsed ? '20px 0' : '20px 18px',
-            borderBottom: '1px solid var(--app-nav-border)',
-            height: 64,
-          }}
-        >
+        <div className={`${styles.sidebarHeader} ${collapsed ? styles.sidebarHeaderCollapsed : ''}`}>
           {!collapsed && (
             <NextLink
               href="/painel"
@@ -271,27 +250,7 @@ export default function SideBar() {
             type="button"
             onClick={handleSidebarToggle}
             aria-label={collapsed ? 'Expandir menu' : 'Colapsar menu'}
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: 8,
-              border: '1px solid var(--app-nav-border)',
-              background: 'transparent',
-              color: 'var(--app-nav-muted)',
-              cursor: 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'background 120ms, color 120ms, border-color 120ms',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'var(--app-nav-hover)';
-              e.currentTarget.style.color = 'var(--app-nav-text)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'transparent';
-              e.currentTarget.style.color = 'var(--app-nav-muted)';
-            }}
+            className={styles.sidebarToggle}
           >
             {collapsed ? <MenuIcon /> : <CollapseIcon />}
           </button>
@@ -303,36 +262,13 @@ export default function SideBar() {
             type="button"
             onClick={() => router.push('/admin/dashboard')}
             title="Trocar para painel admin"
-            style={{
-              margin: collapsed ? '16px 12px 0' : '16px 16px 0',
-              padding: collapsed ? '10px 0' : '10px 14px',
-              background: 'var(--app-accent-soft)',
-              border: '1px solid var(--app-accent)',
-              borderRadius: 10,
-              color: 'var(--app-accent)',
-              fontSize: 12,
-              fontWeight: 600,
-              letterSpacing: 1,
-              textTransform: 'uppercase',
-              cursor: 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: collapsed ? 'center' : 'space-between',
-              gap: 8,
-              transition: 'background 120ms, border-color 120ms',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'var(--app-nav-active)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'var(--app-accent-soft)';
-            }}
+            className={`${styles.adminSwitch} ${collapsed ? styles.adminSwitchCollapsed : ''}`}
           >
             {collapsed ? (
               <ShieldIcon />
             ) : (
               <>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                <span className={styles.adminSwitchLabel}>
                   <ShieldIcon /> Painel admin
                 </span>
                 <ArrowRightIcon size={12} />
@@ -342,7 +278,7 @@ export default function SideBar() {
         )}
 
         {/* Nav */}
-        <nav style={{ flex: 1, padding: '12px 0', overflowY: 'auto' }}>
+        <nav className={styles.sidebarNav}>
           {!collapsed && <SectionLabel label="Principal" />}
           {PRIMARY_NAV.map((item) => (
             <NavLink
@@ -392,15 +328,7 @@ export default function SideBar() {
           ))}
         </nav>
 
-        <div
-          style={{
-            padding: collapsed ? '8px 0 12px' : '8px 14px 12px',
-            borderTop: '1px solid var(--app-nav-border)',
-            display: 'flex',
-            justifyContent: 'center',
-            overflow: 'hidden',
-          }}
-        >
+        <div className={`${styles.sidebarThemeRow} ${collapsed ? styles.sidebarThemeRowCollapsed : ''}`}>
           <ThemeToggle
             compact={collapsed}
             showLabels={false}
@@ -413,60 +341,16 @@ export default function SideBar() {
         </div>
 
         {/* Account block + logout */}
-        <div
-          style={{
-            padding: collapsed ? 12 : 14,
-            borderTop: '1px solid var(--app-nav-border)',
-            display: 'flex',
-            flexDirection: collapsed ? 'column' : 'row',
-            alignItems: 'center',
-            gap: 10,
-          }}
-        >
-          <div
-            aria-hidden
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: '50%',
-              background: 'var(--app-nav-hover)',
-              border: '1px solid var(--app-nav-border)',
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: 600,
-              color: 'var(--app-nav-text)',
-              fontSize: 14,
-              flexShrink: 0,
-            }}
-          >
+        <div className={`${styles.accountBlock} ${collapsed ? styles.accountBlockCollapsed : ''}`}>
+          <div aria-hidden className={styles.accountAvatar}>
             {initial}
           </div>
           {!collapsed && (
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <p
-                style={{
-                  margin: 0,
-                  fontSize: 13,
-                  fontWeight: 600,
-                  color: 'var(--app-nav-text)',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                }}
-              >
+            <div className={styles.accountText}>
+              <p className={styles.accountName}>
                 {displayName}
               </p>
-              <p
-                style={{
-                  margin: '2px 0 0',
-                  fontSize: 11,
-                  letterSpacing: 1.5,
-                  textTransform: 'uppercase',
-                  color: 'var(--app-nav-dim)',
-                  fontWeight: 500,
-                }}
-              >
+              <p className={styles.accountRole}>
                 {isAdmin ? 'Admin' : 'Anfitrião'}
               </p>
             </div>
@@ -475,29 +359,7 @@ export default function SideBar() {
             type="button"
             onClick={handleLogout}
             aria-label="Sair"
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: 8,
-              border: '1px solid var(--app-nav-border)',
-              background: 'transparent',
-              color: 'var(--app-nav-muted)',
-              cursor: 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'color 120ms, border-color 120ms, background 120ms',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.color = 'var(--app-nav-text)';
-              e.currentTarget.style.borderColor = 'var(--app-divider-strong)';
-              e.currentTarget.style.background = 'var(--app-nav-hover)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.color = 'var(--app-nav-muted)';
-              e.currentTarget.style.borderColor = 'var(--app-nav-border)';
-              e.currentTarget.style.background = 'transparent';
-            }}
+            className={styles.logoutButton}
           >
             <LogoutIcon />
           </button>
@@ -664,17 +526,7 @@ export default function SideBar() {
 
 function SectionLabel({ label }: { label: string }) {
   return (
-    <p
-      style={{
-        margin: 0,
-        padding: '20px 18px 8px',
-        fontSize: 10,
-        letterSpacing: 2.5,
-        textTransform: 'uppercase',
-        color: 'var(--app-nav-dim)',
-        fontWeight: 600,
-      }}
-    >
+    <p className={styles.sectionLabel}>
       {label}
     </p>
   );
@@ -714,42 +566,9 @@ function NavLink({
       type="button"
       onClick={onSelect}
       title={collapsed ? label : undefined}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 12,
-        width: '100%',
-        height: 40,
-        padding: collapsed ? '0' : '0 18px',
-        justifyContent: collapsed ? 'center' : 'flex-start',
-        border: 'none',
-        borderLeft: active
-          ? '2px solid var(--app-accent)'
-          : '2px solid transparent',
-        background: active ? 'var(--app-nav-active)' : 'transparent',
-        color: active ? 'var(--app-nav-text)' : 'var(--app-nav-muted)',
-        fontSize: 13,
-        fontWeight: 500,
-        letterSpacing: 0.2,
-        cursor: 'pointer',
-        transition: 'color 120ms, background 120ms',
-        textAlign: 'left',
-        fontFamily: 'Inter, system-ui, sans-serif',
-      }}
-      onMouseEnter={(e) => {
-        if (!active) {
-          e.currentTarget.style.color = 'var(--app-nav-text)';
-          e.currentTarget.style.background = 'var(--app-nav-hover)';
-        }
-      }}
-      onMouseLeave={(e) => {
-        if (!active) {
-          e.currentTarget.style.color = 'var(--app-nav-muted)';
-          e.currentTarget.style.background = 'transparent';
-        }
-      }}
+      className={`${styles.navLink} ${collapsed ? styles.navLinkCollapsed : ''} ${active ? styles.navLinkActive : ''}`}
     >
-      <span style={{ display: 'inline-flex', lineHeight: 0 }}>
+      <span className={styles.navLinkIcon}>
         <NavIcon name={icon} />
       </span>
       {!collapsed && <span>{label}</span>}

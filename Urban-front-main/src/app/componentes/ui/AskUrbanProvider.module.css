@@ -1,0 +1,25 @@
+.askFab {
+  position: fixed;
+  right: 28px;
+  bottom: 28px;
+  z-index: 1250;
+  width: auto;
+  min-width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  /* O FAB é irmão do shell `.urban-app`; usa tokens globais de tema,
+     pois aliases `--app-*` só existem dentro do shell. */
+  background: var(--theme-app-accent);
+  color: var(--theme-app-accent-contrast);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 0 18px;
+  font-family: var(--font-brand);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0;
+  transition: transform 140ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 140ms;
+}

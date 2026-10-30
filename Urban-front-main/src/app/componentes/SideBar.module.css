@@ -1,0 +1,229 @@
+.sidebar {
+  width: 248px;
+  flex-shrink: 0;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  background: var(--app-nav-bg);
+  border-right: 1px solid var(--app-nav-border);
+  transition: width 220ms cubic-bezier(0.16, 1, 0.3, 1);
+  flex-direction: column;
+  color: var(--app-nav-text);
+  font-family: Inter, system-ui, sans-serif;
+}
+
+.sidebarCollapsed {
+  width: 76px;
+}
+
+.sidebarHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 18px;
+  border-bottom: 1px solid var(--app-nav-border);
+  height: 64px;
+}
+
+.sidebarHeaderCollapsed {
+  justify-content: center;
+  padding: 20px 0;
+}
+
+.sidebarToggle {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--app-nav-border);
+  background: transparent;
+  color: var(--app-nav-muted);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 120ms, color 120ms, border-color 120ms;
+}
+
+.sidebarToggle:hover {
+  background: var(--app-nav-hover);
+  color: var(--app-nav-text);
+}
+
+.adminSwitch {
+  margin: 16px 16px 0;
+  padding: 10px 14px;
+  background: var(--app-accent-soft);
+  border: 1px solid var(--app-accent);
+  border-radius: 10px;
+  color: var(--app-accent);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  transition: background 120ms, border-color 120ms;
+}
+
+.adminSwitchCollapsed {
+  margin: 16px 12px 0;
+  padding: 10px 0;
+  justify-content: center;
+}
+
+.adminSwitch:hover {
+  background: var(--app-nav-active);
+}
+
+.adminSwitchLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sidebarNav {
+  flex: 1;
+  padding: 12px 0;
+  overflow-y: auto;
+}
+
+.sidebarThemeRow {
+  padding: 8px 14px 12px;
+  border-top: 1px solid var(--app-nav-border);
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.sidebarThemeRowCollapsed {
+  padding: 8px 0 12px;
+}
+
+.accountBlock {
+  padding: 14px;
+  border-top: 1px solid var(--app-nav-border);
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+
+.accountBlockCollapsed {
+  padding: 12px;
+  flex-direction: column;
+}
+
+.accountAvatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--app-nav-hover);
+  border: 1px solid var(--app-nav-border);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  color: var(--app-nav-text);
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.accountText {
+  flex: 1;
+  min-width: 0;
+}
+
+.accountName {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--app-nav-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.accountRole {
+  margin: 2px 0 0;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--app-nav-dim);
+  font-weight: 500;
+}
+
+.logoutButton {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid var(--app-nav-border);
+  background: transparent;
+  color: var(--app-nav-muted);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 120ms, border-color 120ms, background 120ms;
+}
+
+.logoutButton:hover {
+  color: var(--app-nav-text);
+  border-color: var(--app-divider-strong);
+  background: var(--app-nav-hover);
+}
+
+.sectionLabel {
+  margin: 0;
+  padding: 20px 18px 8px;
+  font-size: 10px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--app-nav-dim);
+  font-weight: 600;
+}
+
+.navLink {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  height: 40px;
+  padding: 0 18px;
+  justify-content: flex-start;
+  border: none;
+  border-left: 2px solid transparent;
+  background: transparent;
+  color: var(--app-nav-muted);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+  cursor: pointer;
+  transition: color 120ms, background 120ms;
+  text-align: left;
+  font-family: Inter, system-ui, sans-serif;
+}
+
+.navLinkCollapsed {
+  padding: 0;
+  justify-content: center;
+}
+
+.navLink:hover {
+  color: var(--app-nav-text);
+  background: var(--app-nav-hover);
+}
+
+.navLinkActive,
+.navLinkActive:hover {
+  border-left: 2px solid var(--app-accent);
+  background: var(--app-nav-active);
+  color: var(--app-nav-text);
+}
+
+.navLinkIcon {
+  display: inline-flex;
+  line-height: 0;
+}

@@ -1,0 +1,230 @@
+.signupCard.signupCard {
+  padding: 28px;
+  width: 100%;
+  max-width: 520px;
+}
+
+.statusCard.statusCard {
+  padding: 28px;
+  width: 100%;
+  max-width: 560px;
+}
+
+.loadingRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.loadingText.loadingText {
+  margin: 0;
+  color: var(--app-text-muted);
+  font-size: 14px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.formHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.formTitle.formTitle {
+  margin: 0;
+  color: var(--app-text);
+  font-size: 22px;
+  line-height: 1.25;
+}
+
+.subtitle.subtitle {
+  margin: 8px 0 0;
+  color: var(--app-text-muted);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.loginPrompt.loginPrompt {
+  margin: 0;
+  text-align: center;
+  color: var(--app-text-muted);
+  font-size: 13px;
+}
+
+.loginLink.loginLink {
+  color: var(--app-accent);
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.statusContent {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.statusHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.statusIcon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--theme-app-legacy-success-10);
+  color: var(--app-success);
+  flex-shrink: 0;
+}
+
+.statusTitle.statusTitle {
+  margin: 10px 0 0;
+  font-size: 22px;
+  line-height: 1.25;
+}
+
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+}
+
+.referralBox {
+  padding: 16px;
+  background: var(--app-surface-muted);
+  border: 1px solid var(--app-divider);
+  border-radius: 10px;
+}
+
+.referralHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.referralTitle.referralTitle {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.referralHint.referralHint {
+  margin: 4px 0 0;
+  color: var(--app-text-muted);
+  font-size: 12px;
+}
+
+.referralRow {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.referralUrl {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  min-height: 40px;
+  border-radius: 8px;
+  border: 1px solid var(--app-divider-strong);
+  background: var(--app-surface);
+  color: var(--app-text-muted);
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.shareRow {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.resetButton.resetButton {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  background: transparent;
+  color: var(--app-text-muted);
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+  padding: 0;
+}
+
+.metric {
+  padding: 14px 12px;
+  border: 1px solid var(--app-divider);
+  border-radius: 10px;
+  background: var(--app-surface);
+}
+
+.metricLabel.metricLabel {
+  margin: 0;
+  color: var(--app-text-muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+
+.metricValue.metricValue {
+  display: block;
+  margin-top: 6px;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.notice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.noticeSuccess {
+  background: var(--theme-app-legacy-success-08);
+  color: var(--app-success);
+}
+
+.noticeError {
+  background: var(--theme-app-legacy-danger-08);
+  border-color: var(--theme-app-legacy-danger-22);
+  color: var(--app-danger);
+}
+
+.spinner {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 3px solid var(--app-accent-soft);
+  border-top-color: var(--app-accent);
+  animation: spin 0.9s linear infinite;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

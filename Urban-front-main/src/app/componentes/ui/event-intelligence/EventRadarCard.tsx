@@ -35,16 +35,16 @@ export function EventRadarCard({
       : "-";
 
   return (
-    <div data-testid="host-event-radar-card" style={{ minWidth: 0 }}>
+    <div data-testid="host-event-radar-card" className={styles.cardWrap}>
       <AppCard
         as="article"
         variant={selected ? "accent" : "default"}
-        className={styles.radarCard} style={{ outline: selected ? "2px solid var(--app-accent-soft)" : undefined }}
+        className={`${styles.radarCard} ${selected ? styles.radarCardSelected : ""}`}
         onClick={onSelect}
       >
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
-        <div style={{ minWidth: 0 }}>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 10 }}>
+      <div className={styles.header}>
+        <div className={styles.headerText}>
+          <div className={styles.badgeRow}>
             <AppBadge kind={confidenceBadgeKind(event.confidence)}>
               {confidenceLabel(event.confidence)}
             </AppBadge>
@@ -57,44 +57,17 @@ export function EventRadarCard({
               </AppBadge>
             )}
           </div>
-          <h3
-            style={{
-              margin: 0,
-              color: "var(--app-text)",
-              fontSize: 16,
-              fontWeight: 700,
-              lineHeight: 1.3,
-              letterSpacing: 0,
-              overflowWrap: "anywhere",
-            }}
-          >
+          <h3 className={styles.title}>
             {event.name}
           </h3>
-          <p
-            style={{
-              margin: "6px 0 0",
-              color: "var(--app-text-muted)",
-              fontSize: 12,
-              lineHeight: 1.45,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
-          >
+          <p className={styles.subtitle}>
             {formatDateRange(event.startsAt, event.endsAt)} - {[event.venueName, event.city].filter(Boolean).join(" / ")}
           </p>
         </div>
           <ScorePill value={event.demandScore ?? event.urbanScore} />
       </div>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-          gap: 10,
-          marginTop: 16,
-        }}
-      >
+      <div className={styles.metricGrid}>
         <Metric label="Potencial" value={formatCompactCurrencyFromCents(event.eventRevenuePotentialCents)} />
         <Metric label="Imóveis" value={String(event.impactedProperties.length)} />
         <Metric label="Multiplicador" value={multiplierRange} />
@@ -102,25 +75,17 @@ export function EventRadarCard({
       </div>
 
       {impact && (
-        <div
-          style={{
-            marginTop: 14,
-            padding: 12,
-            borderRadius: 8,
-            background: "var(--app-surface-muted)",
-            border: "1px solid var(--app-divider)",
-          }}
-        >
-          <p style={{ margin: 0, color: "var(--app-text-muted)", fontSize: 12, fontWeight: 650 }}>
+        <div className={styles.opportunity}>
+          <p className={styles.opportunityLabel}>
             Melhor oportunidade
           </p>
-          <p style={{ margin: "4px 0 0", color: "var(--app-text)", fontSize: 14, fontWeight: 700, overflowWrap: "anywhere" }}>
+          <p className={styles.opportunityValue}>
             {impact.propertyName} - {formatCurrencyFromCents(impact.recommendedPriceCents)}
           </p>
         </div>
       )}
 
-      <div style={{ display: "flex", justifyContent: "space-between", gap: 10, marginTop: 16, flexWrap: "wrap" }}>
+      <div className={styles.actions}>
         <AppButton
           type="button"
           size="sm"
@@ -155,20 +120,8 @@ export function EventRadarCard({
 
 function ScorePill({ value }: { value?: number | null }) {
   return (
-    <div
-      style={{
-        width: 54,
-        minWidth: 54,
-        height: 54,
-        borderRadius: 8,
-        display: "grid",
-        placeItems: "center",
-        background: "var(--app-accent-soft)",
-        border: "1px solid var(--app-accent)",
-        color: "var(--app-accent)",
-      }}
-    >
-      <span style={{ fontSize: 19, fontWeight: 800, lineHeight: 1 }}>{typeof value === "number" ? Math.round(value) : "-"}</span>
+    <div className={styles.scorePill}>
+      <span className={styles.scorePillValue}>{typeof value === "number" ? Math.round(value) : "-"}</span>
     </div>
   );
 }
@@ -176,19 +129,10 @@ function ScorePill({ value }: { value?: number | null }) {
 function Metric({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p
-        style={{
-          margin: "0 0 4px",
-          color: "var(--app-text-muted)",
-          fontSize: 10,
-          fontWeight: 700,
-          letterSpacing: 1.2,
-          textTransform: "uppercase",
-        }}
-      >
+      <p className={styles.metricLabel}>
         {label}
       </p>
-      <p style={{ margin: 0, color: "var(--app-text)", fontSize: 14, fontWeight: 750, lineHeight: 1.2, overflowWrap: "anywhere" }}>
+      <p className={styles.metricValue}>
         {value}
       </p>
     </div>

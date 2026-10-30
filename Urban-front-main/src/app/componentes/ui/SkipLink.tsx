@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import styles from "./SkipLink.module.css";
 
 /**
  * SkipLink — link "Pular para conteúdo principal" invisível até receber foco.
@@ -21,26 +22,7 @@ export function SkipLink({ targetId = "main-content" }: { targetId?: string }) {
       href={`#${targetId}`}
       onFocus={() => setFocused(true)}
       onBlur={() => setFocused(false)}
-      style={{
-        position: focused ? "absolute" : "fixed",
-        top: focused ? 8 : 0,
-        left: focused ? 8 : 0,
-        zIndex: 9999,
-        width: focused ? "auto" : 1,
-        height: focused ? "auto" : 1,
-        padding: focused ? "8px 16px" : 0,
-        overflow: focused ? "visible" : "hidden",
-        clip: focused ? "auto" : "rect(0 0 0 0)",
-        whiteSpace: "nowrap",
-        borderRadius: 6,
-        background: "var(--app-accent)",
-        color: "#FFFFFF",
-        textDecoration: "none",
-        fontSize: 14,
-        fontWeight: 650,
-        outline: focused ? "2px solid #FFFFFF" : "none",
-        outlineOffset: 2,
-      }}
+      className={focused ? `${styles.skipLink} ${styles.skipLinkFocused}` : styles.skipLink}
     >
       Pular para conteudo principal
     </a>

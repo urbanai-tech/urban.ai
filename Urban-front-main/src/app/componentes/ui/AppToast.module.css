@@ -1,0 +1,113 @@
+/*
+ * AppToast: pilha fixa de toasts. Cada toast recebe um modificador por tipo
+ * (toastSuccess/Warn/Error/Info) que define a cor da borda esquerda e do icone.
+ * Os keyframes sao locais (CSS Modules localiza nomes de animation).
+ */
+.toastStack {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 3000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+  max-width: calc(100vw - 40px);
+}
+
+.toast {
+  pointer-events: auto;
+  min-width: 280px;
+  max-width: 420px;
+  padding: 14px 16px;
+  background: var(--app-surface);
+  border: 1px solid var(--app-divider);
+  border-left: 3px solid var(--toast-tone);
+  border-radius: 8px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 14px;
+  color: var(--app-text);
+  box-shadow: var(--app-shadow-overlay);
+  animation: toastIn 220ms cubic-bezier(0.16, 1, 0.3, 1);
+  font-family: var(--font-brand);
+}
+
+.toastSuccess {
+  --toast-tone: var(--app-success);
+  --toast-icon-bg: var(--app-surface-muted);
+}
+
+.toastWarn {
+  --toast-tone: var(--app-warning);
+  --toast-icon-bg: var(--app-surface-muted);
+}
+
+.toastError {
+  --toast-tone: var(--app-danger);
+  --toast-icon-bg: var(--app-surface-muted);
+}
+
+.toastInfo {
+  --toast-tone: var(--app-accent);
+  --toast-icon-bg: var(--app-accent-soft);
+}
+
+.toastIcon {
+  color: var(--toast-tone);
+  margin-top: 1px;
+  flex-shrink: 0;
+  display: inline-flex;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--toast-icon-bg);
+  align-items: center;
+  justify-content: center;
+}
+
+.toastBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.toastMessage.toastMessage {
+  margin: 0;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.toastSub.toastSub {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--app-text-muted);
+  line-height: 1.5;
+}
+
+.toastClose {
+  background: transparent;
+  border: none;
+  color: var(--app-text-muted);
+  cursor: pointer;
+  padding: 6px;
+  min-width: 28px;
+  min-height: 28px;
+  border-radius: 6px;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+@keyframes toastIn {
+  from {
+    transform: translateX(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}

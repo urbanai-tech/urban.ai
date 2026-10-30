@@ -1,0 +1,56 @@
+.driverBarRoot {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.segmentTrack {
+  display: flex;
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--app-surface-muted);
+}
+
+.segment {
+  width: var(--seg-pct);
+  background: var(--seg-color);
+  transition: filter 120ms;
+  cursor: help;
+}
+
+.legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  font-size: 11px;
+  color: var(--app-text-muted);
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  line-height: 1.4;
+}
+
+.legendSwatch {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: var(--seg-color);
+  flex-shrink: 0;
+}
+
+.legendName {
+  color: var(--app-text);
+}
+
+.legendValue {
+  color: var(--app-text-muted);
+}

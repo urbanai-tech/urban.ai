@@ -1,0 +1,37 @@
+.scenarioGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+  gap: 12px;
+}
+
+.scenarioCard {
+  background: var(--app-surface);
+  border: 1px solid var(--app-divider);
+  border-radius: 8px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.scenarioCardSuggested {
+  border-left: 3px solid var(--app-accent);
+}
+
+/* Seletor triplicado para vencer `.urban-app .urban-app-display-sm` (cor do texto). */
+.scenarioPriceSuggested.scenarioPriceSuggested.scenarioPriceSuggested {
+  color: var(--app-accent);
+}
+
+.scenarioMetrics {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 12px;
+  color: var(--app-text-muted);
+  line-height: 1.45;
+}
+
+.scenarioMetricValue {
+  color: var(--app-text);
+}

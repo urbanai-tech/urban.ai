@@ -1,0 +1,78 @@
+.footerRoot {
+  margin-top: auto;
+  padding: 32px 32px 28px;
+  border-top: 1px solid var(--app-divider);
+  background: var(--app-bg);
+  color: var(--app-text-muted);
+  font-size: 12px;
+  font-family: var(--font-brand);
+  min-height: 0;
+}
+
+.footerInner {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.footerBrandRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.footerLogo {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.footerLogoPart {
+  font-size: 16px;
+  font-weight: 400;
+  text-transform: uppercase;
+  color: var(--app-text);
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.footerLogoAccent {
+  color: var(--app-accent);
+}
+
+.footerSeparator {
+  color: var(--app-text-dim);
+}
+
+.footerCopyright {
+  letter-spacing: 0.5px;
+}
+
+.footerNav {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  letter-spacing: 0.3px;
+}
+
+.footerLink {
+  color: var(--app-text-muted);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: color 120ms, border-color 120ms;
+  padding-bottom: 2px;
+  border-radius: 2px;
+}
+
+.footerLink:hover,
+.footerLink:focus {
+  color: var(--app-accent);
+  border-bottom-color: var(--app-accent);
+}

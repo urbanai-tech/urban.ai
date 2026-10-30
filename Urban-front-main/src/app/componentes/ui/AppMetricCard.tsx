@@ -2,6 +2,7 @@
 
 import React from "react";
 import { TrendingUp, TrendingDown } from "./Icons";
+import styles from "./AppMetricCard.module.css";
 
 /**
  * KPI card light premium. 3 variantes:
@@ -49,54 +50,28 @@ export function AppMetricCard({
       ? "urban-app-display-md"
       : undefined;
 
-  const valueStyle: React.CSSProperties = isSm
-    ? {
-        fontSize: 22,
-        fontWeight: 600,
-        letterSpacing: -0.3,
-        color: accent ? "var(--app-accent)" : "var(--app-text)",
-        margin: 0,
-      }
-    : {
-        color: accent ? "var(--app-accent)" : "var(--app-text)",
-        margin: 0,
-      };
+  const valueClassName = [
+    valueClass,
+    styles.metricValue,
+    isSm && styles.metricValueSm,
+    accent && styles.metricValueAccent,
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
-    <div
-      style={{
-        padding: isHero ? "8px 0" : isMd ? "8px 0" : "0",
-        display: "flex",
-        flexDirection: "column",
-        gap: isSm ? 4 : 10,
-        ...style,
-      }}
-    >
+    <div className={isSm ? `${styles.metric} ${styles.metricSm}` : styles.metric} style={style}>
       <p className="urban-app-eyebrow-muted">{label}</p>
-      <p className={valueClass} style={valueStyle}>
+      <p className={valueClassName}>
         {typeof value === "number" ? value.toLocaleString("pt-BR") : value}
       </p>
       {(sub || trend) && (
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            fontSize: 12,
-            color: "var(--app-text-muted)",
-            fontWeight: 400,
-          }}
-        >
+        <div className={styles.metricMeta}>
           {trend && (
             <span
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 4,
-                color:
-                  trend === "up" ? "var(--app-success)" : "var(--app-danger)",
-                fontWeight: 600,
-              }}
+              className={`${styles.metricTrend} ${
+                trend === "up" ? styles.metricTrendUp : styles.metricTrendDown
+              }`}
             >
               {trend === "up" ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
               {trendValue}

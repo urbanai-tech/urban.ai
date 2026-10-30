@@ -121,7 +121,7 @@ export default function SubscriptionCards({
             <AppCard
               key={sub.id}
               variant="elevated"
-              className={styles.subscriptionCard} style={{ opacity: isCanceled ? 0.6 : 1, background: isCanceled ? "var(--app-surface-muted)" : "var(--app-surface)" }}
+              className={`${styles.subscriptionCard} ${isCanceled ? styles.subscriptionCardCanceled : ""}`}
             >
               <span
                 className={`${styles.statusBadge} ${isCanceled ? styles.statusBadgeCanceled : styles.statusBadgeActive}`}

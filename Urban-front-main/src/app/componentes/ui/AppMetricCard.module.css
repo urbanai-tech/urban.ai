@@ -1,0 +1,54 @@
+/*
+ * AppMetricCard. O valor usa seletor triplicado para vencer
+ * `.urban-app .urban-app-display-*` (cor/margem), como o inline vencia.
+ */
+.metric {
+  padding: 8px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.metricSm {
+  padding: 0;
+  gap: 4px;
+}
+
+.metricValue.metricValue.metricValue {
+  color: var(--app-text);
+  margin: 0;
+}
+
+.metricValueSm.metricValueSm.metricValueSm {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+}
+
+.metricValueAccent.metricValueAccent.metricValueAccent {
+  color: var(--app-accent);
+}
+
+.metricMeta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--app-text-muted);
+  font-weight: 400;
+}
+
+.metricTrend {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+}
+
+.metricTrendUp {
+  color: var(--app-success);
+}
+
+.metricTrendDown {
+  color: var(--app-danger);
+}

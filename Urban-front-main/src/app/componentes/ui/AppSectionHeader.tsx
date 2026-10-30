@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import styles from "./AppSectionHeader.module.css";
 
 /**
  * Header de página/sessão light premium.
@@ -39,57 +40,17 @@ export function AppSectionHeader({
         : "urban-app-display-sm";
 
   return (
-    <header
-      style={{
-        display: "flex",
-        alignItems: "flex-end",
-        justifyContent: "space-between",
-        gap: 24,
-        flexWrap: "wrap",
-        paddingBottom: 24,
-        borderBottom: "1px solid var(--app-divider)",
-        marginBottom: 32,
-        ...style,
-      }}
-    >
-      <div style={{ minWidth: 0, flex: 1 }}>
+    <header className={styles.sectionHeader} style={style}>
+      <div className={styles.sectionHeaderText}>
         {eyebrow && (
-          <p className="urban-app-eyebrow" style={{ marginBottom: 12 }}>
+          <p className={`urban-app-eyebrow ${styles.sectionHeaderEyebrow}`}>
             {eyebrow}
           </p>
         )}
         <h1 className={titleClass}>{title}</h1>
-        {subtitle && (
-          <p
-            style={{
-              marginTop: 12,
-              fontSize: 14,
-              color: "var(--app-text-muted)",
-              fontWeight: 400,
-              lineHeight: 1.55,
-              maxWidth: 720,
-            }}
-          >
-            {subtitle}
-          </p>
-        )}
+        {subtitle && <p className={styles.sectionHeaderSubtitle}>{subtitle}</p>}
       </div>
-      {actions && (
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 12,
-            flex: "0 1 auto",
-            flexWrap: "wrap",
-            justifyContent: "flex-end",
-            maxWidth: "100%",
-            minWidth: 0,
-          }}
-        >
-          {actions}
-        </div>
-      )}
+      {actions && <div className={styles.sectionHeaderActions}>{actions}</div>}
     </header>
   );
 }

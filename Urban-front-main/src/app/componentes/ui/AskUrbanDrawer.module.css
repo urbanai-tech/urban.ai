@@ -230,3 +230,166 @@
   font-size: 12px;
   color: var(--app-text-muted);
 }
+
+.backdrop {
+  position: absolute;
+  inset: 0;
+  backdrop-filter: blur(3px);
+}
+
+.drawerHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--app-divider);
+  background: var(--app-surface-elevated, var(--theme-app-surface-elevated));
+  flex-shrink: 0;
+}
+
+.composer {
+  border-top: 1px solid var(--app-divider);
+  padding: 14px 20px 16px;
+  background: var(--app-surface-elevated, var(--theme-app-surface-elevated));
+  flex-shrink: 0;
+}
+
+.composerBox {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+  border: 1px solid var(--app-divider-strong);
+  border-radius: 12px;
+  padding: 8px 8px 8px 12px;
+  background: var(--app-bg, var(--theme-app-bg));
+}
+
+.composerTextarea {
+  flex: 1;
+  resize: none;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--app-text);
+  font-family: var(--font-brand);
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 24px;
+  max-height: 130px;
+  padding: 4px 0;
+}
+
+.suggestionButton {
+  text-align: left;
+  background: var(--app-surface-elevated, var(--theme-app-surface-elevated));
+  border: 1px solid var(--app-divider-strong);
+  border-radius: 10px;
+  padding: 12px 14px;
+  min-height: 44px;
+  font-family: var(--font-brand);
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--app-text);
+  cursor: pointer;
+  transition: border-color 120ms, background 120ms;
+}
+
+.suggestionButton:hover {
+  border-color: var(--app-accent);
+  background: var(--app-accent-soft);
+}
+
+.userBubble {
+  max-width: 85%;
+  background: var(--app-surface-elevated, var(--theme-app-surface-elevated));
+  border: 1px solid var(--app-divider);
+  color: var(--app-text);
+  padding: 10px 14px;
+  border-radius: 14px 14px 4px 14px;
+  font-size: 14px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.assistantBubble {
+  background: var(--app-surface-elevated, var(--theme-app-surface-elevated));
+  border: 1px solid var(--app-divider-strong);
+  color: var(--app-text);
+  padding: 12px 14px;
+  border-radius: 14px 14px 14px 4px;
+  font-size: 14px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.feedbackButton {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--app-text-muted);
+  cursor: pointer;
+  padding: 8px;
+  min-width: 32px;
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  line-height: 0;
+  opacity: 1;
+  transition: background 120ms, color 120ms;
+}
+
+.feedbackButtonActive {
+  background: var(--app-accent-soft);
+  border-color: var(--app-accent);
+  color: var(--app-accent);
+}
+
+.feedbackButtonDisabled {
+  cursor: default;
+}
+
+.feedbackButtonDimmed {
+  opacity: 0.4;
+}
+
+.thinkingBubble {
+  background: var(--app-surface-elevated, var(--theme-app-surface-elevated));
+  border: 1px solid var(--app-divider-strong);
+  padding: 12px 16px;
+  border-radius: 14px 14px 14px 4px;
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.thinkingDot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--app-text-muted);
+}
+
+.usageChip {
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--app-surface-muted);
+  color: var(--app-text-muted);
+  border: 1px solid var(--app-divider-strong);
+  line-height: 1.5;
+}
+
+.usageChipAmber {
+  color: var(--app-warning-text);
+  border-color: var(--app-warning);
+}
+
+.usageChipAccent {
+  background: var(--app-accent-soft);
+  color: var(--app-accent);
+  border-color: var(--app-accent);
+}

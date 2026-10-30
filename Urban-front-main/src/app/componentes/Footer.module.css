@@ -1,0 +1,33 @@
+.footerRoot {
+  height: 200px;
+  padding: 24px 16px;
+  background: var(--app-surface);
+  color: var(--app-text);
+  border-top: 1px solid var(--app-divider);
+}
+
+.footerInner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.footerCopy {
+  margin: 0;
+  text-align: center;
+  font-size: 14px;
+}
+
+.footerNav {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.footerLink {
+  color: inherit;
+  text-decoration: none;
+  font-size: 14px;
+}

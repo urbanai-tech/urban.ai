@@ -157,3 +157,71 @@
   box-shadow: 0 24px 80px var(--theme-app-legacy-black-28);
   overflow: hidden;
 }
+
+/*
+ * Cores sem token equivalente (laranja de alerta, cinzas de placeholder) seguem
+ * inline em AddPropertyModal.tsx; aqui ficam so as propriedades estaticas.
+ */
+.pendingPriceNotice.pendingPriceNotice {
+  padding: 14px;
+  border-style: solid;
+  border-width: 1px;
+  border-radius: 8px;
+  color: var(--theme-app-legacy-ink);
+}
+
+.pendingPropertyPlaceholder.pendingPropertyPlaceholder {
+  width: 64px;
+  height: 52px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.pendingFallbackMessage.pendingFallbackMessage {
+  margin: 4px 0 0;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+/* Seletor triplicado para manter `outline: none` acima de `.urban-app input:focus-visible`. */
+.textInput.textInput.textInput {
+  width: 100%;
+  height: 48px;
+  padding: 0 14px;
+  border: 1px solid var(--theme-app-legacy-ink-12);
+  border-radius: 10px;
+  color: var(--theme-app-legacy-ink);
+  font-size: 15px;
+  outline: none;
+}
+
+.pendingPriceInput.pendingPriceInput.pendingPriceInput {
+  width: 140px;
+  flex-shrink: 0;
+}
+
+.propertyOption.propertyOption {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px;
+  border: 1px solid var(--theme-app-divider-strong);
+  border-radius: 10px;
+  background: var(--theme-app-surface);
+  cursor: pointer;
+}
+
+.propertyOptionSelected.propertyOptionSelected {
+  border-color: color-mix(in srgb, var(--theme-app-accent) 35%, transparent);
+  background: color-mix(in srgb, var(--theme-app-accent) 8%, transparent);
+}
+
+.propertyThumbPlaceholder.propertyThumbPlaceholder {
+  width: 70px;
+  height: 70px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  font-size: 12px;
+  flex-shrink: 0;
+}

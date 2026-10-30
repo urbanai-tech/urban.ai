@@ -253,11 +253,9 @@ export function AskUrbanDrawer({ open, onClose, restoreFocusTo }: Props) {
       <div
         onClick={onClose}
         aria-hidden="true"
+        className={styles.backdrop}
         style={{
-          position: "absolute",
-          inset: 0,
           background: "rgba(0, 0, 0, 0.58)",
-          backdropFilter: "blur(3px)",
           animation: "ask-fade-in 180ms ease-out",
         }}
       />
@@ -272,17 +270,7 @@ export function AskUrbanDrawer({ open, onClose, restoreFocusTo }: Props) {
         className={styles.drawerPanel}
       >
         {/* ============================ HEADER ============================ */}
-        <header
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 12,
-            padding: "18px 20px",
-            borderBottom: "1px solid var(--app-divider)",
-            background: "var(--app-surface-elevated, var(--theme-app-surface-elevated, #171C24))",
-            flexShrink: 0,
-          }}
-        >
+        <header className={styles.drawerHeader}>
           <div
             className={styles.headerIcon}
           >
@@ -334,13 +322,8 @@ export function AskUrbanDrawer({ open, onClose, restoreFocusTo }: Props) {
 
         {/* ============================ INPUT ============================ */}
         <div
-          style={{
-            borderTop: "1px solid var(--app-divider)",
-            padding: "14px 20px 16px",
-            background: "var(--app-surface-elevated, var(--theme-app-surface-elevated, #171C24))",
-            boxShadow: "0 -18px 42px rgba(0,0,0,0.22)",
-            flexShrink: 0,
-          }}
+          className={styles.composer}
+          style={{ boxShadow: "0 -18px 42px rgba(0,0,0,0.22)" }}
         >
           {hardCapReached && (
             <p
@@ -351,16 +334,8 @@ export function AskUrbanDrawer({ open, onClose, restoreFocusTo }: Props) {
             </p>
           )}
           <div
-            style={{
-              display: "flex",
-              gap: 8,
-              alignItems: "flex-end",
-              border: "1px solid var(--app-divider-strong)",
-              borderRadius: 12,
-              padding: "8px 8px 8px 12px",
-              background: "var(--app-bg, var(--theme-app-bg))",
-              boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.02)",
-            }}
+            className={styles.composerBox}
+            style={{ boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.02)" }}
           >
             <textarea
               ref={textareaRef}
@@ -371,20 +346,7 @@ export function AskUrbanDrawer({ open, onClose, restoreFocusTo }: Props) {
               placeholder={PLACEHOLDER_ROTATION[placeholderIdx]}
               rows={1}
               aria-label="Pergunte ao Ask Urban"
-              style={{
-                flex: 1,
-                resize: "none",
-                border: "none",
-                outline: "none",
-                background: "transparent",
-                color: "var(--app-text)",
-                fontFamily: "var(--font-brand)",
-                fontSize: 14,
-                lineHeight: 1.5,
-                minHeight: 24,
-                maxHeight: 130,
-                padding: "4px 0",
-              }}
+              className={styles.composerTextarea}
             />
             <button
               onClick={() => void sendQuestion(input)}
@@ -484,32 +446,7 @@ function EmptyState({ onPick }: { onPick: (q: string) => void }) {
           <button
             key={s}
             onClick={() => onPick(s)}
-            className="urban-focus-ring"
-            style={{
-              textAlign: "left",
-              background: "var(--app-surface-elevated, var(--theme-app-surface-elevated, #171C24))",
-              border: "1px solid var(--app-divider-strong)",
-              borderRadius: 10,
-              padding: "12px 14px",
-              minHeight: 44,
-              fontFamily: "var(--font-brand)",
-              fontSize: 12.5,
-              lineHeight: 1.4,
-              color: "var(--app-text)",
-              cursor: "pointer",
-              transition: "border-color 120ms, background 120ms",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = "var(--app-accent)";
-              e.currentTarget.style.background =
-                "var(--app-accent-soft)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor =
-                "var(--app-divider-strong)";
-              e.currentTarget.style.background =
-                "var(--app-surface-elevated, var(--theme-app-surface-elevated, #171C24))";
-            }}
+            className={`urban-focus-ring ${styles.suggestionButton}`}
           >
             {s}
           </button>
@@ -533,20 +470,7 @@ function MessageBubble({
   if (isUser) {
     return (
       <div className={styles.userMessageRow}>
-        <div
-          style={{
-            maxWidth: "85%",
-            background: "var(--app-surface-elevated, var(--theme-app-surface-elevated, #171C24))",
-            border: "1px solid var(--app-divider)",
-            color: "var(--app-text)",
-            padding: "10px 14px",
-            borderRadius: "14px 14px 4px 14px",
-            fontSize: 14,
-            lineHeight: 1.5,
-            whiteSpace: "pre-wrap",
-            wordBreak: "break-word",
-          }}
-        >
+        <div className={styles.userBubble}>
           {message.content}
         </div>
       </div>
@@ -562,19 +486,7 @@ function MessageBubble({
         <Sparkles size={14} />
       </div>
       <div className={styles.assistantBody}>
-        <div
-          style={{
-            background: "var(--app-surface-elevated, var(--theme-app-surface-elevated, #171C24))",
-            border: "1px solid var(--app-divider-strong)",
-            color: "var(--app-text)",
-            padding: "12px 14px",
-            borderRadius: "14px 14px 14px 4px",
-            fontSize: 14,
-            lineHeight: 1.55,
-            whiteSpace: "pre-wrap",
-            wordBreak: "break-word",
-          }}
-        >
+        <div className={styles.assistantBubble}>
           {message.content}
         </div>
 
@@ -637,31 +549,21 @@ function FeedbackButton({
   disabled: boolean;
   onClick: () => void;
 }) {
-  const color = active ? "var(--app-accent)" : "var(--app-text-muted)";
   return (
     <button
       onClick={onClick}
       disabled={disabled}
       aria-label={vote === "up" ? "Resposta útil" : "Resposta não útil"}
       aria-pressed={active}
-      className="urban-focus-ring"
-      style={{
-        background: active ? "var(--app-accent-soft)" : "transparent",
-        border: "1px solid",
-        borderColor: active ? "var(--app-accent)" : "transparent",
-        color,
-        cursor: disabled ? "default" : "pointer",
-        padding: "8px",
-        minWidth: 32,
-        minHeight: 32,
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        borderRadius: 6,
-        lineHeight: 0,
-        opacity: disabled && !active ? 0.4 : 1,
-        transition: "background 120ms, color 120ms",
-      }}
+      className={[
+        "urban-focus-ring",
+        styles.feedbackButton,
+        active ? styles.feedbackButtonActive : "",
+        disabled ? styles.feedbackButtonDisabled : "",
+        disabled && !active ? styles.feedbackButtonDimmed : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
     >
       {vote === "up" ? <ThumbsUpIcon /> : <ThumbsDownIcon />}
     </button>
@@ -682,28 +584,12 @@ function ThinkingDots() {
       >
         <Sparkles size={14} />
       </div>
-      <div
-        style={{
-          background: "var(--app-surface-elevated, var(--theme-app-surface-elevated, #171C24))",
-          border: "1px solid var(--app-divider-strong)",
-          padding: "12px 16px",
-          borderRadius: "14px 14px 14px 4px",
-          display: "inline-flex",
-          gap: 4,
-          alignItems: "center",
-        }}
-      >
+      <div className={styles.thinkingBubble}>
         {[0, 1, 2].map((i) => (
           <span
             key={i}
-            style={{
-              display: "inline-block",
-              width: 6,
-              height: 6,
-              borderRadius: "50%",
-              background: "var(--app-text-muted)",
-              animation: `ask-thinking 1.2s ${i * 0.15}s infinite ease-in-out`,
-            }}
+            className={styles.thinkingDot}
+            style={{ animation: `ask-thinking 1.2s ${i * 0.15}s infinite ease-in-out` }}
           />
         ))}
         <span
@@ -723,34 +609,15 @@ function UsageChip({
   kind: "normal" | "amber" | "accent";
   usage: AskUsageResponse;
 }) {
-  const palette = {
-    normal: {
-      bg: "var(--app-surface-muted)",
-      color: "var(--app-text-muted)",
-      border: "var(--app-divider-strong)",
-    },
-    amber: {
-      bg: "var(--app-surface-muted)",
-      color: "var(--app-warning-text)",
-      border: "var(--app-warning)",
-    },
-    accent: {
-      bg: "var(--app-accent-soft)",
-      color: "var(--app-accent)",
-      border: "var(--app-accent)",
-    },
-  }[kind];
   return (
     <span
-      style={{
-        fontSize: 11,
-        padding: "3px 10px",
-        borderRadius: 999,
-        background: palette.bg,
-        color: palette.color,
-        border: `1px solid ${palette.border}`,
-        lineHeight: 1.5,
-      }}
+      className={[
+        styles.usageChip,
+        kind === "amber" ? styles.usageChipAmber : "",
+        kind === "accent" ? styles.usageChipAccent : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
     >
       {usage.used} / {usage.quota} perguntas hoje
     </span>

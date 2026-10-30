@@ -1,0 +1,115 @@
+.root {
+  display: grid;
+  place-items: center;
+  padding: clamp(32px, 7vw, 80px) 20px;
+  background: var(--err-background);
+  color: var(--err-text);
+}
+
+.public {
+  --err-background: var(--theme-public-bg);
+  --err-surface: var(--theme-public-surface);
+  --err-text: var(--theme-public-text);
+  --err-muted: var(--theme-public-muted);
+  --err-accent: var(--theme-public-accent);
+  --err-accent-contrast: var(--theme-public-accent-contrast);
+  --err-border: var(--theme-public-strong);
+  min-height: min(70vh, 720px);
+}
+
+.host {
+  --err-background: var(--theme-page-bg);
+  --err-surface: var(--theme-public-surface);
+  --err-text: var(--theme-page-text);
+  --err-muted: var(--theme-public-muted);
+  --err-accent: var(--theme-public-accent);
+  --err-accent-contrast: var(--theme-public-accent-contrast);
+  --err-border: var(--theme-public-strong);
+  min-height: 100vh;
+}
+
+.admin {
+  --err-background: var(--theme-admin-bg);
+  --err-surface: var(--theme-admin-surface);
+  --err-text: var(--theme-admin-text);
+  --err-muted: var(--theme-admin-text-muted);
+  --err-accent: var(--theme-admin-accent);
+  --err-accent-contrast: var(--theme-admin-accent-contrast);
+  --err-border: var(--theme-admin-divider-strong);
+  min-height: 480px;
+}
+
+.panel {
+  width: min(100%, 680px);
+  padding: clamp(28px, 6vw, 56px);
+  border: 1px solid var(--err-border);
+  background: var(--err-surface);
+  text-align: center;
+}
+
+.panelStart {
+  text-align: left;
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--err-accent);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2.4px;
+}
+
+.title {
+  margin: 18px 0 0;
+  font-size: clamp(30px, 6vw, 56px);
+  line-height: 1.05;
+  text-wrap: balance;
+}
+
+.body {
+  margin: 20px 0 0;
+  color: var(--err-muted);
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+.reference {
+  margin: 14px 0 0;
+  color: var(--err-muted);
+  font-family: monospace;
+  font-size: 11px;
+}
+
+.actions {
+  margin-top: 32px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.actionsStart {
+  justify-content: flex-start;
+}
+
+.retryButton {
+  min-height: 48px;
+  padding: 12px 20px;
+  border: 1px solid var(--err-accent);
+  background: var(--err-accent);
+  color: var(--err-accent-contrast);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.homeLink {
+  min-height: 48px;
+  padding: 12px 20px;
+  border: 1px solid var(--err-border);
+  color: var(--err-text);
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  font-weight: 600;
+}

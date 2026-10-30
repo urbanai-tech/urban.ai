@@ -2,6 +2,7 @@
  * Empty state light premium. Substitui textos crus "Nenhum evento", "Sem dados".
  */
 import React from "react";
+import styles from "./AppEmptyState.module.css";
 
 export function AppEmptyState({
   eyebrow,
@@ -17,43 +18,12 @@ export function AppEmptyState({
   icon?: React.ReactNode;
 }) {
   return (
-    <div
-      style={{
-        padding: "48px 24px",
-        textAlign: "center",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        gap: 16,
-        border: "1px dashed var(--app-divider-strong)",
-        borderRadius: 12,
-        background: "var(--app-surface-muted)",
-      }}
-    >
-      {icon && (
-        <div style={{ color: "var(--app-text-dim)", marginBottom: 4 }}>{icon}</div>
-      )}
+    <div className={styles.emptyState}>
+      {icon && <div className={styles.emptyIcon}>{icon}</div>}
       {eyebrow && <p className="urban-app-eyebrow">{eyebrow}</p>}
-      <h3
-        className="urban-app-display-sm"
-        style={{ textTransform: "uppercase" }}
-      >
-        {title}
-      </h3>
-      {body && (
-        <p
-          style={{
-            fontSize: 14,
-            color: "var(--app-text-muted)",
-            maxWidth: 480,
-            lineHeight: 1.6,
-            margin: 0,
-          }}
-        >
-          {body}
-        </p>
-      )}
-      {action && <div style={{ marginTop: 4 }}>{action}</div>}
+      <h3 className={`urban-app-display-sm ${styles.emptyTitle}`}>{title}</h3>
+      {body && <p className={styles.emptyBody}>{body}</p>}
+      {action && <div className={styles.emptyAction}>{action}</div>}
     </div>
   );
 }

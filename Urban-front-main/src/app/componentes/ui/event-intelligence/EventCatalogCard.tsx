@@ -33,32 +33,20 @@ export function EventCatalogCard({
       variant="default"
       className={styles.catalogCard}
     >
-      <div style={{ position: "relative", height: 176, background: "var(--app-surface-muted)" }}>
+      <div className={styles.media}>
         <EventImage src={event.imageUrl} alt={event.name} venue={event.venueName} />
         {typeof score === "number" && (
-          <div
-            style={{
-              position: "absolute",
-              top: 12,
-              left: 12,
-              minWidth: 64,
-              padding: "8px 10px",
-              borderRadius: 8,
-              background: "var(--app-text)",
-              color: "var(--app-bg)",
-              boxShadow: "var(--app-shadow-elevated)",
-            }}
-          >
-            <p style={{ margin: 0, fontSize: 10, letterSpacing: 1.4, textTransform: "uppercase", opacity: 0.72 }}>
+          <div className={styles.scoreBadge}>
+            <p className={styles.scoreLabel}>
               Score
             </p>
-            <p style={{ margin: 0, fontSize: 20, fontWeight: 750, lineHeight: 1 }}>{Math.round(score)}</p>
+            <p className={styles.scoreValue}>{Math.round(score)}</p>
           </div>
         )}
       </div>
 
-      <div style={{ padding: 18, display: "flex", flexDirection: "column", gap: 14, flex: 1 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+      <div className={styles.body}>
+        <div className={styles.badgeRow}>
           <AppBadge kind={confidenceBadgeKind(event.confidence)}>
             {confidenceLabel(event.confidence)}
           </AppBadge>
@@ -72,39 +60,18 @@ export function EventCatalogCard({
           )}
         </div>
 
-        <div style={{ minWidth: 0 }}>
-          <h3
-            style={{
-              margin: "0 0 8px",
-              color: "var(--app-text)",
-              fontSize: 18,
-              fontWeight: 700,
-              lineHeight: 1.25,
-              letterSpacing: 0,
-              overflowWrap: "anywhere",
-            }}
-          >
+        <div className={styles.titleBlock}>
+          <h3 className={styles.title}>
             {event.name}
           </h3>
           {event.description && (
-            <p
-              style={{
-                margin: 0,
-                color: "var(--app-text-muted)",
-                fontSize: 13,
-                lineHeight: 1.55,
-                display: "-webkit-box",
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: "vertical",
-                overflow: "hidden",
-              }}
-            >
+            <p className={styles.description}>
               {event.description}
             </p>
           )}
         </div>
 
-        <div style={{ display: "grid", gap: 8, color: "var(--app-text-muted)", fontSize: 13 }}>
+        <div className={styles.metaList}>
           <MetaRow icon={<Icons.Calendar size={14} />}>
             {formatDateRange(event.startsAt, event.endsAt)}
             {formatTime(event.startsAt) ? `, ${formatTime(event.startsAt)}` : ""}
@@ -115,7 +82,7 @@ export function EventCatalogCard({
           <MetaRow icon={<Icons.Info size={14} />}>{sourceLabel}</MetaRow>
         </div>
 
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", minHeight: 30 }}>
+        <div className={styles.tagRow}>
           {(event.badges ?? []).slice(0, 4).map((badge) => (
             <AppBadge key={badge} kind={badge.includes("alto") ? "accent" : "neutral"}>
               {badge}
@@ -123,7 +90,7 @@ export function EventCatalogCard({
           ))}
         </div>
 
-        <div style={{ marginTop: "auto", display: "flex", gap: 10, flexWrap: "wrap" }}>
+        <div className={styles.actions}>
           <AppButton
             type="button"
             size="sm"
@@ -143,21 +110,7 @@ export function EventCatalogCard({
               href={event.officialUrl}
               target="_blank"
               rel="noreferrer"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                height: 32,
-                padding: "0 10px",
-                minWidth: 0,
-                maxWidth: "100%",
-                color: "var(--app-text-muted)",
-                fontSize: 13,
-                fontWeight: 650,
-                textDecoration: "none",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-              }}
+              className={styles.officialLink}
             >
               Fonte oficial
             </a>
@@ -170,18 +123,9 @@ export function EventCatalogCard({
 
 function MetaRow({ icon, children }: { icon: React.ReactNode; children: React.ReactNode }) {
   return (
-    <p
-      style={{
-        margin: 0,
-        display: "flex",
-        alignItems: "center",
-        gap: 8,
-        minWidth: 0,
-        lineHeight: 1.4,
-      }}
-    >
-      <span style={{ display: "inline-flex", flexShrink: 0 }}>{icon}</span>
-      <span title={typeof children === "string" ? children : undefined} style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+    <p className={styles.metaRow}>
+      <span className={styles.metaIcon}>{icon}</span>
+      <span title={typeof children === "string" ? children : undefined} className={styles.metaText}>
         {children}
       </span>
     </p>

@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import styles from './Pagination.module.css';
 
 interface PaginationProps {
   paginaAtual: number;
@@ -17,29 +18,19 @@ export function Pagination({
   const nextDisabled = paginaAtual === totalPaginas;
 
   return (
-    <div style={{ display: "flex", justifyContent: "center", marginTop: 40 }}>
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 24,
-          padding: "8px 24px",
-          borderRadius: 999,
-          background: "#fff",
-          flexWrap: "wrap",
-          justifyContent: "center",
-        }}
-      >
+    <div className={styles.paginationRow}>
+      <div className={styles.paginationBar}>
         <button
           type="button"
           onClick={() => onPageChange(Math.max(paginaAtual - 1, 1))}
           disabled={previousDisabled}
-          style={pageButtonStyle(previousDisabled)}
+          className={styles.pageButton}
+          style={pageButtonColors(previousDisabled)}
         >
           {"<-"} Anterior
         </button>
 
-        <p style={{ margin: 0, color: "#374151", fontSize: 16, fontWeight: 650 }}>
+        <p className={styles.paginationLabel} style={{ color: "#374151" }}>
           Pagina {paginaAtual} de {totalPaginas}
         </p>
 
@@ -47,7 +38,8 @@ export function Pagination({
           type="button"
           onClick={() => onPageChange(Math.min(paginaAtual + 1, totalPaginas))}
           disabled={nextDisabled}
-          style={pageButtonStyle(nextDisabled)}
+          className={styles.pageButton}
+          style={pageButtonColors(nextDisabled)}
         >
           Próximo {"->"}
         </button>
@@ -56,15 +48,9 @@ export function Pagination({
   );
 }
 
-function pageButtonStyle(disabled: boolean): React.CSSProperties {
-  return {
-    padding: "4px 12px",
-    borderRadius: 999,
-    border: "none",
-    background: disabled ? "#E5E7EB" : "#2563EB",
-    color: disabled ? "#6B7280" : "#fff",
-    fontWeight: 600,
-    cursor: disabled ? "not-allowed" : "pointer",
-    transition: "background 0.2s",
-  };
+/** Cores sem token equivalente; o texto habilitado (branco) vem da classe. */
+function pageButtonColors(disabled: boolean): React.CSSProperties {
+  return disabled
+    ? { background: "#E5E7EB", color: "#6B7280" }
+    : { background: "#2563EB" };
 }

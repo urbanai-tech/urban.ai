@@ -7,3 +7,121 @@
   border-radius: 8px;
   min-width: 0;
 }
+
+.introEyebrow.introEyebrow {
+  margin-bottom: 6px;
+}
+
+.introText.introText {
+  margin: 0;
+  color: var(--app-text-muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.headerText {
+  min-width: 0;
+}
+
+.headerEyebrow.headerEyebrow {
+  margin-bottom: 4px;
+}
+
+.title.title {
+  margin: 0;
+  color: var(--app-text);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0;
+  overflow-wrap: anywhere;
+}
+
+.scenarioGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
+  gap: 12px;
+}
+
+.scenarioHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.scenarioLabel.scenarioLabel {
+  margin: 0;
+  color: var(--app-text);
+  font-size: 14px;
+  font-weight: 750;
+  overflow-wrap: anywhere;
+}
+
+.metricList {
+  margin-top: 16px;
+  display: grid;
+  gap: 10px;
+}
+
+.revenueTrack {
+  margin-top: 14px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--app-surface-muted);
+  overflow: hidden;
+}
+
+.revenueBar {
+  display: block;
+  height: 100%;
+  width: var(--bar-width);
+}
+
+.revenueBarRecommended {
+  background: var(--app-accent);
+}
+
+.revenueBarDefault {
+  background: var(--app-divider-strong);
+}
+
+.scenarioReading.scenarioReading {
+  margin: 12px 0 0;
+  color: var(--app-text-muted);
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.metricLabel.metricLabel {
+  margin: 0 0 2px;
+  color: var(--app-text-muted);
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+}
+
+.metricValue.metricValue {
+  margin: 0;
+  color: var(--app-text);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.metricValue.metricValue.metricValueStrong {
+  font-size: 18px;
+  font-weight: 800;
+}

@@ -5,8 +5,14 @@
 
 .emptyLayout.emptyLayout {
   display: grid;
+  grid-template-columns: 1fr;
   gap: 18px;
   align-items: center;
+}
+
+/* Com eventos, a agenda ocupa uma segunda coluna (o media query em PaceChart.tsx empilha no mobile). */
+.emptyLayoutWithEvents.emptyLayoutWithEvents {
+  grid-template-columns: minmax(0, 0.9fr) minmax(260px, 1.1fr);
 }
 
 .emptyEyebrow.emptyEyebrow {

@@ -2,6 +2,7 @@
 
 import React, { memo } from 'react';
 import Image from 'next/image';
+import styles from './loading.module.css';
 
 type Props = {
   fullscreen?: boolean;
@@ -35,115 +36,37 @@ function Inner({
     <div
       role="status"
       aria-busy="true"
-      style={{
-        position: fullscreen ? 'fixed' : 'relative',
-        inset: fullscreen ? 0 : undefined,
-        display: 'grid',
-        placeItems: 'center',
-        padding: 24,
-        background: fullscreen ? overlayBg : 'transparent',
-        backdropFilter: fullscreen ? 'saturate(140%) blur(8px)' : undefined,
-        zIndex: fullscreen ? 9999 : 'auto',
-        color: 'var(--theme-page-text)',
-      }}
+      className={`${styles.root} ${fullscreen ? styles.rootFullscreen : ""}`}
+      style={
+        {
+          "--loader-overlay": overlayBg,
+          "--loader-orbit": orbitColor,
+          "--loader-shadow-rest": "rgba(0,0,0,0.24)",
+          "--loader-shadow-lift": "rgba(0,0,0,0.32)",
+        } as React.CSSProperties
+      }
     >
-      <div
-        style={{
-          display: 'grid',
-          justifyItems: 'center',
-          gap: 22,
-          width: 'min(420px, 100%)',
-          textAlign: 'center',
-        }}
-      >
-        <div
-          style={{
-            position: 'relative',
-            width: 'min(260px, 72vw)',
-            animation: 'urban-loader-float 2.4s ease-in-out infinite',
-          }}
-        >
+      <div className={styles.content}>
+        <div className={styles.logoWrap}>
           <Image
             src={src}
             alt={alt}
             width={width}
             height={height}
             priority
-            style={{
-              display: 'block',
-              width: '100%',
-              height: 'auto',
-              filter: 'drop-shadow(0 18px 36px rgba(0,0,0,0.26))',
-            }}
+            className={styles.logo}
+            style={{ filter: 'drop-shadow(0 18px 36px rgba(0,0,0,0.26))' }}
           />
 
-          <span
-            aria-hidden
-            style={{
-              position: 'absolute',
-              inset: '-22px',
-              border: `1px solid ${orbitColor}`,
-              borderRightColor: 'transparent',
-              borderBottomColor: 'transparent',
-              borderRadius: '999px',
-              opacity: 0.8,
-              animation: 'urban-loader-spin 1.8s linear infinite',
-            }}
-          />
-          <span
-            aria-hidden
-            style={{
-              position: 'absolute',
-              left: '12%',
-              right: '12%',
-              bottom: -18,
-              height: 1,
-              background:
-                'linear-gradient(90deg, transparent, color-mix(in srgb, var(--theme-app-accent) 72%, transparent), transparent)',
-              animation: 'urban-loader-line 1.4s ease-in-out infinite',
-            }}
-          />
+          <span aria-hidden className={styles.orbit} />
+          <span aria-hidden className={styles.line} />
         </div>
 
-        <div style={{ display: 'grid', gap: 8 }}>
-          <p
-            style={{
-              margin: 0,
-              color: 'var(--theme-app-accent)',
-              fontSize: 11,
-              fontWeight: 700,
-              letterSpacing: 3,
-              textTransform: 'uppercase',
-            }}
-          >
-            {title}
-          </p>
-          <p
-            style={{
-              margin: 0,
-              color: 'var(--theme-app-text-muted)',
-              fontSize: 14,
-              fontWeight: 500,
-              lineHeight: 1.5,
-            }}
-          >
-            {subtitle}
-          </p>
+        <div className={styles.texts}>
+          <p className={styles.title}>{title}</p>
+          <p className={styles.subtitle}>{subtitle}</p>
         </div>
       </div>
-      <style>{`
-        @keyframes urban-loader-float {
-          0%, 100% { transform: scale(1); filter: drop-shadow(0 8px 20px rgba(0,0,0,0.24)); }
-          50% { transform: scale(1.018) translateY(-2px); filter: drop-shadow(0 12px 32px rgba(0,0,0,0.32)); }
-        }
-        @keyframes urban-loader-spin {
-          to { transform: rotate(360deg); }
-        }
-        @keyframes urban-loader-line {
-          0%, 100% { opacity: 0.35; transform: scaleX(0.72); }
-          50% { opacity: 1; transform: scaleX(1); }
-        }
-      `}</style>
     </div>
   );
 }

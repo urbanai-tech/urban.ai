@@ -4,6 +4,7 @@ import React from "react";
 import { Monitor, Moon, Sun } from "lucide-react";
 import { THEME_OPTIONS, type ThemePreference } from "./constants";
 import { useTheme } from "./ThemeProvider";
+import styles from "./ThemeToggle.module.css";
 
 const iconFor: Record<ThemePreference, React.ReactNode> = {
   system: <Monitor size={14} aria-hidden />,
@@ -26,21 +27,12 @@ export function ThemeToggle({
     <div
       role="group"
       aria-label={`Tema visual atual: ${resolvedTheme === "dark" ? "escuro" : "claro"}`}
+      className={styles.toggleGroup}
       style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 3,
-        minWidth: 0,
-        maxWidth: "100%",
-        padding: 3,
-        borderRadius: 999,
         border:
           "1px solid var(--theme-toggle-border, var(--app-divider-strong, var(--admin-divider-strong, rgba(127, 127, 127, 0.24))))",
         background:
           "var(--theme-toggle-bg, var(--app-surface-elevated, var(--admin-surface-elevated, rgba(255, 255, 255, 0.04))))",
-        color:
-          "var(--theme-toggle-muted, var(--app-text-muted, var(--admin-text-muted, currentColor)))",
-        boxShadow: "var(--theme-toggle-shadow, none)",
         ...style,
       }}
     >
@@ -56,41 +48,18 @@ export function ThemeToggle({
             aria-label={`Usar tema ${option.label.toLowerCase()}`}
             title={option.label}
             onClick={() => setTheme(option.value)}
-            style={{
-              height: compact ? 28 : 30,
-              flex: labelsVisible ? "1 1 0" : "0 0 auto",
-              minWidth: compact ? 28 : 0,
-              width: labelsVisible ? undefined : compact ? 28 : 32,
-              padding: labelsVisible ? "0 8px" : 0,
-              border: "none",
-              borderRadius: 999,
-              background: active
-                ? "var(--theme-toggle-active-bg, var(--app-accent-soft, var(--admin-accent-soft, color-mix(in srgb, var(--app-accent, var(--admin-accent)) 14%, transparent))))"
-                : "transparent",
-              color: active
-                ? "var(--theme-toggle-active-text, var(--app-accent, var(--admin-accent)))"
-                : "inherit",
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: labelsVisible ? 7 : 0,
-              cursor: isHydrated ? "pointer" : "wait",
-              opacity: isHydrated ? 1 : 0.7,
-              fontFamily: "var(--font-brand)",
-              fontSize: 11,
-              fontWeight: active ? 700 : 600,
-              letterSpacing: 0,
-              lineHeight: 1,
-              transition: "background 120ms, color 120ms",
-              whiteSpace: "nowrap",
-              overflow: "hidden",
-            }}
+            className={[
+              styles.toggleButton,
+              compact && styles.toggleButtonCompact,
+              labelsVisible && styles.toggleButtonLabels,
+              active && styles.toggleButtonActive,
+            ]
+              .filter(Boolean)
+              .join(" ")}
           >
             {iconFor[option.value]}
             {labelsVisible && (
-              <span style={{ minWidth: 0, overflow: "hidden" }}>
-                {option.label}
-              </span>
+              <span className={styles.toggleLabel}>{option.label}</span>
             )}
           </button>
         );

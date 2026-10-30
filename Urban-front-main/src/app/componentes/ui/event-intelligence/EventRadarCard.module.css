@@ -9,3 +9,123 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+.radarCardSelected.radarCardSelected {
+  outline: 2px solid var(--app-accent-soft);
+}
+
+.cardWrap {
+  min-width: 0;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.headerText {
+  min-width: 0;
+}
+
+.badgeRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.title.title {
+  margin: 0;
+  color: var(--app-text);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: 0;
+  overflow-wrap: anywhere;
+}
+
+.subtitle.subtitle {
+  margin: 6px 0 0;
+  color: var(--app-text-muted);
+  font-size: 12px;
+  line-height: 1.45;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.metricGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.opportunity {
+  margin-top: 14px;
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--app-surface-muted);
+  border: 1px solid var(--app-divider);
+}
+
+.opportunityLabel.opportunityLabel {
+  margin: 0;
+  color: var(--app-text-muted);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.opportunityValue.opportunityValue {
+  margin: 4px 0 0;
+  color: var(--app-text);
+  font-size: 14px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+.scorePill {
+  width: 54px;
+  min-width: 54px;
+  height: 54px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  background: var(--app-accent-soft);
+  border: 1px solid var(--app-accent);
+  color: var(--app-accent);
+}
+
+.scorePillValue {
+  font-size: 19px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.metricLabel.metricLabel {
+  margin: 0 0 4px;
+  color: var(--app-text-muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+
+.metricValue.metricValue {
+  margin: 0;
+  color: var(--app-text);
+  font-size: 14px;
+  font-weight: 750;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}

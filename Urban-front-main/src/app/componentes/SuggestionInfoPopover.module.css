@@ -1,0 +1,58 @@
+.popoverWrapper {
+  position: relative;
+  display: inline-flex;
+}
+
+.popoverTrigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.popoverPanel {
+  position: absolute;
+  z-index: 50;
+  bottom: calc(100% + 10px);
+  left: 0;
+  width: 260px;
+  border-radius: 10px;
+}
+
+.popoverArrow {
+  position: absolute;
+  left: 18px;
+  bottom: -6px;
+  width: 12px;
+  height: 12px;
+  transform: rotate(45deg);
+}
+
+.popoverHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  font-weight: 700;
+}
+
+.popoverClose {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.popoverDescription {
+  margin: 0;
+  padding: 12px;
+  font-size: 13px;
+  line-height: 1.5;
+}

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { appErrorTextStyle, appHelperTextStyle, appLabelStyle, appVar } from "./styles";
+import { appErrorTextStyle, appHelperTextStyle, appLabelStyle } from "./styles";
 import styles from "./AppInput.module.css";
 
 /** Junta classes ignorando valores vazios. */
@@ -65,7 +65,7 @@ function FieldShell({
   style?: React.CSSProperties;
 }) {
   return (
-    <div style={{ display: "block", maxWidth: "100%", minWidth: 0, ...style }}>
+    <div className={styles.shell} style={style}>
       {label && (
         <label htmlFor={fieldId} style={appLabelStyle}>
           {label}
@@ -110,23 +110,8 @@ export const AppInput = React.forwardRef<HTMLInputElement, InputProps>(function 
   return (
     <FieldShell fieldId={fieldId} messageId={messageId} label={label} helper={helper} error={error} style={shellStyle}>
       {leftAddon ? (
-        <div style={{ position: "relative" }}>
-          <span
-            style={{
-              position: "absolute",
-              left: 12,
-              top: "50%",
-              transform: "translateY(-50%)",
-              color: appVar.textMuted,
-              pointerEvents: "none",
-              display: "flex",
-              alignItems: "center",
-              fontSize: 13,
-              fontWeight: 600,
-            }}
-          >
-            {leftAddon}
-          </span>
+        <div className={styles.addonWrap}>
+          <span className={styles.addon}>{leftAddon}</span>
           {input}
         </div>
       ) : (

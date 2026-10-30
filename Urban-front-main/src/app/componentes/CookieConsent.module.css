@@ -7,3 +7,159 @@
   box-shadow: var(--theme-app-shadow-overlay);
   overflow: hidden;
 }
+
+.cookieBanner {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 9999;
+  visibility: visible;
+  max-width: 390px;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid var(--theme-app-divider-strong);
+  background: var(--theme-app-sheet-bg);
+  color: var(--theme-app-text);
+  box-shadow: var(--theme-app-shadow-overlay);
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+}
+
+.cookieBannerHostNav {
+  bottom: calc(72px + env(safe-area-inset-bottom));
+}
+
+.cookieBannerHidden {
+  visibility: hidden;
+}
+
+.cookieBannerBody {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cookieBannerCopy {
+  flex: 1;
+  color: var(--theme-app-text-muted);
+  font-size: 12px;
+}
+
+.cookieBannerTitle {
+  margin: 0 0 4px;
+  color: var(--theme-app-text);
+  font-weight: 700;
+}
+
+.cookieBannerText {
+  margin: 0;
+  line-height: 1.55;
+}
+
+.cookieBannerLink {
+  color: var(--theme-app-accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.cookieButtonRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.preferencesBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: var(--theme-app-backdrop);
+}
+
+.preferencesHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 22px;
+  border-bottom: 1px solid var(--theme-app-divider);
+}
+
+.preferencesTitle {
+  margin: 0;
+  font-size: 18px;
+}
+
+.preferencesBody {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 22px;
+}
+
+.preferencesFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 16px 22px;
+  border-top: 1px solid var(--theme-app-divider);
+}
+
+.iconButton {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--theme-app-divider-strong);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--theme-app-text);
+  cursor: pointer;
+}
+
+.cookieButton {
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+  background: transparent;
+  color: var(--theme-app-text);
+  border: 1px solid transparent;
+}
+
+.cookieButtonPrimary {
+  background: var(--theme-app-accent);
+  color: var(--theme-app-accent-contrast);
+  border: 1px solid var(--theme-app-accent);
+}
+
+.cookieButtonOutline {
+  border: 1px solid var(--theme-app-divider-strong);
+}
+
+.cookieButtonGhost {
+  color: var(--theme-app-text-muted);
+}
+
+.toggleLabel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  font-weight: 700;
+}
+
+.toggleInput {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--brand-teal);
+}
+
+.toggleDescription {
+  margin: 6px 0 0;
+  color: var(--theme-app-text-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}

@@ -1,0 +1,102 @@
+.successBox {
+  width: 100%;
+  padding: 24px 0;
+  border-top: 1px solid var(--theme-public-accent);
+  border-bottom: 1px solid var(--theme-public-soft);
+}
+
+.successEyebrow.successEyebrow {
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--theme-public-accent);
+  font-weight: 600;
+  margin: 0;
+}
+
+.successTitle.successTitle {
+  font-size: 22px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--theme-public-text);
+  margin: 12px 0 0;
+  letter-spacing: 0;
+}
+
+.successPosition.successPosition {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--theme-public-muted);
+  margin: 16px 0 0;
+}
+
+.form {
+  width: 100%;
+}
+
+.srOnlyLabel {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.emailInput.emailInput {
+  width: 100%;
+  padding: 20px 0;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--theme-public-strong);
+  color: var(--theme-public-text);
+  font-size: 22px;
+  font-weight: 300;
+  outline: none;
+  font-family: Inter, system-ui, sans-serif;
+}
+
+.emailInput.emailInput:focus {
+  border-bottom-color: var(--theme-public-accent);
+}
+
+.submitButton.submitButton {
+  align-self: flex-start;
+  width: min(100%, 320px);
+  max-width: 100%;
+  padding: 18px 24px;
+  background: var(--theme-public-accent);
+  color: var(--theme-public-bg);
+  border: none;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  text-align: center;
+  white-space: normal;
+  cursor: pointer;
+  opacity: 1;
+  font-family: Inter, system-ui, sans-serif;
+}
+
+.submitButton.submitButtonLoading {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.errorText.errorText {
+  color: var(--theme-public-accent);
+  font-size: 14px;
+  font-weight: 500;
+  margin: 0;
+  line-height: 1.5;
+}

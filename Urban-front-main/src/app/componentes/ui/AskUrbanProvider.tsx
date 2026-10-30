@@ -14,6 +14,7 @@ import { AskUsageResponse, fetchAskUsage } from "@/app/service/api";
 import { AskUrbanDrawer } from "./AskUrbanDrawer";
 import { AskUrbanUpgradeModal } from "./AskUrbanUpgradeModal";
 import { Sparkles } from "./Icons";
+import styles from "./AskUrbanProvider.module.css";
 
 /**
  * AskUrbanProvider — registra o atalho global Cmd+J / Ctrl+J, renderiza o FAB
@@ -245,34 +246,11 @@ function AskUrbanFab({
         aria-label="Abrir Ask Urban (Ctrl+J)"
         title="Ask Urban · Ctrl+J"
         data-ask-urban-fab
-        className="urban-focus-ring-inverse"
+        className={`urban-focus-ring-inverse ${styles.askFab}`}
         style={{
-          position: "fixed",
-          right: 28,
-          bottom: 28,
-          zIndex: 1250,
-          width: "auto",
-          minWidth: 56,
-          height: 56,
-          borderRadius: 999,
-          // O FAB é irmão do shell `.urban-app`; usa tokens globais de tema,
-          // pois aliases `--app-*` só existem dentro do shell.
-          background: "var(--theme-app-accent)",
-          color: "var(--theme-app-accent-contrast)",
           border: "1px solid rgba(255,255,255,0.18)",
           boxShadow:
             "0 18px 44px var(--app-accent-shadow), 0 4px 12px rgba(0,0,0,0.22)",
-          cursor: "pointer",
-          display: "inline-flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: 10,
-          padding: "0 18px",
-          fontFamily: "var(--font-brand)",
-          fontSize: 13,
-          fontWeight: 800,
-          letterSpacing: 0,
-          transition: "transform 140ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 140ms",
         }}
         onMouseEnter={(e) => {
           e.currentTarget.style.transform = "translateY(-2px)";

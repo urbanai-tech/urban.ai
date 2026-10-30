@@ -2,6 +2,7 @@
 
 import React from "react";
 import NextLink from "next/link";
+import styles from "./AppFooter.module.css";
 
 const PUBLIC_SITE_URL = (
   process.env.NEXT_PUBLIC_MARKETING_URL ||
@@ -25,88 +26,30 @@ export function AppFooter() {
   const year = new Date().getFullYear();
   return (
     <footer
-      className="urban-app"
+      className={`urban-app ${styles.footerRoot}`}
       data-app-footer
-      style={{
-        marginTop: "auto",
-        padding: "32px 32px 28px",
-        borderTop: "1px solid var(--app-divider)",
-        background: "var(--app-bg)",
-        color: "var(--app-text-muted)",
-        fontSize: 12,
-        fontFamily: "var(--font-brand)",
-        minHeight: 0,
-      }}
     >
-      <div
-        style={{
-          maxWidth: 1280,
-          margin: "0 auto",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 16,
-          flexWrap: "wrap",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 12,
-            flexWrap: "wrap",
-          }}
-        >
-          <span
-            style={{
-              display: "inline-flex",
-              alignItems: "baseline",
-              gap: 4,
-            }}
-          >
-            <span
-              className="urban-app-display"
-              style={{
-                fontSize: 16,
-                fontWeight: 400,
-                textTransform: "uppercase",
-                color: "var(--app-text)",
-                lineHeight: 1,
-                letterSpacing: 0,
-              }}
-            >
+      <div className={styles.footerInner}>
+        <div className={styles.footerBrandRow}>
+          <span className={styles.footerLogo}>
+            <span className={`urban-app-display ${styles.footerLogoPart}`}>
               URBAN
             </span>
             <span
-              className="urban-app-display"
-              style={{
-                fontSize: 16,
-                fontWeight: 400,
-                textTransform: "uppercase",
-                color: "var(--app-accent)",
-                lineHeight: 1,
-                letterSpacing: 0,
-              }}
+              className={`urban-app-display ${styles.footerLogoPart} ${styles.footerLogoAccent}`}
             >
               AI
             </span>
           </span>
-          <span style={{ color: "var(--app-text-dim)" }}>·</span>
-          <span style={{ letterSpacing: 0.5 }}>
+          <span className={styles.footerSeparator}>·</span>
+          <span className={styles.footerCopyright}>
             © {year} MP IA TECNOLOGIA · TODOS OS DIREITOS RESERVADOS
           </span>
         </div>
 
         <nav
           aria-label="Links de rodape"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 22,
-            flexWrap: "wrap",
-            fontSize: 12,
-            letterSpacing: 0.3,
-          }}
+          className={styles.footerNav}
         >
           <FooterLink href={`${PUBLIC_SITE_URL}/termos`} external>
             Termos
@@ -137,32 +80,7 @@ function FooterLink({
   openInNewTab?: boolean;
   children: React.ReactNode;
 }) {
-  const baseStyle: React.CSSProperties = {
-    color: "var(--app-text-muted)",
-    textDecoration: "none",
-    borderBottom: "1px solid transparent",
-    transition: "color 120ms, border-color 120ms",
-    paddingBottom: 2,
-    borderRadius: 2,
-  };
-
-  function onEnter(e: React.MouseEvent<HTMLAnchorElement>) {
-    e.currentTarget.style.color = "var(--app-accent)";
-    e.currentTarget.style.borderBottomColor = "var(--app-accent)";
-  }
-  function onLeave(e: React.MouseEvent<HTMLAnchorElement>) {
-    e.currentTarget.style.color = "var(--app-text-muted)";
-    e.currentTarget.style.borderBottomColor = "transparent";
-  }
-
-  function onFocus(e: React.FocusEvent<HTMLAnchorElement>) {
-    e.currentTarget.style.color = "var(--app-accent)";
-    e.currentTarget.style.borderBottomColor = "var(--app-accent)";
-  }
-  function onBlur(e: React.FocusEvent<HTMLAnchorElement>) {
-    e.currentTarget.style.color = "var(--app-text-muted)";
-    e.currentTarget.style.borderBottomColor = "transparent";
-  }
+  const linkClassName = `urban-focus-ring ${styles.footerLink}`;
 
   if (external) {
     return (
@@ -170,12 +88,7 @@ function FooterLink({
         href={href}
         target={openInNewTab ? "_blank" : undefined}
         rel={openInNewTab ? "noopener noreferrer" : undefined}
-        style={baseStyle}
-        className="urban-focus-ring"
-        onMouseEnter={onEnter}
-        onMouseLeave={onLeave}
-        onFocus={onFocus}
-        onBlur={onBlur}
+        className={linkClassName}
       >
         {children}
       </a>
@@ -185,12 +98,7 @@ function FooterLink({
   return (
     <NextLink
       href={href}
-      style={baseStyle}
-      className="urban-focus-ring"
-      onMouseEnter={onEnter}
-      onMouseLeave={onLeave}
-      onFocus={onFocus}
-      onBlur={onBlur}
+      className={linkClassName}
     >
       {children}
     </NextLink>

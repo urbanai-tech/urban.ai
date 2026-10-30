@@ -1,4 +1,10 @@
 import React from "react";
+import styles from "./AppLayout.module.css";
+
+/** Junta classes ignorando valores vazios. */
+function cx(...parts: Array<string | false | null | undefined>) {
+  return parts.filter(Boolean).join(" ");
+}
 
 /**
  * DS-2 — primitivos de layout.
@@ -10,13 +16,13 @@ import React from "react";
 
 export type GapToken = "none" | "xs" | "sm" | "md" | "lg" | "xl";
 
-const GAP: Record<GapToken, number> = {
-  none: 0,
-  xs: 4,
-  sm: 8,
-  md: 12,
-  lg: 16,
-  xl: 24,
+const GAP_CLASS: Record<GapToken, string> = {
+  none: styles.gapNone,
+  xs: styles.gapXs,
+  sm: styles.gapSm,
+  md: styles.gapMd,
+  lg: styles.gapLg,
+  xl: styles.gapXl,
 };
 
 type Align = React.CSSProperties["alignItems"];
@@ -32,22 +38,21 @@ type StackProps = React.HTMLAttributes<HTMLDivElement> & {
 };
 
 export const AppStack = React.forwardRef<HTMLDivElement, StackProps>(function AppStack(
-  { direction = "column", gap = "md", align, justify, wrap, fullWidth, style, children, ...rest },
+  { direction = "column", gap = "md", align, justify, wrap, fullWidth, style, className, children, ...rest },
   ref,
 ) {
   return (
     <div
       ref={ref}
-      style={{
-        display: "flex",
-        flexDirection: direction,
-        gap: GAP[gap],
-        alignItems: align,
-        justifyContent: justify,
-        flexWrap: wrap ? "wrap" : undefined,
-        width: fullWidth ? "100%" : undefined,
-        ...style,
-      }}
+      className={cx(
+        styles.stack,
+        direction === "row" ? styles.stackRow : styles.stackColumn,
+        GAP_CLASS[gap],
+        wrap && styles.stackWrap,
+        fullWidth && styles.fullWidth,
+        className,
+      )}
+      style={{ alignItems: align, justifyContent: justify, ...style }}
       {...rest}
     >
       {children}
@@ -78,7 +83,7 @@ type GridProps = React.HTMLAttributes<HTMLDivElement> & {
 };
 
 export const AppGrid = React.forwardRef<HTMLDivElement, GridProps>(function AppGrid(
-  { cols, minColWidth, gap = "md", fullWidth = true, style, children, ...rest },
+  { cols, minColWidth, gap = "md", fullWidth = true, style, className, children, ...rest },
   ref,
 ) {
   const templateColumns = minColWidth
@@ -87,13 +92,8 @@ export const AppGrid = React.forwardRef<HTMLDivElement, GridProps>(function AppG
   return (
     <div
       ref={ref}
-      style={{
-        display: "grid",
-        gridTemplateColumns: templateColumns,
-        gap: GAP[gap],
-        width: fullWidth ? "100%" : undefined,
-        ...style,
-      }}
+      className={cx(styles.grid, GAP_CLASS[gap], fullWidth && styles.fullWidth, className)}
+      style={{ "--grid-cols": templateColumns, ...style } as React.CSSProperties}
       {...rest}
     >
       {children}

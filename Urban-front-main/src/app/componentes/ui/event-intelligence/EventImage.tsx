@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import * as Icons from "../Icons";
+import styles from "./EventImage.module.css";
 
 const DEFAULT_LOAD_TIMEOUT_MS = 8_000;
 
@@ -43,7 +44,7 @@ export function EventImage({
       data-testid="event-image"
       onLoad={() => setLoaded(true)}
       onError={() => setFailed(true)}
-      style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+      className={styles.image}
     />
   );
 }
@@ -60,46 +61,21 @@ function EventImageFallback({
       data-testid="event-image-fallback"
       role="img"
       aria-label={`Imagem indisponível para ${eventName}`}
-      style={{
-        width: "100%",
-        height: "100%",
-        display: "grid",
-        placeItems: "center",
-        padding: 20,
-        color: "var(--app-text-muted)",
-        background:
-          "radial-gradient(circle at 18% 20%, var(--app-accent-soft), transparent 42%), var(--app-surface-muted)",
-        textAlign: "center",
-      }}
+      className={styles.fallback}
     >
-      <div style={{ display: "grid", justifyItems: "center", gap: 8, minWidth: 0 }}>
+      <div className={styles.fallbackContent}>
         <span
           aria-hidden
-          style={{
-            width: 38,
-            height: 38,
-            display: "grid",
-            placeItems: "center",
-            borderRadius: "50%",
-            color: "var(--app-accent)",
-            background: "var(--app-accent-soft)",
-          }}
+          className={styles.fallbackIcon}
         >
           <Icons.Calendar size={19} />
         </span>
-        <span style={{ fontSize: 12, fontWeight: 750, letterSpacing: 1.1, textTransform: "uppercase" }}>
+        <span className={styles.fallbackLabel}>
           Evento monitorado
         </span>
         {venue && (
           <span
-            style={{
-              maxWidth: "100%",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-              fontSize: 11,
-              color: "var(--app-text-dim)",
-            }}
+            className={styles.fallbackVenue}
           >
             {venue}
           </span>

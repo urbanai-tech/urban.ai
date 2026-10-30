@@ -23,10 +23,10 @@ export function PriceAbsorptionScenarios({
   if (!scenarios || scenarios.length === 0) {
     return (
       <AppCard variant="subtle" className={styles.introCard} as="section">
-        <p className="urban-app-eyebrow-muted" style={{ marginBottom: 6 }}>
+        <p className={`urban-app-eyebrow-muted ${styles.introEyebrow}`}>
           PREÇO VS CHANCE
         </p>
-        <p style={{ margin: 0, color: "var(--app-text-muted)", fontSize: 14, lineHeight: 1.5 }}>
+        <p className={styles.introText}>
           A curva de absorção ainda não está disponível para este imóvel.
         </p>
       </AppCard>
@@ -37,25 +37,19 @@ export function PriceAbsorptionScenarios({
 
   return (
     <section data-testid="host-price-absorption-scenarios">
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 12, flexWrap: "wrap" }}>
-        <div style={{ minWidth: 0 }}>
-          <p className="urban-app-eyebrow-muted" style={{ marginBottom: 4 }}>
+      <div className={styles.header}>
+        <div className={styles.headerText}>
+          <p className={`urban-app-eyebrow-muted ${styles.headerEyebrow}`}>
             PREÇO VS CHANCE
           </p>
-          <h3 style={{ margin: 0, color: "var(--app-text)", fontSize: 16, fontWeight: 700, letterSpacing: 0, overflowWrap: "anywhere" }}>
+          <h3 className={styles.title}>
             {title}
           </h3>
         </div>
         <AppBadge kind="neutral">Estimativa</AppBadge>
       </div>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 190px), 1fr))",
-          gap: 12,
-        }}
-      >
+      <div className={styles.scenarioGrid}>
         {scenarios.map((scenario) => {
           const revenue = scenario.expectedRevenueCents ?? 0;
           const width = Math.max(8, Math.round((revenue / maxRevenue) * 100));
@@ -66,8 +60,8 @@ export function PriceAbsorptionScenarios({
               variant={scenario.recommended ? "accent" : "default"}
               className={styles.scenarioCard}
             >
-              <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-                <p style={{ margin: 0, color: "var(--app-text)", fontSize: 14, fontWeight: 750, overflowWrap: "anywhere" }}>
+              <div className={styles.scenarioHeader}>
+                <p className={styles.scenarioLabel}>
                   {scenario.label}
                 </p>
                 <AppBadge kind={scenario.recommended ? "accent" : riskBadgeKind(scenario.risk)}>
@@ -75,34 +69,21 @@ export function PriceAbsorptionScenarios({
                 </AppBadge>
               </div>
 
-              <div style={{ marginTop: 16, display: "grid", gap: 10 }}>
+              <div className={styles.metricList}>
                 <Metric label="Diária" value={formatCurrencyFromCents(scenario.dailyPriceCents)} strong />
                 <Metric label="Multiplicador" value={formatMultiplier(scenario.multiplier)} />
                 <Metric label="Chance de reserva" value={formatPercent(scenario.bookingProbability)} />
                 <Metric label="Receita esperada" value={formatCurrencyFromCents(scenario.expectedRevenueCents)} />
               </div>
 
-              <div
-                aria-hidden
-                style={{
-                  marginTop: 14,
-                  height: 8,
-                  borderRadius: 999,
-                  background: "var(--app-surface-muted)",
-                  overflow: "hidden",
-                }}
-              >
+              <div aria-hidden className={styles.revenueTrack}>
                 <span
-                  style={{
-                    display: "block",
-                    height: "100%",
-                    width: `${width}%`,
-                    background: scenario.recommended ? "var(--app-accent)" : "var(--app-divider-strong)",
-                  }}
+                  className={`${styles.revenueBar} ${scenario.recommended ? styles.revenueBarRecommended : styles.revenueBarDefault}`}
+                  style={{ "--bar-width": `${width}%` } as React.CSSProperties}
                 />
               </div>
 
-              <p style={{ margin: "12px 0 0", color: "var(--app-text-muted)", fontSize: 12, lineHeight: 1.5, overflowWrap: "anywhere" }}>
+              <p className={styles.scenarioReading}>
                 {scenario.reading}
               </p>
             </AppCard>
@@ -124,28 +105,10 @@ function Metric({
 }) {
   return (
     <div>
-      <p
-        style={{
-          margin: "0 0 2px",
-          color: "var(--app-text-muted)",
-          fontSize: 10,
-          fontWeight: 750,
-          letterSpacing: 1.1,
-          textTransform: "uppercase",
-        }}
-      >
+      <p className={styles.metricLabel}>
         {label}
       </p>
-      <p
-        style={{
-          margin: 0,
-          color: "var(--app-text)",
-          fontSize: strong ? 18 : 14,
-          fontWeight: strong ? 800 : 700,
-          lineHeight: 1.25,
-          overflowWrap: "anywhere",
-        }}
-      >
+      <p className={`${styles.metricValue} ${strong ? styles.metricValueStrong : ""}`}>
         {value}
       </p>
     </div>

@@ -1,3 +1,186 @@
 .badge.badge {
   flex-shrink: 0;
 }
+
+.toneAccent {
+  --tone-color: var(--app-accent);
+  --tone-background: var(--app-accent-soft);
+  --tone-border: var(--app-accent-border);
+}
+
+.toneWarn {
+  --tone-color: var(--app-warning-text);
+  --tone-background: var(--app-warning-soft);
+  --tone-border: var(--app-warning-border);
+}
+
+.toneError {
+  --tone-color: var(--app-danger);
+  --tone-background: var(--app-danger-soft);
+  --tone-border: var(--app-danger-border);
+}
+
+.toneNeutral {
+  --tone-color: var(--app-text-muted);
+  --tone-background: var(--app-surface-muted);
+  --tone-border: var(--app-divider-strong);
+}
+
+.root.root {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid var(--tone-border);
+  border-radius: 8px;
+  background: var(--tone-background);
+  color: var(--app-text);
+}
+
+.root.compact {
+  gap: 10px;
+  padding: 12px;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.headerText {
+  min-width: 0;
+}
+
+.eyebrow {
+  margin: 0 0 4px;
+  color: var(--tone-color);
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 0;
+  color: var(--app-text);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.body {
+  margin: 5px 0 0;
+  color: var(--app-text-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.compact .title {
+  font-size: 13px;
+}
+
+.compact .body {
+  font-size: 12px;
+}
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.compact .steps {
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.step {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+  color: var(--app-text);
+}
+
+.stepPending {
+  color: var(--app-text-muted);
+}
+
+.stepText {
+  min-width: 0;
+}
+
+.stepLabel {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.stepLabelActive {
+  font-weight: 750;
+}
+
+.compact .stepLabel {
+  font-size: 12px;
+}
+
+.stepDetail {
+  display: block;
+  margin-top: 2px;
+  color: var(--app-text-muted);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.marker {
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  margin-top: 1px;
+  border-radius: 50%;
+}
+
+.markerComplete {
+  color: var(--app-success);
+  background: var(--app-success-soft);
+}
+
+.markerError {
+  color: var(--app-danger);
+  background: var(--app-danger-soft);
+}
+
+.markerActive {
+  color: var(--app-accent);
+  background: var(--app-accent-soft);
+  border: 2px solid var(--app-accent-border);
+  border-top-color: var(--app-accent);
+  animation: appLoadingStatusSpin 0.8s linear infinite;
+}
+
+.markerPending {
+  color: var(--app-text-dim);
+  background: var(--app-surface);
+  border: 1px solid var(--app-divider-strong);
+  animation: appLoadingStatusPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes appLoadingStatusSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes appLoadingStatusPulse {
+  50% {
+    opacity: 0.42;
+  }
+}

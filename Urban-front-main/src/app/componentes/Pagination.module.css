@@ -1,0 +1,41 @@
+/*
+ * Pagination. Cores de fundo/texto dos botoes e do numero da pagina nao tem token
+ * equivalente e seguem inline em Pagination.tsx (usadas via objetos de cor).
+ * Branco = --theme-app-legacy-white (#FFFFFF nos dois temas).
+ */
+.paginationRow {
+  display: flex;
+  justify-content: center;
+  margin-top: 40px;
+}
+
+.paginationBar {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 8px 24px;
+  border-radius: 999px;
+  background: var(--theme-app-legacy-white);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.paginationLabel {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 650;
+}
+
+.pageButton {
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: none;
+  color: var(--theme-app-legacy-white);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.pageButton:disabled {
+  cursor: not-allowed;
+}

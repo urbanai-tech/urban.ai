@@ -2,6 +2,7 @@
 
 import React from "react";
 import type { Scenario, ScenarioLabel } from "@/app/types/recommendation";
+import styles from "./ScenarioComparison.module.css";
 
 /**
  * ScenarioComparison — compara 2 ou 3 cenários de preço lado-a-lado
@@ -52,30 +53,17 @@ export function ScenarioComparison({ scenarios }: { scenarios: Scenario[] }) {
   if (!scenarios || scenarios.length === 0) return null;
 
   return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: `repeat(auto-fit, minmax(min(100%, 180px), 1fr))`,
-        gap: 12,
-      }}
-    >
+    <div className={styles.scenarioGrid}>
       {scenarios.map((s, idx) => {
         const isSuggested = s.label === "sugerido";
         return (
           <div
             key={`${s.label}-${idx}`}
-            style={{
-              background: "var(--app-surface)",
-              border: "1px solid var(--app-divider)",
-              borderLeft: isSuggested
-                ? "3px solid var(--app-accent)"
-                : "1px solid var(--app-divider)",
-              borderRadius: 8,
-              padding: "14px 16px",
-              display: "flex",
-              flexDirection: "column",
-              gap: 6,
-            }}
+            className={
+              isSuggested
+                ? `${styles.scenarioCard} ${styles.scenarioCardSuggested}`
+                : styles.scenarioCard
+            }
           >
             <span
               className={
@@ -85,32 +73,24 @@ export function ScenarioComparison({ scenarios }: { scenarios: Scenario[] }) {
               {LABEL_PT[s.label] ?? s.label}
             </span>
             <p
-              className="urban-app-display-sm"
-              style={{
-                color: isSuggested ? "var(--app-accent)" : "var(--app-text)",
-              }}
+              className={
+                isSuggested
+                  ? `urban-app-display-sm ${styles.scenarioPriceSuggested}`
+                  : "urban-app-display-sm"
+              }
             >
               {fmtBRL(s.price)}
             </p>
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 2,
-                fontSize: 12,
-                color: "var(--app-text-muted)",
-                lineHeight: 1.45,
-              }}
-            >
+            <div className={styles.scenarioMetrics}>
               <span>
                 Ocupação estimada:{" "}
-                <strong style={{ color: "var(--app-text)" }}>
+                <strong className={styles.scenarioMetricValue}>
                   {fmtPct(s.estimatedOccupancy)}
                 </strong>
               </span>
               <span>
                 Receita:{" "}
-                <strong style={{ color: "var(--app-text)" }}>
+                <strong className={styles.scenarioMetricValue}>
                   {fmtRevenueShort(s.estimatedRevenue)}
                 </strong>
               </span>

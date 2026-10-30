@@ -81,42 +81,33 @@ export function CookieConsent() {
         data-cookie-surface={isAdmin ? "admin" : hasHostBottomNav ? "host-mobile" : "default"}
         role="region"
         aria-label="Consentimento de cookies"
-        style={{
-          position: "fixed",
-          right: 24,
-          bottom: hasHostBottomNav ? "calc(72px + env(safe-area-inset-bottom))" : 24,
-          zIndex: 9999,
-          visibility: fontsSettled ? "visible" : "hidden",
-          maxWidth: 390,
-          padding: 16,
-          borderRadius: 8,
-          border: "1px solid var(--theme-app-divider-strong)",
-          background: "var(--theme-app-sheet-bg)",
-          color: "var(--theme-app-text)",
-          boxShadow: "var(--theme-app-shadow-overlay)",
-          maxHeight: "calc(100dvh - 32px)",
-          overflowY: "auto",
-        }}
+        className={[
+          styles.cookieBanner,
+          hasHostBottomNav ? styles.cookieBannerHostNav : "",
+          fontsSettled ? "" : styles.cookieBannerHidden,
+        ]
+          .filter(Boolean)
+          .join(" ")}
       >
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          <div style={{ flex: 1, color: "var(--theme-app-text-muted)", fontSize: 12 }}>
-            <p style={{ margin: "0 0 4px", color: "var(--theme-app-text)", fontWeight: 700 }}>
+        <div className={styles.cookieBannerBody}>
+          <div className={styles.cookieBannerCopy}>
+            <p className={styles.cookieBannerTitle}>
               Privacidade e cookies
             </p>
-            <p style={{ margin: 0, lineHeight: 1.55 }}>
+            <p className={styles.cookieBannerText}>
               Usamos cookies essenciais para o funcionamento da plataforma e, com seu
               consentimento, cookies opcionais de analytics e marketing para entender o
               uso e melhorar o produto. Veja detalhes na{" "}
               <a
                 href="/privacidade"
-                style={{ color: "var(--theme-app-accent)", textDecoration: "underline", textUnderlineOffset: 2 }}
+                className={styles.cookieBannerLink}
               >
                 Politica de Privacidade
               </a>.
             </p>
           </div>
 
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <div className={styles.cookieButtonRow}>
             <CookieButton
               variant="ghost"
               onClick={() => {
@@ -140,15 +131,7 @@ export function CookieConsent() {
       {isOpen && (
         <div
           role="presentation"
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 10000,
-            display: "grid",
-            placeItems: "center",
-            padding: 16,
-            background: "var(--theme-app-backdrop)",
-          }}
+          className={styles.preferencesBackdrop}
           onMouseDown={(event) => {
             if (event.target === event.currentTarget) setIsOpen(false);
           }}
@@ -158,30 +141,21 @@ export function CookieConsent() {
             aria-labelledby="cookie-preferences-title"
             className={styles.preferencesDialog}
           >
-            <header
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: 16,
-                padding: "20px 22px",
-                borderBottom: "1px solid var(--theme-app-divider)",
-              }}
-            >
-              <h2 id="cookie-preferences-title" style={{ margin: 0, fontSize: 18 }}>
+            <header className={styles.preferencesHeader}>
+              <h2 id="cookie-preferences-title" className={styles.preferencesTitle}>
                 Preferencias de cookies
               </h2>
               <button
                 type="button"
                 aria-label="Fechar preferencias"
                 onClick={() => setIsOpen(false)}
-                style={iconButtonStyle}
+                className={styles.iconButton}
               >
                 x
               </button>
             </header>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: 20, padding: 22 }}>
+            <div className={styles.preferencesBody}>
               <CookieToggle
                 label="Essenciais"
                 description="Necessarios para login, segurança e funcionamento básico. Não podem ser desativados."
@@ -202,15 +176,7 @@ export function CookieConsent() {
               />
             </div>
 
-            <footer
-              style={{
-                display: "flex",
-                justifyContent: "flex-end",
-                gap: 8,
-                padding: "16px 22px",
-                borderTop: "1px solid var(--theme-app-divider)",
-              }}
-            >
+            <footer className={styles.preferencesFooter}>
               <CookieButton variant="light" onClick={() => setIsOpen(false)}>
                 Cancelar
               </CookieButton>
@@ -271,7 +237,7 @@ function CookieButton({
   children: React.ReactNode;
 }) {
   return (
-    <button type="button" onClick={onClick} style={buttonStyle(variant)}>
+    <button type="button" onClick={onClick} className={buttonClassName(variant)}>
       {children}
     </button>
   );
@@ -292,72 +258,28 @@ function CookieToggle({
 }) {
   return (
     <div>
-      <label
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 16,
-          fontWeight: 700,
-        }}
-      >
+      <label className={styles.toggleLabel}>
         <span>{label}</span>
         <input
           type="checkbox"
           checked={checked}
           disabled={disabled}
           onChange={(event) => onChange?.(event.target.checked)}
-          style={{ width: 18, height: 18, accentColor: "var(--brand-teal)" }}
+          className={styles.toggleInput}
         />
       </label>
-      <p style={{ margin: "6px 0 0", color: "var(--theme-app-text-muted)", fontSize: 13, lineHeight: 1.5 }}>
+      <p className={styles.toggleDescription}>
         {description}
       </p>
     </div>
   );
 }
 
-function buttonStyle(variant: "ghost" | "outline" | "primary" | "light" | "save"): React.CSSProperties {
-  const base: React.CSSProperties = {
-    minHeight: 32,
-    padding: "0 12px",
-    borderRadius: 8,
-    fontSize: 13,
-    fontWeight: 650,
-    cursor: "pointer",
-  };
-
-  if (variant === "primary") {
-    return { ...base, background: "var(--theme-app-accent)", color: "var(--theme-app-accent-contrast)", border: "1px solid var(--theme-app-accent)" };
+function buttonClassName(variant: "ghost" | "outline" | "primary" | "light" | "save"): string {
+  if (variant === "primary" || variant === "save") {
+    return `${styles.cookieButton} ${styles.cookieButtonPrimary}`;
   }
-  if (variant === "outline") {
-    return {
-      ...base,
-      background: "transparent",
-      color: "var(--theme-app-text)",
-      border: "1px solid var(--theme-app-divider-strong)",
-    };
-  }
-  if (variant === "ghost") {
-    return {
-      ...base,
-      background: "transparent",
-      color: "var(--theme-app-text-muted)",
-      border: "1px solid transparent",
-    };
-  }
-  if (variant === "save") {
-    return { ...base, background: "var(--theme-app-accent)", color: "var(--theme-app-accent-contrast)", border: "1px solid var(--theme-app-accent)" };
-  }
-  return { ...base, background: "transparent", color: "var(--theme-app-text)", border: "1px solid transparent" };
+  if (variant === "outline") return `${styles.cookieButton} ${styles.cookieButtonOutline}`;
+  if (variant === "ghost") return `${styles.cookieButton} ${styles.cookieButtonGhost}`;
+  return styles.cookieButton;
 }
-
-const iconButtonStyle: React.CSSProperties = {
-  width: 32,
-  height: 32,
-  border: "1px solid var(--theme-app-divider-strong)",
-  borderRadius: 8,
-  background: "transparent",
-  color: "var(--theme-app-text)",
-  cursor: "pointer",
-};

@@ -8,3 +8,60 @@
   min-width: 0;
   flex: 1;
 }
+
+/*
+ * Miniaturas e indicador do PropertySelect. As variaveis sem cor crua vivem aqui;
+ * cores com fallback cru (rgba/hex) seguem inline em PropertySelect.tsx porque o
+ * menu abre em portal fora de `.urban-app` e depende desses fallbacks.
+ * `--thumb-size` chega por style (tamanho da miniatura).
+ */
+.statusDot.statusDot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.statusDotReady.statusDotReady {
+  background: var(--app-success, var(--admin-success, var(--theme-app-legacy-success)));
+  box-shadow: 0 0 0 3px var(--app-success-soft, var(--theme-app-legacy-success-12));
+}
+
+.thumbImage.thumbImage {
+  width: var(--thumb-size);
+  height: var(--thumb-size);
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid var(--app-divider, var(--admin-divider, var(--theme-app-legacy-ink-08)));
+  flex-shrink: 0;
+}
+
+.thumbImageProcessing.thumbImageProcessing {
+  opacity: 0.62;
+}
+
+.thumbIcon.thumbIcon {
+  width: var(--thumb-size);
+  height: var(--thumb-size);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  border: 1px solid var(--app-divider, var(--admin-divider, var(--theme-app-legacy-ink-08)));
+  color: var(--app-text-muted, var(--admin-text-muted, var(--theme-app-legacy-ink-62)));
+  flex-shrink: 0;
+}
+
+.thumbIconAll.thumbIconAll {
+  background: var(--app-accent-soft, var(--admin-accent-soft));
+  color: var(--app-accent, var(--admin-accent));
+}
+
+.dropdownIndicator.dropdownIndicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  color: var(--app-text-muted, var(--admin-text-muted, var(--theme-app-legacy-ink-62)));
+}
