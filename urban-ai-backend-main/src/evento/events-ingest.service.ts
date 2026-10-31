@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, Optional } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { dedupHashByAddress, dedupHashByGeo } from './event-dedup-hash';
@@ -6,6 +6,7 @@ import { Event } from '../entities/events.entity';
 import { EventDedupCandidate } from '../entities/event-dedup-candidate.entity';
 import { EventSource } from '../entities/event-source.entity';
 import { CoverageService } from './coverage.service';
+import { EventChangeHistoryService } from './event-change-history.service';
 import { EventIdentityScore, EventIdentityService } from './event-identity.service';
 import { normalizeEventDates, parseEventDateTime, saoPauloDayBounds, toSaoPauloDateKey } from '../common/sp-date';
 
@@ -65,6 +66,8 @@ export interface IngestEventInput {
   venueType?: string | null;      // 'stadium' / 'convention_center' / etc.
   expectedAttendance?: number | null;
   crawledUrl?: string | null;
+  // Status declarado pela fonte ("cancelado", "adiado"...), quando ela informa. Alimenta o histórico.
+  status?: string | null;
 }
 
 export interface IngestResult {
@@ -98,6 +101,7 @@ export class EventsIngestService {
     private readonly dedupCandidateRepo: Repository<EventDedupCandidate>,
     private readonly coverage: CoverageService,
     private readonly identity: EventIdentityService,
+    @Optional() private readonly history?: EventChangeHistoryService,
   ) {}
 
   /**
@@ -197,6 +201,9 @@ export class EventsIngestService {
       // Update conservador: só preenche campos vazios. Não sobrescreve
       // relevancia/raioImpactoKm já calculados pela IA.
       const patch: Partial<Event> = {};
+      // Histórico: compara com o que já temos ANTES de atualizar (nunca lança).
+      const observed = await this.history?.observe(existing, input, { matchReason: 'dedup_hash_exact' });
+      if (observed) Object.assign(patch, observed.patch);
       if (!existing.descricao && input.descricao) patch.descricao = input.descricao;
       if (!existing.categoria && input.categoria) patch.categoria = input.categoria;
       if (!existing.linkSiteOficial && input.linkSiteOficial) patch.linkSiteOficial = input.linkSiteOficial;
@@ -287,6 +294,7 @@ export class EventsIngestService {
     });
 
     const saved = await this.eventRepo.save(entity);
+    await this.history?.recordFirstSeen(saved);
     await this.recordSourceEvidence(saved.id, input, fuzzyMatch?.score ?? {
       score: 1,
       reason: 'new_canonical_event',
@@ -469,6 +477,9 @@ export class EventsIngestService {
     confidence: number,
   ): Promise<void> {
     const patch: Partial<Event> = {};
+    // Histórico: remarcação/venue/URL/cancelamento, comparados antes de atualizar (nunca lança).
+    const observed = await this.history?.observe(existing, input, { matchReason });
+    if (observed) Object.assign(patch, observed.patch);
     if (!existing.descricao && input.descricao) patch.descricao = input.descricao;
     if (!existing.categoria && input.categoria) patch.categoria = input.categoria;
     if (!existing.linkSiteOficial && input.linkSiteOficial) patch.linkSiteOficial = input.linkSiteOficial;

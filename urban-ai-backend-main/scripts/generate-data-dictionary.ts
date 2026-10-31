@@ -57,7 +57,7 @@ export const DOMAINS: Array<{ id: string; title: string; tables: string[] }> = [
   {
     id: 'events',
     title: 'Eventos, ingestão e deduplicação',
-    tables: ['events', 'event_sources', 'event_dedup_candidates', 'event_historical_multiplier', 'coverage_regions', 'external_listing', 'process_status'],
+    tables: ['events', 'event_sources', 'event_dedup_candidates', 'event_change_history', 'collector_alert_state', 'event_historical_multiplier', 'coverage_regions', 'external_listing', 'process_status'],
   },
   {
     id: 'pricing',

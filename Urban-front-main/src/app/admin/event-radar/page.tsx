@@ -358,7 +358,7 @@ export default function AdminEventRadarPage() {
             <AdminButton variant="ghost" as="a" href="/admin/events" rightIcon={<Icons.ArrowRight size={11} />}>
               Eventos
             </AdminButton>
-            <AdminButton variant="ghost" as="a" href="/admin/coverage" rightIcon={<Icons.ArrowRight size={11} />}>
+            <AdminButton variant="ghost" as="a" href="/admin/event-coverage?tab=regioes" rightIcon={<Icons.ArrowRight size={11} />}>
               Cobertura
             </AdminButton>
             <AdminButton variant="ghost" as="a" href="/admin/collectors-health" rightIcon={<Icons.ArrowRight size={11} />}>

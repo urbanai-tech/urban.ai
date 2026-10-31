@@ -316,7 +316,7 @@ export default function AdminDashboardPage() {
           <SmallStat label="Assinaturas ativas" value={data.revenue.activeSubscriptions} status="success" />
           <NavLink href="/admin/finance">Ver MRR + custos + margem</NavLink>
           <NavLink href="/admin/pricing-config">Configurar preços (matriz F6.5)</NavLink>
-          <NavLink href="/admin/coverage">Cobertura geográfica</NavLink>
+          <NavLink href="/admin/event-coverage?tab=regioes">Cobertura geográfica</NavLink>
         </DataBlock>
       </section>
 

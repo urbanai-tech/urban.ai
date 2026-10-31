@@ -460,4 +460,67 @@ describe('EventsIngestService', () => {
       expect(r).toEqual({ status: 'skipped', reason: 'dataInicio inválida' });
     });
   });
+
+  describe('histórico de mudanças (EVB)', () => {
+    let history: { recordFirstSeen: jest.Mock; observe: jest.Mock };
+    let withHistory: EventsIngestService;
+
+    beforeEach(() => {
+      history = {
+        recordFirstSeen: jest.fn().mockResolvedValue(undefined),
+        observe: jest.fn().mockResolvedValue({ changes: [], patch: {} }),
+      };
+      withHistory = new EventsIngestService(
+        repo as any,
+        sourceRepo as any,
+        candidateRepo as any,
+        coverageMock as any,
+        identityService,
+        history as any,
+      );
+    });
+
+    const base = {
+      nome: 'Show Y',
+      dataInicio: '2026-05-10T16:00:00Z',
+      latitude: -23.5275,
+      longitude: -46.6783,
+      source: 'sympla-api',
+    };
+
+    it('registra first_seen quando o evento é criado', async () => {
+      repo.findOne!.mockResolvedValue(null);
+      const r = await withHistory.ingestOne(base);
+      expect(r.status).toBe('created');
+      expect(history.recordFirstSeen).toHaveBeenCalledTimes(1);
+      expect(history.recordFirstSeen.mock.calls[0][0]).toMatchObject({ id: 'gen-id', source: 'sympla-api' });
+    });
+
+    it('observa o reenvio ANTES de atualizar e aplica o patch devolvido (remarcação com flag)', async () => {
+      const newDate = new Date('2026-05-12T16:00:00Z');
+      repo.findOne!.mockResolvedValue({ id: 'existing-id', nome: 'Show Y', source: 'sympla-api', descricao: null });
+      history.observe.mockResolvedValue({
+        changes: [{ type: 'rescheduled' }],
+        patch: { dataInicio: newDate },
+      });
+
+      const r = await withHistory.ingestOne({ ...base, descricao: 'novo texto' });
+
+      expect(r.status).toBe('updated');
+      expect(history.observe).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 'existing-id' }),
+        expect.objectContaining({ source: 'sympla-api' }),
+        { matchReason: 'dedup_hash_exact' },
+      );
+      expect(history.observe.mock.invocationCallOrder[0]).toBeLessThan(repo.update!.mock.invocationCallOrder[0]);
+      const patch = repo.update!.mock.calls[0][1];
+      expect(patch.dataInicio).toEqual(newDate);
+      expect(patch.descricao).toBe('novo texto');
+    });
+
+    it('sem histórico injetado a ingestão segue igual (compatibilidade)', async () => {
+      repo.findOne!.mockResolvedValue(null);
+      expect((await service.ingestOne(base)).status).toBe('created');
+    });
+  });
 });

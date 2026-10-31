@@ -304,7 +304,7 @@ export function DetailActions({
       <AdminButton variant="ghost" as="a" href="/admin/jobs" rightIcon={<Icons.ArrowRight size={11} />}>
         Jobs
       </AdminButton>
-      <AdminButton variant="ghost" as="a" href="/admin/coverage" rightIcon={<Icons.ArrowRight size={11} />}>
+      <AdminButton variant="ghost" as="a" href="/admin/event-coverage?tab=regioes" rightIcon={<Icons.ArrowRight size={11} />}>
         Cobertura
       </AdminButton>
       <AdminButton

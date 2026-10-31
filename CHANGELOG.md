@@ -7,6 +7,17 @@ primeiro.
 
 ---
 
+## [Histórico e qualidade de eventos] — 2026-10-31 — Mudanças, lead time, admin unificado e zero-yield de fonte nova
+
+### Adicionado
+
+- **Histórico de mudanças de evento** (`event_change_history`, migration `1793710000000`, reversível): `first_seen` por evento (semeado de `events.createdAt`), remarcação, troca de venue/URL e cancelamento declarado pela fonte (campo opcional `status` no ingest), sem duplicar o evento. Evento futuro que some da fonte por `EVENT_POSSIBLY_CANCELLED_DAYS` (7) vira "possivelmente cancelado", nunca apagado. Aplicar a nova data fica atrás de `EVENT_HISTORY_APPLY_RESCHEDULE` (desligado). Ver [runbook](docs/runbooks/eventos-historico-mudancas.md).
+- **Lead time** (`GET /admin/event-coverage/lead-time`) e **mudanças** (`GET /admin/event-coverage/changes`): mediana e distribuição por fonte, categoria e porte; série diária.
+- **Admin unificado** `/admin/event-coverage` com abas Cobertura, Qualidade, Regiões e Mudanças; `/admin/coverage` redireciona para a aba Regiões.
+- **Zero-yield para fonte nova**: alerta fonte configurada que nunca entregou após `COLLECTOR_NEVER_DELIVERED_DAYS` (7). O estado de realerta agora é persistido (`collector_alert_state`, migration `1793710000001`) e sobrevive a deploy.
+
+---
+
 ## [Senha sem hash no cliente] — 2026-10-28 — Pass-the-hash fechado, migração sem reset
 
 ### Segurança
