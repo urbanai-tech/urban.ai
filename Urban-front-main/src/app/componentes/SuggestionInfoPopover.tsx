@@ -40,7 +40,6 @@ export const SuggestionInfoPopover: React.FC<SuggestionInfoPopoverProps> = ({
         aria-expanded={open}
         onClick={() => setOpen((value) => !value)}
         className={styles.popoverTrigger}
-        style={{ color: "#92400E" }}
       >
         <Lightbulb size={15} strokeWidth={1.8} />
         {buttonLabel}
