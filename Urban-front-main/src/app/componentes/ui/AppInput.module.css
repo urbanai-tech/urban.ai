@@ -13,7 +13,7 @@
   border-radius: var(--app-radius-control);
   box-sizing: border-box;
   color: var(--app-text);
-  font-size: 14px;
+  font-size: var(--text-sm);
   font-weight: 400;
   transition: border-color 120ms, box-shadow 120ms;
   font-family: var(--font-brand);
@@ -79,6 +79,6 @@
   pointer-events: none;
   display: flex;
   align-items: center;
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 600;
 }

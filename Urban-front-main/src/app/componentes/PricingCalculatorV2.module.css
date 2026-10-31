@@ -26,7 +26,7 @@
 .eyebrow.eyebrow {
   margin: 0;
   color: var(--theme-app-text-muted);
-  font-size: 11px;
+  font-size: var(--text-xs);
   font-weight: 800;
   letter-spacing: 2.2px;
   text-transform: uppercase;
@@ -35,18 +35,18 @@
 .title.title {
   margin: 0;
   color: var(--theme-app-text);
-  font-size: 30px;
+  font-size: var(--text-3xl);
   line-height: 1.05;
 }
 
 .title.titleCompact {
-  font-size: 24px;
+  font-size: var(--text-2xl);
 }
 
 .bodyText.bodyText {
   margin: 0;
   color: var(--theme-app-text-muted);
-  font-size: 14px;
+  font-size: var(--text-sm);
   line-height: 1.55;
 }
 
@@ -70,7 +70,7 @@
 .legend {
   margin-bottom: 8px;
   color: var(--theme-app-text-muted);
-  font-size: 14px;
+  font-size: var(--text-sm);
   font-weight: 700;
 }
 
@@ -88,7 +88,7 @@
   border: 1px solid var(--theme-app-divider-strong);
   background: var(--theme-app-surface);
   color: var(--theme-app-text);
-  font-size: 14px;
+  font-size: var(--text-sm);
   font-weight: 700;
   cursor: pointer;
 }
@@ -102,7 +102,7 @@
 .optionButton.stepButton {
   width: 44px;
   min-height: 44px;
-  font-size: 20px;
+  font-size: var(--text-xl);
 }
 
 .optionButton.cycleButton {
@@ -119,13 +119,13 @@
   background: var(--theme-app-surface);
   color: var(--theme-app-text);
   text-align: center;
-  font-size: 28px;
+  font-size: var(--text-3xl);
   font-weight: 900;
 }
 
 .quantityHint {
   color: var(--theme-app-text-muted);
-  font-size: 13px;
+  font-size: var(--text-sm);
 }
 
 /* Alvo de toque mínimo de 44 px também nos chips de quantidade. */
@@ -148,7 +148,7 @@
 
 .cycleDiscount {
   color: var(--theme-app-text-muted);
-  font-size: 12px;
+  font-size: var(--text-xs);
 }
 
 .cycleDiscount.cycleDiscountSelected {
@@ -168,7 +168,7 @@
 .summaryEyebrow.summaryEyebrow {
   margin: 0;
   color: var(--theme-app-text-muted);
-  font-size: 11px;
+  font-size: var(--text-xs);
   font-weight: 800;
   letter-spacing: 2px;
   text-transform: uppercase;
@@ -177,14 +177,14 @@
 .summaryTitle.summaryTitle {
   margin: 0;
   color: var(--theme-app-text);
-  font-size: 26px;
+  font-size: var(--text-2xl);
   line-height: 1.05;
 }
 
 .summaryRange.summaryRange {
   margin: 6px 0 0;
   color: var(--theme-app-text-muted);
-  font-size: 13px;
+  font-size: var(--text-sm);
 }
 
 .billingSummary {
@@ -197,7 +197,7 @@
   display: flex;
   justify-content: space-between;
   gap: 12px;
-  font-size: 14px;
+  font-size: var(--text-sm);
   color: var(--theme-app-text-muted);
 }
 
@@ -211,20 +211,20 @@
 .cancelNote.cancelNote {
   margin: 0;
   color: var(--theme-app-text-muted);
-  font-size: 12px;
+  font-size: var(--text-xs);
   line-height: 1.5;
 }
 
 .totalLabel.totalLabel {
   margin: 0;
   color: var(--theme-app-text-muted);
-  font-size: 12px;
+  font-size: var(--text-xs);
 }
 
 .totalValue.totalValue {
   margin: 2px 0 0;
   color: var(--theme-app-accent);
-  font-size: 30px;
+  font-size: var(--text-3xl);
   font-weight: 900;
   line-height: 1;
 }
@@ -232,7 +232,7 @@
 .errorText.errorText {
   margin: 0;
   color: var(--theme-app-danger);
-  font-size: 13px;
+  font-size: var(--text-sm);
   line-height: 1.45;
 }
 
@@ -260,7 +260,7 @@
   display: grid;
   gap: 8px;
   color: var(--theme-app-text-muted);
-  font-size: 14px;
+  font-size: var(--text-sm);
 }
 
 .featureItem {

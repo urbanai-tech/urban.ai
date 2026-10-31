@@ -4,7 +4,7 @@
   border-top: 1px solid var(--app-divider);
   background: var(--app-bg);
   color: var(--app-text-muted);
-  font-size: 12px;
+  font-size: var(--text-xs);
   font-family: var(--font-brand);
   min-height: 0;
 }
@@ -45,7 +45,7 @@
   align-items: center;
   gap: 22px;
   flex-wrap: wrap;
-  font-size: 12px;
+  font-size: var(--text-xs);
   letter-spacing: 0.3px;
 }
 

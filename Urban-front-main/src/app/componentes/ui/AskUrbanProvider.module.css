@@ -18,7 +18,7 @@
   gap: 10px;
   padding: 0 18px;
   font-family: var(--font-brand);
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 800;
   letter-spacing: 0;
   transition: transform 140ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 140ms;

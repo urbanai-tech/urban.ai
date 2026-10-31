@@ -26,7 +26,7 @@
 }
 
 .title.title {
-  font-size: 18px;
+  font-size: var(--text-lg);
   font-weight: 600;
   letter-spacing: -0.3px;
   color: var(--admin-text);
@@ -35,7 +35,7 @@
 
 .body.body {
   margin-top: 12px;
-  font-size: 14px;
+  font-size: var(--text-sm);
   line-height: 1.6;
   color: var(--admin-text-muted);
 }

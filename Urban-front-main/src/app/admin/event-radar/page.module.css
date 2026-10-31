@@ -20,7 +20,7 @@
 
 .eventMeta.eventMeta {
   margin: 5px 0 0;
-  font-size: 11px;
+  font-size: var(--text-xs);
   color: var(--admin-text-muted);
 }
 
@@ -36,17 +36,17 @@
 }
 
 .categoryLabel.categoryLabel {
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--admin-text);
 }
 
 .sourceCode.sourceCode {
-  font-size: 11px;
+  font-size: var(--text-xs);
   color: var(--admin-text-dim);
 }
 
 .impactCell.impactCell {
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--admin-text-muted);
 }
 
@@ -67,13 +67,13 @@
 
 .spotMeta.spotMeta {
   margin: 5px 0 0;
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--admin-text-muted);
   overflow-wrap: anywhere;
 }
 
 .spotAction.spotAction {
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--admin-text-muted);
   overflow-wrap: anywhere;
 }
@@ -137,7 +137,7 @@
 
 .sectionTitle.sectionTitle {
   margin: 8px 0 0;
-  font-size: 20px;
+  font-size: var(--text-xl);
   font-weight: 600;
   color: var(--admin-text);
 }
@@ -145,7 +145,7 @@
 .tableHint.tableHint {
   margin: 0;
   align-self: end;
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--admin-text-muted);
   overflow-wrap: anywhere;
 }
@@ -170,7 +170,7 @@
 .pageFooter.pageFooter {
   padding-top: 20px;
   border-top: 1px solid var(--admin-divider);
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--admin-text-muted);
   line-height: 1.6;
 }
@@ -178,7 +178,7 @@
 .drawerLoading.drawerLoading {
   margin: 0;
   color: var(--admin-text-muted);
-  font-size: 13px;
+  font-size: var(--text-sm);
 }
 
 .chevronIcon.chevronIcon {

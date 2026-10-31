@@ -32,7 +32,7 @@
   margin-top: 64px;
   padding-top: 24px;
   border-top: 1px solid var(--admin-divider);
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--admin-text-muted);
   line-height: 1.55;
 }
@@ -64,7 +64,7 @@
 }
 
 .stageLabelTitle.stageLabelTitle {
-  font-size: 10px;
+  font-size: var(--text-xs);
   letter-spacing: 2px;
   text-transform: uppercase;
   color: var(--admin-bg);
@@ -80,7 +80,7 @@
 }
 
 .stageLabelPercent.stageLabelPercent {
-  font-size: 10px;
+  font-size: var(--text-xs);
   color: var(--admin-bg);
   opacity: 0.7;
   margin: 0;
@@ -102,7 +102,7 @@
 }
 
 .stageItemTitle.stageItemTitle {
-  font-size: 11px;
+  font-size: var(--text-xs);
   letter-spacing: 1.5px;
   text-transform: uppercase;
   color: var(--admin-text-muted);
@@ -112,13 +112,13 @@
 
 .stageItemValue.stageItemValue {
   margin-left: 8px;
-  font-size: 13px;
+  font-size: var(--text-sm);
   letter-spacing: 0;
   color: var(--admin-text);
 }
 
 .stageItemDesc.stageItemDesc {
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--admin-text-muted);
   margin: 4px 0 0;
   line-height: 1.4;
@@ -126,7 +126,7 @@
 
 .stageItemAdvance.stageItemAdvance {
   margin-top: 6px;
-  font-size: 11px;
+  font-size: var(--text-xs);
   color: var(--admin-text-dim);
 }
 
@@ -139,7 +139,7 @@
 }
 
 .leverageText.leverageText {
-  font-size: 14px;
+  font-size: var(--text-sm);
   color: var(--admin-text-muted);
   margin: 0;
   line-height: 1.6;

@@ -109,9 +109,9 @@
 }
 
 .selectAllCount.selectAllCount {
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--app-text);
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-brand);
   font-weight: 500;
 }
 
@@ -145,20 +145,20 @@
 }
 
 .mobilePropertyName.mobilePropertyName {
-  font-size: 14px;
+  font-size: var(--text-sm);
   font-weight: 600;
   color: var(--app-text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-brand);
 }
 
 .mobilePropertyMeta.mobilePropertyMeta {
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--app-text-muted);
   margin-top: 2px;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-brand);
 }
 
 .mobileDayStrip.mobileDayStrip {
@@ -195,16 +195,16 @@
 }
 
 .mobileDayLabel.mobileDayLabel {
-  font-size: 10px;
+  font-size: var(--text-xs);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   color: var(--app-text-muted);
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-brand);
   font-weight: 600;
 }
 
 .mobileDayPrice.mobileDayPrice {
-  font-size: 14px;
+  font-size: var(--text-sm);
   letter-spacing: 0.5px;
   line-height: 1;
 }
@@ -218,13 +218,13 @@
 }
 
 .mobileDayEventName.mobileDayEventName {
-  font-size: 9px;
+  font-size: var(--text-xs);
   color: var(--app-text-dim);
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: nowrap;
   max-width: 100%;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-brand);
 }
 
 .desktopGridCard.desktopGridCard {
@@ -237,9 +237,9 @@
 }
 
 .headerSelectAllCount.headerSelectAllCount {
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--app-text-muted);
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-brand);
   font-weight: 600;
   letter-spacing: 0.3px;
 }
@@ -251,12 +251,12 @@
 }
 
 .headerWeekday.headerWeekday {
-  font-size: 10px;
+  font-size: var(--text-xs);
   text-transform: uppercase;
 }
 
 .headerDayMonth.headerDayMonth {
-  font-size: 12px;
+  font-size: var(--text-xs);
 }
 
 .textDefault.textDefault {
@@ -270,21 +270,21 @@
 }
 
 .desktopPropertyName.desktopPropertyName {
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 700;
   color: var(--app-text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-brand);
   line-height: 1.3;
 }
 
 .desktopPropertyRate.desktopPropertyRate {
-  font-size: 11px;
+  font-size: var(--text-xs);
   color: var(--app-text-muted);
   margin-top: 2px;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-brand);
 }
 
 .desktopSelectedCheck.desktopSelectedCheck {
@@ -295,23 +295,23 @@
 }
 
 .cellSuggestedPrice.cellSuggestedPrice {
-  font-size: 14px;
+  font-size: var(--text-sm);
   color: var(--app-accent);
   line-height: 1;
   letter-spacing: 0.5px;
 }
 
 .cellCurrentPrice.cellCurrentPrice {
-  font-size: 14px;
+  font-size: var(--text-sm);
   color: var(--app-text-muted);
   line-height: 1;
   letter-spacing: 0.5px;
 }
 
 .cellNoPriceDash.cellNoPriceDash {
-  font-size: 14px;
+  font-size: var(--text-sm);
   color: var(--app-text-muted);
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-brand);
 }
 
 .thumbImage.thumbImage {
@@ -337,7 +337,7 @@
   font-size: var(--thumb-font-size);
   font-weight: 600;
   color: var(--app-text-muted);
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-brand);
   letter-spacing: 0.5px;
 }
 
@@ -377,9 +377,9 @@
   background: var(--app-accent);
   color: var(--app-bg);
   font-weight: 600;
-  font-size: 14px;
+  font-size: var(--text-sm);
   text-decoration: none;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-brand);
 }
 
 .mobileDayCell.mobileDayCell.mobileDayCell {
@@ -457,7 +457,7 @@
   justify-content: center;
   gap: 2px;
   color: var(--app-text-muted);
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-brand);
   font-weight: 600;
   letter-spacing: 0.3px;
 }
@@ -556,12 +556,12 @@
   padding: 0 4px;
   border-radius: 999px;
   background: var(--app-surface-muted);
-  font-size: 8px;
+  font-size: var(--text-xs);
   color: var(--app-text-muted);
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: nowrap;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-brand);
   letter-spacing: 0.4px;
   text-transform: uppercase;
   font-weight: 750;

@@ -1,8 +1,9 @@
 .subscriptionsContainer.subscriptionsContainer {
+  /* Largura total da coluna: o cartão estreito e centrado deixava metade da
+     tela vazia em /my-plan (DS-17). */
   width: 100%;
-  max-width: 768px;
-  margin: 0 auto;
-  padding: 40px 0;
+  margin: 0;
+  padding: 8px 0 40px;
 }
 
 .subscriptionList.subscriptionList {
@@ -17,7 +18,7 @@
   right: 16px;
   padding: 4px 12px;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: var(--text-xs);
   font-weight: 750;
   letter-spacing: 1px;
   text-transform: uppercase;
@@ -43,12 +44,12 @@
   margin: 0;
   padding-right: 110px;
   color: var(--app-text);
-  font-size: 24px;
+  font-size: var(--text-2xl);
 }
 
 .priceLabel.priceLabel {
   margin: 0;
-  font-size: 20px;
+  font-size: var(--text-xl);
   font-weight: 750;
 }
 
@@ -77,7 +78,7 @@
 .dateLabel.dateLabel {
   margin: 0;
   color: var(--app-text-muted);
-  font-size: 15px;
+  font-size: var(--text-md);
 }
 
 .actionsRow.actionsRow {

@@ -19,7 +19,7 @@
 
 .dialogTitle.dialogTitle {
   margin: 0;
-  font-size: 20px;
+  font-size: var(--text-xl);
 }
 
 .dialogBody.dialogBody {
@@ -83,7 +83,7 @@
 .propertyAirbnbId.propertyAirbnbId {
   margin: 4px 0 0;
   color: var(--theme-app-legacy-ink-58);
-  font-size: 12px;
+  font-size: var(--text-xs);
 }
 
 .resultsSummary.resultsSummary {
@@ -123,7 +123,7 @@
 .propertyTitle.propertyTitle {
   margin: 0;
   color: var(--theme-app-legacy-ink);
-  font-size: 15px;
+  font-size: var(--text-md);
   font-weight: 650;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -133,7 +133,7 @@
 .propertyMeta.propertyMeta {
   margin: 4px 0 0;
   color: var(--theme-app-legacy-ink-62);
-  font-size: 13px;
+  font-size: var(--text-sm);
   line-height: 1.45;
 }
 
@@ -179,7 +179,7 @@
 
 .pendingFallbackMessage.pendingFallbackMessage {
   margin: 4px 0 0;
-  font-size: 12px;
+  font-size: var(--text-xs);
   line-height: 1.35;
 }
 
@@ -191,7 +191,7 @@
   border: 1px solid var(--theme-app-legacy-ink-12);
   border-radius: 10px;
   color: var(--theme-app-legacy-ink);
-  font-size: 15px;
+  font-size: var(--text-md);
   outline: none;
 }
 
@@ -222,6 +222,6 @@
   display: grid;
   place-items: center;
   border-radius: 8px;
-  font-size: 12px;
+  font-size: var(--text-xs);
   flex-shrink: 0;
 }

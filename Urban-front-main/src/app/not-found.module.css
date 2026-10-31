@@ -27,7 +27,7 @@
 }
 
 .eyebrow {
-  font-size: 12px;
+  font-size: var(--text-xs);
   letter-spacing: 4px;
   text-transform: uppercase;
   color: var(--theme-public-accent);
@@ -37,10 +37,10 @@
 }
 
 .title {
-  font-size: clamp(36px, 9vw, 112px);
+  font-size: var(--text-display-lg);
   line-height: 0.98;
   letter-spacing: -2px;
-  font-weight: 700;
+  font-weight: var(--font-weight-display);
   margin: 0;
   text-transform: uppercase;
 }
@@ -51,7 +51,7 @@
 
 .lead {
   margin-top: 40px;
-  font-size: 18px;
+  font-size: var(--text-lg);
   font-weight: 300;
   line-height: 1.7;
   color: var(--theme-public-muted);
@@ -70,7 +70,7 @@
   background: var(--theme-public-accent);
   color: var(--theme-public-accent-contrast);
   font-weight: 700;
-  font-size: 13px;
+  font-size: var(--text-sm);
   letter-spacing: 3px;
   text-transform: uppercase;
   text-decoration: none;
@@ -82,7 +82,7 @@
   border: 1px solid var(--theme-public-strong);
   color: var(--theme-public-text);
   font-weight: 600;
-  font-size: 13px;
+  font-size: var(--text-sm);
   letter-spacing: 3px;
   text-transform: uppercase;
   text-decoration: none;

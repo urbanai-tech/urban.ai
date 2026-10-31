@@ -47,14 +47,14 @@
 
 .pushTitle {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--text-sm);
   font-weight: 700;
   color: var(--app-text);
 }
 
 .pushText {
   margin: 4px 0 0;
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--app-text-muted);
   line-height: 1.45;
 }

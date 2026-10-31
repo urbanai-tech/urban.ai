@@ -10,7 +10,7 @@
 }
 
 .eventDate.eventDate {
-  font-size: 11px;
+  font-size: var(--text-xs);
   color: var(--admin-text-dim);
   margin: 2px 0 0;
   font-family: monospace;
@@ -33,22 +33,22 @@
 }
 
 .statusCode.statusCode {
-  font-size: 11px;
+  font-size: var(--text-xs);
   color: var(--admin-text-muted);
 }
 
 .outcomeCell.outcomeCell {
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--admin-text-muted);
 }
 
 .flagsWarning.flagsWarning {
-  font-size: 11px;
+  font-size: var(--text-xs);
   color: var(--admin-warning);
 }
 
 .flagsOk.flagsOk {
-  font-size: 11px;
+  font-size: var(--text-xs);
   color: var(--admin-success);
 }
 
@@ -87,7 +87,7 @@
 
 .heroDescription.heroDescription {
   margin-top: 12px;
-  font-size: 14px;
+  font-size: var(--text-sm);
   color: var(--admin-text-muted);
   line-height: 1.55;
 }
@@ -139,7 +139,7 @@
   justify-content: space-between;
   padding: 10px 0;
   border-bottom: 1px solid var(--admin-divider);
-  font-size: 13px;
+  font-size: var(--text-sm);
 }
 
 .flagName.flagName {
@@ -152,7 +152,7 @@
 }
 
 .flagsEmptyHint.flagsEmptyHint {
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--admin-success);
   margin: 0;
 }
@@ -172,7 +172,7 @@
 }
 
 .auditTitle.auditTitle {
-  font-size: 20px;
+  font-size: var(--text-xl);
   font-weight: 600;
   color: var(--admin-text);
   margin: 8px 0 0;
@@ -180,14 +180,14 @@
 }
 
 .auditRowCount.auditRowCount {
-  font-size: 11px;
+  font-size: var(--text-xs);
   color: var(--admin-text-dim);
   letter-spacing: 1.5px;
   text-transform: uppercase;
 }
 
 .statValue.statValue {
-  font-size: 22px;
+  font-size: var(--text-2xl);
   font-weight: 600;
   color: var(--admin-text);
   margin: 6px 0 0;
@@ -196,7 +196,7 @@
 }
 
 .smallStatValue.smallStatValue {
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--admin-text);
   margin: 6px 0 0;
   word-break: break-word;

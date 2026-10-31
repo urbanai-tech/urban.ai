@@ -16,7 +16,7 @@
 .footerCopy {
   margin: 0;
   text-align: center;
-  font-size: 14px;
+  font-size: var(--text-sm);
 }
 
 .footerNav {
@@ -29,5 +29,5 @@
 .footerLink {
   color: inherit;
   text-decoration: none;
-  font-size: 14px;
+  font-size: var(--text-sm);
 }

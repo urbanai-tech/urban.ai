@@ -30,7 +30,7 @@
 }
 
 .drawerTitle.drawerTitle {
-  font-size: 18px;
+  font-size: var(--text-lg);
   font-weight: 600;
   color: var(--app-text);
   margin: 6px 0 0;
@@ -58,7 +58,7 @@
 }
 
 .currencyPrefix.currencyPrefix {
-  font-size: 13px;
+  font-size: var(--text-sm);
 }
 
 .drawerFooter.drawerFooter {
@@ -79,7 +79,7 @@
   border: 1px solid var(--theme-app-legacy-success-25);
   background: var(--theme-app-legacy-success-08);
   color: var(--app-success);
-  font-size: 12px;
+  font-size: var(--text-xs);
   font-weight: 600;
 }
 

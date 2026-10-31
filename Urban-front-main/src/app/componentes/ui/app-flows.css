@@ -44,7 +44,7 @@
   border-radius: 10px;
   background: var(--app-surface-muted);
   color: var(--app-text);
-  font-size: 13px;
+  font-size: var(--text-sm);
 }
 
 .funnel-terms {
@@ -52,7 +52,7 @@
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  font-size: 13px;
+  font-size: var(--text-sm);
   line-height: 1.5;
   color: var(--app-text);
   cursor: pointer;
@@ -78,14 +78,14 @@
 
 .funnel-stack h2 {
   margin: 0;
-  font-size: 18px;
+  font-size: var(--text-lg);
   color: var(--app-text);
 }
 
 .funnel-stack p {
   margin: 0;
   color: var(--app-text-muted);
-  font-size: 14px;
+  font-size: var(--text-sm);
   line-height: 1.55;
 }
 

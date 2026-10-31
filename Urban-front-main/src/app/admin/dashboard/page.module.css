@@ -36,7 +36,7 @@
 }
 
 .healthLabel.healthLabel {
-  font-size: 20px;
+  font-size: var(--text-xl);
   font-weight: 600;
   color: var(--admin-text);
   margin: 4px 0 0;
@@ -56,7 +56,7 @@
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--admin-text);
 }
 
@@ -92,7 +92,7 @@
 }
 
 .fallbackTitle.fallbackTitle {
-  font-size: 16px;
+  font-size: var(--text-md);
   font-weight: 600;
   color: var(--admin-text);
   margin: 8px 0 8px;
@@ -100,7 +100,7 @@
 }
 
 .fallbackText.fallbackText {
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--admin-text-muted);
   line-height: 1.55;
   margin: 0;
@@ -144,7 +144,7 @@
 }
 
 .blockerMessage.blockerMessage {
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--admin-text);
   margin: 0;
   font-weight: 500;
@@ -156,7 +156,7 @@
 }
 
 .blockerNextAction.blockerNextAction {
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--admin-text-muted);
   margin: 4px 0 0;
 }
@@ -169,7 +169,7 @@
 }
 
 .emptySources.emptySources {
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--admin-text-muted);
   margin: 0;
 }
@@ -181,7 +181,7 @@
 .sourceHeader.sourceHeader {
   display: flex;
   justify-content: space-between;
-  font-size: 12px;
+  font-size: var(--text-xs);
   margin-bottom: 6px;
 }
 
@@ -199,7 +199,7 @@
 .pageFooter.pageFooter {
   padding-top: 24px;
   border-top: 1px solid var(--admin-divider);
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--admin-text-muted);
   line-height: 1.55;
 }
@@ -232,7 +232,7 @@
 }
 
 .statLabel.statLabel {
-  font-size: 10px;
+  font-size: var(--text-xs);
   letter-spacing: 2px;
   text-transform: uppercase;
   color: var(--admin-text-muted);
@@ -241,7 +241,7 @@
 }
 
 .statSub.statSub {
-  font-size: 11px;
+  font-size: var(--text-xs);
   color: var(--admin-text-muted);
   margin: 2px 0 0;
 }
@@ -250,7 +250,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--admin-text-muted);
   text-decoration: none;
   padding: 4px 0;
@@ -283,20 +283,20 @@
 }
 
 .readinessTileLabel.readinessTileLabel {
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--admin-text);
 }
 
 .readinessTileBlockers.readinessTileBlockers {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--admin-text-muted);
   line-height: 1.55;
 }
 
 .readinessTileNext.readinessTileNext {
   margin: auto 0 0;
-  font-size: 11px;
+  font-size: var(--text-xs);
   color: var(--admin-text-dim);
   line-height: 1.5;
 }
@@ -324,7 +324,7 @@
   display: flex;
   gap: 3px;
   margin-top: 6px;
-  font-size: 9px;
+  font-size: var(--text-xs);
   color: var(--admin-text-dim);
 }
 
@@ -337,7 +337,7 @@
   display: flex;
   gap: 16px;
   margin-top: 12px;
-  font-size: 11px;
+  font-size: var(--text-xs);
   color: var(--admin-text-muted);
 }
 
@@ -384,7 +384,7 @@
 }
 
 .statValue.statValue {
-  font-size: 22px;
+  font-size: var(--text-2xl);
   font-weight: 600;
   color: var(--admin-text);
   margin: 0;
@@ -422,7 +422,7 @@
   margin: 0;
   padding: 32px 0;
   text-align: center;
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--admin-text-muted);
   border-bottom: 1px solid var(--admin-divider);
 }

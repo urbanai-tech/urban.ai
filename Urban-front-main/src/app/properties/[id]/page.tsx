@@ -936,7 +936,7 @@ const styles = `
     color: var(--app-text-muted);
     background: var(--app-surface-muted);
     border: 1px solid var(--app-divider);
-    font-size: 30px;
+    font-size: var(--text-3xl);
     font-weight: 800;
   }
 
@@ -951,7 +951,7 @@ const styles = `
   .property-hero h2 {
     margin: 0;
     color: var(--app-text);
-    font-size: 24px;
+    font-size: var(--text-2xl);
     line-height: 1.15;
   }
 
@@ -959,7 +959,7 @@ const styles = `
     max-width: 720px;
     margin: 9px 0 0;
     color: var(--app-text-muted);
-    font-size: 14px;
+    font-size: var(--text-sm);
     line-height: 1.55;
   }
 
@@ -975,7 +975,7 @@ const styles = `
   .property-price-panel span {
     display: block;
     color: var(--app-text-subtle);
-    font-size: 11px;
+    font-size: var(--text-xs);
     font-weight: 800;
     letter-spacing: 1.2px;
     text-transform: uppercase;
@@ -986,7 +986,7 @@ const styles = `
     display: block;
     margin-top: 8px;
     color: var(--app-text);
-    font-size: 20px;
+    font-size: var(--text-xl);
     line-height: 1.1;
   }
 
@@ -995,7 +995,7 @@ const styles = `
     display: block;
     margin-top: 7px;
     color: var(--app-text-muted);
-    font-size: 12px;
+    font-size: var(--text-xs);
     line-height: 1.35;
   }
 
@@ -1025,7 +1025,7 @@ const styles = `
   .metric-card span {
     display: block;
     color: var(--app-text-subtle);
-    font-size: 11px;
+    font-size: var(--text-xs);
     font-weight: 800;
     letter-spacing: 1.2px;
     text-transform: uppercase;
@@ -1036,7 +1036,7 @@ const styles = `
     margin-top: 10px;
     overflow: hidden;
     color: var(--app-text);
-    font-size: 30px;
+    font-size: var(--text-3xl);
     font-weight: 850;
     line-height: 1;
     text-overflow: ellipsis;
@@ -1051,7 +1051,7 @@ const styles = `
     display: block;
     margin-top: 8px;
     color: var(--app-text-muted);
-    font-size: 12px;
+    font-size: var(--text-xs);
   }
 
   .property-price-panel {
@@ -1106,12 +1106,12 @@ const styles = `
 
   .info-row span {
     color: var(--app-text-muted);
-    font-size: 13px;
+    font-size: var(--text-sm);
   }
 
   .info-row strong {
     color: var(--app-text);
-    font-size: 14px;
+    font-size: var(--text-sm);
     font-weight: 750;
     text-align: right;
   }
@@ -1138,7 +1138,7 @@ const styles = `
   .property-history-row strong {
     display: block;
     color: var(--app-text);
-    font-size: 14px;
+    font-size: var(--text-sm);
     line-height: 1.25;
   }
 
@@ -1147,7 +1147,7 @@ const styles = `
     display: block;
     margin-top: 4px;
     color: var(--app-text-muted);
-    font-size: 12px;
+    font-size: var(--text-xs);
     line-height: 1.4;
   }
 
@@ -1164,7 +1164,7 @@ const styles = `
     background: var(--app-surface);
     border: 1px solid var(--app-divider);
     border-radius: 8px;
-    font-size: 12px;
+    font-size: var(--text-xs);
     font-weight: 650;
     white-space: nowrap;
   }
@@ -1210,7 +1210,7 @@ const styles = `
 
   .property-modal-header span {
     color: var(--app-accent);
-    font-size: 11px;
+    font-size: var(--text-xs);
     font-weight: 850;
     letter-spacing: 1.5px;
   }
@@ -1218,7 +1218,7 @@ const styles = `
   .property-modal-header h2 {
     margin: 4px 0 0;
     color: var(--app-text);
-    font-size: 20px;
+    font-size: var(--text-xl);
   }
 
   .property-modal-header button {

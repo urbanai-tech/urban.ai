@@ -39,7 +39,7 @@
 .title.title {
   margin: 0;
   color: var(--app-text);
-  font-size: 16px;
+  font-size: var(--text-md);
   font-weight: 700;
   line-height: 1.3;
   letter-spacing: 0;
@@ -49,7 +49,7 @@
 .subtitle.subtitle {
   margin: 6px 0 0;
   color: var(--app-text-muted);
-  font-size: 12px;
+  font-size: var(--text-xs);
   line-height: 1.45;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -74,14 +74,14 @@
 .opportunityLabel.opportunityLabel {
   margin: 0;
   color: var(--app-text-muted);
-  font-size: 12px;
+  font-size: var(--text-xs);
   font-weight: 650;
 }
 
 .opportunityValue.opportunityValue {
   margin: 4px 0 0;
   color: var(--app-text);
-  font-size: 14px;
+  font-size: var(--text-sm);
   font-weight: 700;
   overflow-wrap: anywhere;
 }
@@ -107,7 +107,7 @@
 }
 
 .scorePillValue {
-  font-size: 19px;
+  font-size: var(--text-xl);
   font-weight: 800;
   line-height: 1;
 }
@@ -115,7 +115,7 @@
 .metricLabel.metricLabel {
   margin: 0 0 4px;
   color: var(--app-text-muted);
-  font-size: 10px;
+  font-size: var(--text-xs);
   font-weight: 700;
   letter-spacing: 1.2px;
   text-transform: uppercase;
@@ -124,7 +124,7 @@
 .metricValue.metricValue {
   margin: 0;
   color: var(--app-text);
-  font-size: 14px;
+  font-size: var(--text-sm);
   font-weight: 750;
   line-height: 1.2;
   overflow-wrap: anywhere;

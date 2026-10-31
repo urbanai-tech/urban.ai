@@ -15,7 +15,7 @@
 }
 
 .processNumber.processNumber {
-  font-size: 44px;
+  font-size: var(--text-4xl);
 }
 
 .processTitle.processTitle {

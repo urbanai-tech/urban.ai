@@ -18,7 +18,7 @@
 .sampleNoticeText.sampleNoticeText {
   flex: 1 1 320px;
   margin: 0;
-  font-size: 13px;
+  font-size: var(--text-sm);
   line-height: 1.55;
   color: var(--admin-text-muted);
 }
@@ -59,7 +59,7 @@
 .scoreDetail.scoreDetail {
   margin: 12px 0 0;
   color: var(--admin-text-muted);
-  font-size: 13px;
+  font-size: var(--text-sm);
   line-height: 1.55;
 }
 
@@ -71,14 +71,14 @@
 .scoreValue.scoreValue {
   display: block;
   color: var(--admin-text);
-  font-size: 56px;
+  font-size: var(--text-display-md);
   line-height: 0.95;
   font-weight: 700;
 }
 
 .scoreValueLabel.scoreValueLabel {
   color: var(--admin-text-muted);
-  font-size: 11px;
+  font-size: var(--text-xs);
   text-transform: uppercase;
   letter-spacing: 1.2px;
 }
@@ -142,7 +142,7 @@
 
 .sectionTitle.sectionTitle {
   margin: 8px 0 0;
-  font-size: 20px;
+  font-size: var(--text-xl);
   font-weight: 600;
   color: var(--admin-text);
   letter-spacing: -0.3px;
@@ -202,14 +202,14 @@
 
 .actionCardTitle.actionCardTitle {
   margin: 0;
-  font-size: 15px;
+  font-size: var(--text-md);
   font-weight: 600;
   color: var(--admin-text);
 }
 
 .actionCardText.actionCardText {
   margin: 8px 0 16px;
-  font-size: 13px;
+  font-size: var(--text-sm);
   line-height: 1.55;
   color: var(--admin-text-muted);
 }
@@ -233,7 +233,7 @@
 
 .checkpointText.checkpointText {
   color: var(--admin-text-muted);
-  font-size: 12px;
+  font-size: var(--text-xs);
   line-height: 1.5;
 }
 
@@ -244,7 +244,7 @@
 .scoreMetaValue.scoreMetaValue {
   margin: 0;
   color: var(--admin-text);
-  font-size: 12px;
+  font-size: var(--text-xs);
   line-height: 1.45;
 }
 
@@ -263,7 +263,7 @@
 
 .breakdownLabel.breakdownLabel {
   color: var(--admin-text-muted);
-  font-size: 11px;
+  font-size: var(--text-xs);
   line-height: 1.35;
 }
 
@@ -271,7 +271,7 @@
   display: block;
   margin-top: 8px;
   color: var(--admin-text);
-  font-size: 20px;
+  font-size: var(--text-xl);
   line-height: 1;
 }
 
@@ -285,7 +285,7 @@
 
 .integrationName.integrationName {
   color: var(--admin-text);
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 600;
 }
 
@@ -300,14 +300,14 @@
 .detailText.detailText {
   margin: 0;
   color: var(--admin-text-muted);
-  font-size: 12px;
+  font-size: var(--text-xs);
   line-height: 1.5;
 }
 
 .cellSubtext.cellSubtext {
   margin: 6px 0 0;
   color: var(--admin-text-muted);
-  font-size: 12px;
+  font-size: var(--text-xs);
   line-height: 1.45;
   font-weight: 400;
 }
@@ -320,14 +320,14 @@
 
 .metricValue.metricValue {
   color: var(--admin-text);
-  font-size: 18px;
+  font-size: var(--text-lg);
   line-height: 1;
 }
 
 .metricStatusLabel.metricStatusLabel {
   margin: 8px 0 0;
   color: var(--admin-text-muted);
-  font-size: 11px;
+  font-size: var(--text-xs);
 }
 
 .lastUpdatedLabel.lastUpdatedLabel {
@@ -345,7 +345,7 @@
 .statusTileValue.statusTileValue {
   margin: 10px 0 4px;
   color: var(--admin-text);
-  font-size: 15px;
+  font-size: var(--text-md);
   font-weight: 600;
 }
 
@@ -358,21 +358,21 @@
 
 .policyAgent.policyAgent {
   color: var(--admin-text);
-  font-size: 12px;
+  font-size: var(--text-xs);
   font-weight: 600;
 }
 
 .policyText.policyText {
   margin: 0;
   color: var(--admin-text);
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 600;
 }
 
 .policyScope.policyScope {
   margin: 4px 0 0;
   color: var(--admin-text-muted);
-  font-size: 12px;
+  font-size: var(--text-xs);
   line-height: 1.5;
 }
 
@@ -391,7 +391,7 @@
 
 .readinessValue.readinessValue {
   color: var(--admin-text);
-  font-size: 12px;
+  font-size: var(--text-xs);
   font-weight: 600;
   font-family: monospace;
 }
@@ -407,14 +407,14 @@
 .backlogTitle.backlogTitle {
   margin: 0;
   color: var(--admin-text);
-  font-size: 14px;
+  font-size: var(--text-sm);
   font-weight: 600;
 }
 
 .backlogImpact.backlogImpact {
   margin: 5px 0 0;
   color: var(--admin-text-muted);
-  font-size: 12px;
+  font-size: var(--text-xs);
   line-height: 1.5;
 }
 
@@ -428,7 +428,7 @@
 
 .backlogStatus.backlogStatus {
   color: var(--admin-text-muted);
-  font-size: 11px;
+  font-size: var(--text-xs);
 }
 
 .flushCard.flushCard.flushCard {
@@ -444,7 +444,7 @@
   padding: 12px 16px;
   border-bottom: 1px solid var(--admin-divider);
   color: var(--admin-text-muted);
-  font-size: 10px;
+  font-size: var(--text-xs);
   font-weight: 600;
   letter-spacing: 1.5px;
   text-transform: uppercase;
@@ -455,7 +455,7 @@
   padding: 16px;
   border-bottom: 1px solid var(--admin-divider);
   color: var(--admin-text-muted);
-  font-size: 13px;
+  font-size: var(--text-sm);
   vertical-align: top;
 }
 

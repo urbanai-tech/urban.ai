@@ -24,19 +24,19 @@
 .sm.sm.sm {
   height: 32px;
   padding: 0 14px;
-  font-size: 13px;
+  font-size: var(--text-sm);
 }
 
 .md.md.md {
   height: 40px;
   padding: 0 18px;
-  font-size: 14px;
+  font-size: var(--text-sm);
 }
 
 .lg.lg.lg {
   height: 48px;
   padding: 0 24px;
-  font-size: 15px;
+  font-size: var(--text-md);
 }
 
 .fullWidth.fullWidth.fullWidth {

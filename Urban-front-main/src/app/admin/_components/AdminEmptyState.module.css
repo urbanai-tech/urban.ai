@@ -19,7 +19,7 @@
 }
 
 .body.body {
-  font-size: 14px;
+  font-size: var(--text-sm);
   color: var(--admin-text-muted);
   max-width: 480px;
   line-height: 1.6;

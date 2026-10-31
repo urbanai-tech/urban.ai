@@ -200,14 +200,14 @@ export function AplicarPrecoDialog({
         }
         .aplicar-title {
           margin: 0;
-          font-size: 20px;
+          font-size: var(--text-xl);
           font-weight: 600;
           color: var(--app-text);
         }
         .aplicar-lead,
         .aplicar-note {
           margin: 0;
-          font-size: 14px;
+          font-size: var(--text-sm);
           line-height: 1.55;
           color: var(--app-text-muted);
         }
@@ -224,18 +224,18 @@ export function AplicarPrecoDialog({
         }
         .aplicar-facts dt {
           color: var(--app-text-muted);
-          font-size: 13px;
+          font-size: var(--text-sm);
         }
         .aplicar-facts dd {
           margin: 0;
           color: var(--app-text);
-          font-size: 14px;
+          font-size: var(--text-sm);
           font-weight: 600;
           text-align: right;
         }
         .aplicar-price {
           color: var(--app-accent);
-          font-size: 18px;
+          font-size: var(--text-lg);
         }
         .aplicar-copy {
           display: flex;
@@ -245,7 +245,7 @@ export function AplicarPrecoDialog({
           padding-left: 20px;
           display: grid;
           gap: 4px;
-          font-size: 14px;
+          font-size: var(--text-sm);
           color: var(--app-text);
         }
         .aplicar-actions {

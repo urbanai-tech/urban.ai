@@ -13,7 +13,7 @@
 
 .staleHint.staleHint {
   margin-top: 4px;
-  font-size: 10px;
+  font-size: var(--text-xs);
   letter-spacing: 1.5px;
   text-transform: uppercase;
   color: var(--admin-warning);
@@ -35,7 +35,7 @@
 }
 
 .lastCrawlText.lastCrawlText {
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--admin-text-muted);
 }
 
@@ -69,7 +69,7 @@
 }
 
 .sourcesTitle.sourcesTitle {
-  font-size: 20px;
+  font-size: var(--text-xl);
   font-weight: 600;
   color: var(--admin-text);
   margin: 8px 0 0;
@@ -79,13 +79,13 @@
 .footerNote.footerNote {
   border-top: 1px solid var(--admin-divider);
   padding-top: 16px;
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--admin-text-muted);
 }
 
 .footerSummary.footerSummary {
   cursor: pointer;
-  font-size: 11px;
+  font-size: var(--text-xs);
   letter-spacing: 1.5px;
   text-transform: uppercase;
   font-weight: 600;
@@ -120,7 +120,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
   gap: 14px;
-  font-size: 13px;
+  font-size: var(--text-sm);
 }
 
 .statusRow.statusRow {
@@ -136,19 +136,19 @@
 }
 
 .envMissingText.envMissingText {
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--admin-danger);
   margin: 0;
 }
 
 .envOkText.envOkText {
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--admin-success);
   margin: 0;
 }
 
 .emptyHint.emptyHint {
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--admin-text-dim);
   margin: 0;
 }
@@ -158,14 +158,14 @@
 }
 
 .lastCrawlValue.lastCrawlValue {
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--admin-text);
   font-family: monospace;
   margin: 0;
 }
 
 .detailRowLabel.detailRowLabel {
-  font-size: 10px;
+  font-size: var(--text-xs);
   letter-spacing: 1.5px;
   text-transform: uppercase;
   color: var(--admin-text-muted);
@@ -175,7 +175,7 @@
 
 .detailRowValue.detailRowValue {
   font-family: monospace;
-  font-size: 14px;
+  font-size: var(--text-sm);
   color: var(--admin-text);
   margin: 4px 0 0;
 }

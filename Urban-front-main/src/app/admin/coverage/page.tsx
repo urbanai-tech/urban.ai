@@ -511,7 +511,7 @@ function NewRegionForm({
     display: "inline-flex",
     alignItems: "center",
     gap: 8,
-    fontSize: 12,
+    fontSize: "var(--text-xs)",
     color: "var(--admin-text)",
     cursor: "pointer",
   };

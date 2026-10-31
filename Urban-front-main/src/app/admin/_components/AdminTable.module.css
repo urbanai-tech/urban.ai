@@ -1,7 +1,7 @@
 .caption.caption {
   padding: 12px 16px;
   text-align: left;
-  font-size: 11px;
+  font-size: var(--text-xs);
   letter-spacing: 2px;
   text-transform: uppercase;
   color: var(--admin-text-muted);
@@ -28,7 +28,7 @@
 .table.table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--admin-text);
 }
 
@@ -47,7 +47,7 @@
 .th.th {
   padding: 12px 16px;
   text-align: left;
-  font-size: 10px;
+  font-size: var(--text-xs);
   letter-spacing: 2px;
   text-transform: uppercase;
   color: var(--admin-text-muted);

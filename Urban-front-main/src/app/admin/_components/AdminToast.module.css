@@ -34,7 +34,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--admin-text);
   box-shadow: 0 8px 24px var(--admin-backdrop);
 }

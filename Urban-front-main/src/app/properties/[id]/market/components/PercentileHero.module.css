@@ -7,7 +7,7 @@
 }
 
 .heroHeadline.heroHeadline {
-  font-size: clamp(64px, 9vw, 96px);
+  font-size: var(--text-display-lg);
   line-height: 0.95;
   color: var(--app-text);
   margin: 0;
@@ -19,7 +19,7 @@
 }
 
 .heroDescription.heroDescription {
-  font-size: 16px;
+  font-size: var(--text-md);
   line-height: 1.55;
   color: var(--app-text-muted);
   max-width: 720px;
@@ -50,7 +50,7 @@
   border: 1px solid var(--app-divider-strong);
   border-radius: 999px;
   color: var(--app-text-muted);
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 600;
   letter-spacing: 0.3px;
   white-space: nowrap;

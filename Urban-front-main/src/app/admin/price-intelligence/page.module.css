@@ -10,7 +10,7 @@
 
 .propertySubtitle.propertySubtitle {
   margin: 4px 0 0;
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--admin-text-muted);
 }
 
@@ -26,7 +26,7 @@
 }
 
 .jobName.jobName {
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--admin-text);
 }
 
@@ -55,7 +55,7 @@
 
 .healthLabel.healthLabel {
   margin: 4px 0 0;
-  font-size: 20px;
+  font-size: var(--text-xl);
   font-weight: 600;
 }
 
@@ -78,7 +78,7 @@
 }
 
 .alertMessage.alertMessage {
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--admin-text-muted);
   line-height: 1.55;
 }
@@ -110,7 +110,7 @@
 
 .queueNote.queueNote {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--admin-text-muted);
   line-height: 1.5;
 }
@@ -156,7 +156,7 @@
   margin: 0;
   padding-left: 18px;
   color: var(--admin-text-muted);
-  font-size: 12px;
+  font-size: var(--text-xs);
   line-height: 1.7;
 }
 
@@ -186,14 +186,14 @@
 
 .shortcutLabel.shortcutLabel {
   display: block;
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 600;
 }
 
 .shortcutHint.shortcutHint {
   display: block;
   margin-top: 6px;
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--admin-text-muted);
   line-height: 1.45;
 }
@@ -206,7 +206,7 @@
   margin: 0;
   padding-left: 18px;
   color: var(--admin-text-muted);
-  font-size: 13px;
+  font-size: var(--text-sm);
   line-height: 1.7;
 }
 
@@ -217,7 +217,7 @@
 
 .inlineStatValue.inlineStatValue {
   margin: 8px 0 0;
-  font-size: 24px;
+  font-size: var(--text-2xl);
   font-weight: 600;
   color: var(--admin-text);
 }
@@ -234,12 +234,12 @@
   align-items: center;
   gap: 8px;
   color: var(--admin-text-muted);
-  font-size: 13px;
+  font-size: var(--text-sm);
 }
 
 .statusLineValue.statusLineValue {
   color: var(--admin-text);
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 600;
   text-align: right;
 }
@@ -252,12 +252,12 @@
 }
 
 .barRowLabel.barRowLabel {
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--admin-text);
 }
 
 .smallMuted.smallMuted {
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--admin-text-muted);
 }
 
@@ -270,7 +270,7 @@
 
 .subText.subText {
   margin: 6px 0 0;
-  font-size: 11px;
+  font-size: var(--text-xs);
   color: var(--admin-text-dim);
 }
 
@@ -286,14 +286,14 @@
 
 .jobError.jobError {
   margin: 6px 0 0;
-  font-size: 11px;
+  font-size: var(--text-xs);
   color: var(--admin-danger);
   line-height: 1.4;
 }
 
 .quietEmpty.quietEmpty {
   color: var(--admin-text-muted);
-  font-size: 13px;
+  font-size: var(--text-sm);
   line-height: 1.55;
 }
 

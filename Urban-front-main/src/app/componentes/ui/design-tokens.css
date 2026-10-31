@@ -1,9 +1,10 @@
+/* Família única (DS-10): Archivo (OFL) no lugar da Artegra Sans Extended, via --font-brand. */
 .font-press {
-  font-family: var(--font-poppins), 'Poppins', sans-serif !important;
+  font-family: var(--font-brand) !important;
 }
 
 * {
-  font-family: var(--font-poppins), 'Poppins', sans-serif !important;
+  font-family: var(--font-brand) !important;
 }
 
 /* design-tokens:generated themes:start */
@@ -350,7 +351,7 @@
 .urban-eyebrow {
   font-family: var(--font-brand) !important;
   font-weight: 600;
-  font-size: 12px;
+  font-size: var(--text-xs);
   letter-spacing: 4px;
   text-transform: uppercase;
   color: var(--theme-public-accent);
@@ -442,13 +443,13 @@
   --app-text-muted: var(--theme-app-text-muted);
   --app-topbar-height: 52px;
   --app-touch-target: 44px;
-  --app-type-body: clamp(0.9375rem, 0.9rem + 0.2vw, 1rem);
+  --app-type-body: 1rem;
   --app-type-caption: 0.75rem;
-  --app-type-footnote: 0.8125rem;
-  --app-type-headline: clamp(1rem, 0.95rem + 0.25vw, 1.0625rem);
-  --app-type-large-title: clamp(2rem, 1.6rem + 1.8vw, 2.75rem);
-  --app-type-title-1: clamp(1.75rem, 1.5rem + 1.2vw, 2.25rem);
-  --app-type-title-2: clamp(1.375rem, 1.2rem + 0.8vw, 1.625rem);
+  --app-type-footnote: 0.875rem;
+  --app-type-headline: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+  --app-type-large-title: clamp(1.75rem, 1.4rem + 1.8vw, 2.5rem);
+  --app-type-title-1: clamp(1.5rem, 1.3rem + 1.2vw, 2rem);
+  --app-type-title-2: clamp(1.25rem, 1.1rem + 0.8vw, 1.5rem);
   --app-type-title-3: clamp(1.125rem, 1.05rem + 0.4vw, 1.25rem);
   --app-warning: var(--theme-app-warning);
   --app-warning-border: var(--theme-app-warning-border);
@@ -480,7 +481,7 @@
 .urban-app .urban-app-eyebrow {
   font-family: var(--font-brand) !important;
   font-weight: 600;
-  font-size: 11px;
+  font-size: var(--text-xs);
   letter-spacing: 3px;
   text-transform: uppercase;
   color: var(--app-accent);
@@ -490,7 +491,7 @@
 .urban-app .urban-app-eyebrow-muted {
   font-family: var(--font-brand) !important;
   font-weight: 600;
-  font-size: 11px;
+  font-size: var(--text-xs);
   letter-spacing: 3px;
   text-transform: uppercase;
   color: var(--app-text-muted);
@@ -585,7 +586,7 @@
 /* Mensagem de erro inline de formulário (ligada ao campo por aria-describedby). */
 .urban-form-error {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--text-sm);
   line-height: 1.5;
   font-weight: 500;
   color: var(--app-danger);
@@ -677,7 +678,7 @@
 .urban-admin .urban-admin-display-hero {
   font-family: var(--font-display) !important;
   font-stretch: var(--font-display-stretch);
-  font-size: clamp(40px, 5vw, 64px);
+  font-size: var(--text-display-md);
   line-height: 1;
   letter-spacing: -1px;
   font-weight: 700;
@@ -688,7 +689,7 @@
 .urban-admin .urban-admin-display-md {
   font-family: var(--font-display) !important;
   font-stretch: var(--font-display-stretch);
-  font-size: clamp(30px, 4vw, 44px);
+  font-size: var(--text-title);
   line-height: 1.05;
   letter-spacing: -0.5px;
   font-weight: 700;
@@ -699,7 +700,7 @@
 .urban-admin .urban-admin-display-sm {
   font-family: var(--font-display) !important;
   font-stretch: var(--font-display-stretch);
-  font-size: 26px;
+  font-size: var(--text-2xl);
   line-height: 1.1;
   letter-spacing: -0.3px;
   font-weight: 700;
@@ -711,7 +712,7 @@
 .urban-admin .urban-admin-eyebrow {
   font-family: var(--font-brand) !important;
   font-weight: 600;
-  font-size: 11px;
+  font-size: var(--text-xs);
   letter-spacing: 3px;
   text-transform: uppercase;
   color: var(--admin-accent);
@@ -721,7 +722,7 @@
 .urban-admin .urban-admin-eyebrow-muted {
   font-family: var(--font-brand) !important;
   font-weight: 600;
-  font-size: 11px;
+  font-size: var(--text-xs);
   letter-spacing: 3px;
   text-transform: uppercase;
   color: var(--admin-text-muted);
@@ -845,7 +846,7 @@
   gap: 12px;
   padding: 10px 16px;
   color: var(--admin-text-muted);
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 500;
   text-decoration: none;
   border-left: 2px solid transparent;
@@ -875,7 +876,7 @@
 }
 
 .urban-admin .urban-admin-sidebar-section {
-  font-size: 10px;
+  font-size: var(--text-xs);
   letter-spacing: 3px;
   text-transform: uppercase;
   color: var(--admin-text-dim);

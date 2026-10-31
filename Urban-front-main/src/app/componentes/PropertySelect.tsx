@@ -344,7 +344,7 @@ function createSelectStyles(maxWidth: number | string): StylesConfig<Option, fal
     placeholder: (provided) => ({
       ...provided,
       color: uiVar.textMuted,
-      fontSize: 13,
+      fontSize: "var(--text-sm)",
       fontWeight: 600,
       whiteSpace: "nowrap",
       overflow: "hidden",
@@ -390,7 +390,7 @@ function createSelectStyles(maxWidth: number | string): StylesConfig<Option, fal
     noOptionsMessage: (provided) => ({
       ...provided,
       color: uiVar.textMuted,
-      fontSize: 13,
+      fontSize: "var(--text-sm)",
     }),
   };
 }
@@ -410,7 +410,7 @@ const valuePrimaryStyle: React.CSSProperties = {
   textOverflow: "ellipsis",
   whiteSpace: "nowrap",
   color: uiVar.text,
-  fontSize: 13,
+  fontSize: "var(--text-sm)",
   fontWeight: 750,
   lineHeight: 1.2,
 };
@@ -422,7 +422,7 @@ const valueSecondaryStyle: React.CSSProperties = {
   textOverflow: "ellipsis",
   whiteSpace: "nowrap",
   color: uiVar.textMuted,
-  fontSize: 11,
+  fontSize: "var(--text-xs)",
   lineHeight: 1.15,
 };
 
@@ -439,7 +439,7 @@ const menuPrimaryStyle: React.CSSProperties = {
   textOverflow: "ellipsis",
   whiteSpace: "nowrap",
   color: uiVar.text,
-  fontSize: 14,
+  fontSize: "var(--text-sm)",
   fontWeight: 750,
   lineHeight: 1.25,
 };
@@ -451,7 +451,7 @@ const menuSecondaryStyle: React.CSSProperties = {
   textOverflow: "ellipsis",
   whiteSpace: "nowrap",
   color: uiVar.textMuted,
-  fontSize: 12,
+  fontSize: "var(--text-xs)",
   lineHeight: 1.2,
 };
 
