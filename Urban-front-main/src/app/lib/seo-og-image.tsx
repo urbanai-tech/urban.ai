@@ -36,11 +36,11 @@ async function loadLogoDataUri(): Promise<string | null> {
   }
 }
 
-/** Archivo (OFL) estático gerado do variável do site; satori não lê woff2. */
+/** Archivo (OFL) estático em public/og, gerado do variável do site (satori não lê woff2). */
 async function loadFont(file: string): Promise<ArrayBuffer | null> {
   try {
-    const res = await fetch(new URL(`../../fonts/archivo/${file}`, import.meta.url));
-    return res.ok ? await res.arrayBuffer() : null;
+    const data = await readFile(path.join(process.cwd(), "public/og", file));
+    return data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength) as ArrayBuffer;
   } catch {
     return null;
   }
