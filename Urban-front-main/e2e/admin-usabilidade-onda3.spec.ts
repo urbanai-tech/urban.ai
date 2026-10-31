@@ -116,8 +116,8 @@ test.describe('Admin usabilidade (UX-19)', () => {
     for (const title of ['Operação', 'Clientes', 'Receita', 'Dados e eventos', 'Sistema']) {
       await expect(nav.getByRole('button', { name: title })).toBeVisible();
     }
-    // Todas as rotas continuam presentes (29 itens).
-    await expect(nav.getByRole('link')).toHaveCount(29);
+    // Todas as rotas continuam presentes (28 itens: Regiões virou aba de Cobertura de eventos).
+    await expect(nav.getByRole('link')).toHaveCount(28);
 
     const clientes = nav.getByRole('button', { name: 'Clientes' });
     await expect(clientes).toHaveAttribute('aria-expanded', 'true');

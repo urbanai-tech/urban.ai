@@ -83,6 +83,132 @@
   border-bottom: 1px solid var(--admin-divider);
 }
 
+/* KPIs dentro de um card: o card já delimita, sem filetes. */
+.urban-admin .ec-kpis.ec-kpis-flat {
+  border: 0;
+  margin-bottom: 16px;
+}
+
+.urban-admin .ec-toolbar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.urban-admin .ec-select-shell {
+  min-width: 240px;
+}
+
+.urban-admin .ec-subsection {
+  margin-top: 32px;
+}
+
+.urban-admin .ec-reference {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.urban-admin .ec-verdict {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.urban-admin .ec-link-button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.urban-admin .ec-link-button:focus-visible {
+  outline: 2px solid var(--admin-accent);
+  outline-offset: 2px;
+}
+
+.urban-admin .ec-event-name {
+  margin: 0 0 2px;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--admin-text);
+  word-break: break-word;
+}
+
+.urban-admin .ec-dist {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.urban-admin .ec-dist-row {
+  display: grid;
+  grid-template-columns: 140px minmax(0, 1fr) 64px;
+  align-items: center;
+  gap: 16px;
+}
+
+.urban-admin .ec-dist-label {
+  font-size: var(--text-sm);
+  color: var(--admin-text-muted);
+}
+
+.urban-admin .ec-dist-count {
+  text-align: right;
+}
+
+.urban-admin .ec-bar-resched {
+  fill: var(--admin-warning);
+}
+
+.urban-admin .ec-bar-cancel {
+  fill: var(--admin-danger);
+}
+
+.urban-admin .ec-bar-possible {
+  fill: var(--admin-text-muted);
+}
+
+.urban-admin .ec-legend {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-sm);
+  color: var(--admin-text-muted);
+}
+
+.urban-admin .ec-swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 6px;
+  border-radius: 2px;
+}
+
+.urban-admin .ec-swatch-resched {
+  background: var(--admin-warning);
+}
+
+.urban-admin .ec-swatch-cancel {
+  background: var(--admin-danger);
+}
+
+.urban-admin .ec-swatch-possible {
+  background: var(--admin-text-muted);
+}
+
 .urban-admin .ec-chart-wrap {
   overflow-x: auto;
 }
@@ -216,6 +342,14 @@
   .urban-admin .ec-page,
   .urban-admin .ec-error {
     padding: 24px 16px;
+  }
+
+  .urban-admin .ec-dist-row {
+    grid-template-columns: minmax(0, 1fr) 48px;
+  }
+
+  .urban-admin .ec-dist-row .ec-dist-label {
+    grid-column: 1 / -1;
   }
 
   .urban-admin .ec-section {

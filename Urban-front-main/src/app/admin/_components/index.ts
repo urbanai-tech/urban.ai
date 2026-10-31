@@ -26,4 +26,6 @@ export { AdminDrawer } from "./AdminDrawer";
 export { AdminConfirmDialog } from "./AdminConfirmDialog";
 export { AdminToastProvider, useAdminToast } from "./AdminToast";
 export { AdminSwitch } from "./AdminSwitch";
+export { AdminTabs, AdminTabPanel } from "./AdminTabs";
+export type { AdminTabItem } from "./AdminTabs";
 export * as Icons from "./Icons";

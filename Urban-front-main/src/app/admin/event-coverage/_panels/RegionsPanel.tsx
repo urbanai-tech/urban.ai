@@ -11,9 +11,8 @@ import {
   resetStaleEnrichment,
   type CoverageRegion,
   type CoverageStats,
-} from "../../service/api";
+} from "../../../service/api";
 import {
-  AdminSectionHeader,
   AdminButton,
   AdminMetricCard,
   AdminTable,
@@ -27,12 +26,13 @@ import {
   AdminPageLoading,
   useAdminToast,
   Icons,
-} from "../_components";
-import { statusLabel } from "../_lib/status-labels";
-import styles from "./page.module.css";
+} from "../../_components";
+import { statusLabel } from "../../_lib/status-labels";
+import styles from "./RegionsPanel.module.css";
 
 /**
- * /admin/coverage — gerencia áreas de cobertura geográfica do motor de eventos.
+ * Aba "Regiões" de /admin/event-coverage (antes a página /admin/coverage, que agora redireciona):
+ * gerencia áreas de cobertura geográfica do motor de eventos.
  *
  * Migrado para design system admin (.urban-admin):
  *  - "Testar ponto" e "Nova região" viram drawers laterais.
@@ -41,7 +41,7 @@ import styles from "./page.module.css";
  *  - Tabela com AdminTable + ações (delete) com Icons.Trash via AdminConfirmDialog.
  *  - alert()/confirm() → toast/dialog.
  */
-export default function CoverageAdminPage() {
+export default function RegionsPanel() {
   const [regions, setRegions] = useState<CoverageRegion[]>([]);
   const [stats, setStats] = useState<CoverageStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -129,7 +129,7 @@ export default function CoverageAdminPage() {
 
   if (error) {
     return (
-      <div className={styles.pageContainer}>
+      <div className={styles.panel}>
         <AdminEmptyState
           eyebrow="Erro"
           title="Falha ao carregar"
@@ -220,30 +220,29 @@ export default function CoverageAdminPage() {
   ];
 
   return (
-    <div className={styles.pageContainer}>
-      <AdminSectionHeader
-        eyebrow="ADMIN · COBERTURA"
-        title="Cobertura geográfica"
-        subtitle="Modelo híbrido — eventos entram no motor se estão dentro do raio de imóveis cadastrados OU dentro de uma região configurada aqui."
-        actions={
-          <>
-            <AdminButton
-              variant="secondary"
-              onClick={() => setShowCheck(true)}
-              leftIcon={<Icons.MapPin size={12} />}
-            >
-              Testar ponto
-            </AdminButton>
-            <AdminButton
-              variant="primary"
-              onClick={() => setShowNew(true)}
-              leftIcon={<Icons.Plus size={12} />}
-            >
-              Nova região
-            </AdminButton>
-          </>
-        }
-      />
+    <div className={styles.panel}>
+      <div className={styles.toolbar}>
+        <p className={styles.toolbarText}>
+          Modelo híbrido: eventos entram no motor se estão dentro do raio de imóveis cadastrados OU dentro de uma
+          região configurada aqui.
+        </p>
+        <div className={styles.toolbarActions}>
+          <AdminButton
+            variant="secondary"
+            onClick={() => setShowCheck(true)}
+            leftIcon={<Icons.MapPin size={12} />}
+          >
+            Testar ponto
+          </AdminButton>
+          <AdminButton
+            variant="primary"
+            onClick={() => setShowNew(true)}
+            leftIcon={<Icons.Plus size={12} />}
+          >
+            Nova região
+          </AdminButton>
+        </div>
+      </div>
 
       {/* === KPIs === */}
       {stats && (

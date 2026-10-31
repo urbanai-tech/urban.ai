@@ -298,7 +298,7 @@ export default function AdminEventsPage() {
             <AdminButton variant="ghost" as="a" href="/admin/event-radar" rightIcon={<Icons.ArrowRight size={11} />}>
               Radar de demanda
             </AdminButton>
-            <AdminButton variant="ghost" as="a" href="/admin/coverage" rightIcon={<Icons.ArrowRight size={11} />}>
+            <AdminButton variant="ghost" as="a" href="/admin/event-coverage?tab=regioes" rightIcon={<Icons.ArrowRight size={11} />}>
               Cobertura
             </AdminButton>
             <AdminButton variant="ghost" as="a" href="/admin/collectors-health" rightIcon={<Icons.ArrowRight size={11} />}>
@@ -543,7 +543,7 @@ export default function AdminEventsPage() {
           spiders Scrapy + APIs oficiais (api-football, sp-cultura) + LLM
           extractors (Camada 2) + curadoria manual (admin-manual / admin-csv-import,
           Camada 3). Cobertura geográfica em{" "}
-          <code className={styles.footerCode}>/admin/coverage</code>.
+          <code className={styles.footerCode}>/admin/event-coverage</code> (aba Regiões).
         </p>
       </footer>
     </div>
