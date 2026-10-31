@@ -1,0 +1,141 @@
+/*
+ * AppButton. Visual, tamanhos e estados (hover/active/disabled) ficam aqui; o
+ * componente so injeta `style` quando o caller sobrescreve algo. Seletores com 3
+ * classes (0,3,0) seguram o mesmo terreno que o estilo inline segurava contra
+ * classes do caller (`.x.x`) e regras globais de tag.
+ */
+.button.button.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: var(--app-radius-control);
+  border-width: 1px;
+  border-style: solid;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  text-decoration: none;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 120ms, border-color 120ms, box-shadow 120ms, color 120ms, transform 80ms;
+}
+
+.sm.sm.sm {
+  height: 32px;
+  padding: 0 14px;
+  font-size: 13px;
+}
+
+.md.md.md {
+  height: 40px;
+  padding: 0 18px;
+  font-size: 14px;
+}
+
+.lg.lg.lg {
+  height: 48px;
+  padding: 0 24px;
+  font-size: 15px;
+}
+
+.fullWidth.fullWidth.fullWidth {
+  width: 100%;
+}
+
+/* Variantes (repouso). */
+.primary.primary.primary {
+  background: var(--app-accent);
+  color: var(--app-accent-contrast);
+  border-color: var(--app-accent);
+}
+
+.secondary.secondary.secondary {
+  background: transparent;
+  color: var(--app-text);
+  border-color: var(--app-divider-strong);
+}
+
+.ghost.ghost.ghost {
+  background: transparent;
+  color: var(--app-text-muted);
+  border-color: transparent;
+}
+
+.danger.danger.danger {
+  background: transparent;
+  color: var(--app-danger);
+  border-color: var(--app-danger-border);
+}
+
+/* Desabilitado/carregando: sem hover/active (os seletores abaixo excluem estes estados). */
+.button.button.button:disabled,
+.button.button.button[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* Active vale em qualquer ponteiro; hover so onde existe hover real (evita "hover colado" no toque). */
+.primary.primary.primary:active:not(:disabled):not([aria-disabled="true"]) {
+  background: var(--app-accent-hover);
+  border-color: var(--app-accent-hover);
+  box-shadow: none;
+  transform: translateY(0.5px);
+}
+
+.secondary.secondary.secondary:active:not(:disabled):not([aria-disabled="true"]) {
+  background: var(--app-accent-soft);
+  border-color: var(--app-accent);
+  transform: translateY(0.5px);
+}
+
+.ghost.ghost.ghost:active:not(:disabled):not([aria-disabled="true"]) {
+  color: var(--app-accent);
+  background: var(--app-accent-soft);
+  transform: translateY(0.5px);
+}
+
+.danger.danger.danger:active:not(:disabled):not([aria-disabled="true"]) {
+  background: var(--app-danger-soft);
+  border-color: var(--app-danger);
+  transform: translateY(0.5px);
+}
+
+@media (hover: hover) {
+  .primary.primary.primary:hover:not(:disabled):not([aria-disabled="true"]) {
+    background: var(--app-accent-hover);
+    border-color: var(--app-accent-hover);
+    box-shadow: 0 2px 8px var(--app-accent-shadow);
+    transform: translateY(-1px);
+  }
+
+  .secondary.secondary.secondary:hover:not(:disabled):not([aria-disabled="true"]) {
+    background: var(--app-accent-soft);
+    border-color: var(--app-accent-border);
+  }
+
+  .ghost.ghost.ghost:hover:not(:disabled):not([aria-disabled="true"]) {
+    color: var(--app-accent);
+  }
+
+  .ghost.ghost.ghost:hover:not(:disabled):not([aria-disabled="true"]) > span {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .danger.danger.danger:hover:not(:disabled):not([aria-disabled="true"]) {
+    background: var(--app-danger-soft);
+    border-color: var(--app-danger);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button.button.button {
+    transition: none;
+  }
+
+  .button.button.button:hover,
+  .button.button.button:active {
+    transform: none !important;
+  }
+}
