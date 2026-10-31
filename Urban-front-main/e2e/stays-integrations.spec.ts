@@ -1,5 +1,5 @@
 import { expect, test, type Page, type Route } from '@playwright/test';
-import { acceptCookieConsent } from './test-helpers';
+import { acceptCookieConsent, gotoHydrated } from './test-helpers';
 
 /**
  * /settings/integrations com a API Stays 100% mockada (nenhuma conta real).
@@ -173,7 +173,7 @@ test.describe('Stays integrations settings', () => {
     const state = newState();
     await mockStays(page, state);
 
-    await page.goto('/settings/integrations');
+    await gotoHydrated(page, '/settings/integrations');
     await expect(page.getByRole('heading', { name: /Conex.o com a Stays/i })).toBeVisible();
     await expect(page.getByText('Escrita desligada neste ambiente').first()).toBeVisible();
 
@@ -211,7 +211,7 @@ test.describe('Stays integrations settings', () => {
     });
     await mockStays(page, state);
 
-    await page.goto('/settings/integrations');
+    await gotoHydrated(page, '/settings/integrations');
     await expect(page.getByText(/Conectada e ativa/i)).toBeVisible();
     await expect(page.getByText('Escrita desligada neste ambiente')).toHaveCount(0);
 
@@ -268,7 +268,7 @@ test.describe('Stays integrations settings', () => {
     });
     await mockStays(page, state);
 
-    await page.goto('/settings/integrations');
+    await gotoHydrated(page, '/settings/integrations');
     await expect(page.getByText(/Conectada e ativa/i)).toBeVisible();
     await expect(page.getByText('Escrita desligada neste ambiente').first()).toBeVisible();
     await expect(page.getByRole('button', { name: 'Reverter' })).toBeDisabled();
