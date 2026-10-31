@@ -555,7 +555,8 @@ export function PortfolioCalendar({
               </header>
 
               <div
-                role="list"
+                role="group"
+                aria-label={`Dias de ${prop.name}`}
                 className={styles.mobileDayStrip}
               >
                 {prop.days.map((day) => {
@@ -569,7 +570,6 @@ export function PortfolioCalendar({
                       key={day.date}
                       type="button"
                       onClick={() => onDayClick?.(prop.propertyId, day.date)}
-                      role="listitem"
                       aria-label={`${fmtWeekday(day.date)} ${fmtDayMonth(day.date)}${
                         day.evento ? `, ${day.evento.nome}` : ""
                       }${isSelectedDay ? ", data selecionada" : ""}${

@@ -375,25 +375,8 @@ export function PricingRuleCard({
       variant={expanded ? "elevated" : "default"}
       className={rule.enabled ? `${styles.ruleCard} ${styles.ruleCardEnabled}` : styles.ruleCard}
     >
-      <div
-        role="button"
-        tabIndex={0}
-        aria-expanded={expanded}
-        aria-label={`${expanded ? "Recolher" : "Expandir"} regra: ${rule.label}`}
-        onClick={onToggleExpanded}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            onToggleExpanded();
-          }
-        }}
-        className={`urban-focus-ring ${styles.cardHeaderRow}`}
-      >
-        <div
-          onClick={(e) => e.stopPropagation()}
-          onKeyDown={(e) => e.stopPropagation()}
-          className={styles.switchWrap}
-        >
+      <div className={styles.cardHeaderRow}>
+        <div className={styles.switchWrap}>
           <Switch
             checked={rule.enabled}
             onChange={toggleEnabled}
@@ -402,46 +385,53 @@ export function PricingRuleCard({
           />
         </div>
 
-        <div className={styles.ruleInfo}>
-          <h3
-            className={styles.ruleTitle}
-          >
-            {rule.label}
-          </h3>
-          <p
-            className={styles.ruleDescription}
-          >
-            {rule.description}
-          </p>
-        </div>
-
-        <div
-          role="group"
-          aria-label="Mini-gráfico simulado da regra"
-          className={`${styles.miniChartGroup} ${rule.enabled ? styles.stateEnabled : styles.stateDimmed}`}
+        {/* O switch fica ao lado (não dentro) do botão de expandir: sem controle aninhado. */}
+        <button
+          type="button"
+          aria-expanded={expanded}
+          onClick={onToggleExpanded}
+          className={`urban-focus-ring ${styles.headerToggle}`}
         >
+          <div className={styles.ruleInfo}>
+            <h3
+              className={styles.ruleTitle}
+            >
+              {rule.label}
+            </h3>
+            <p
+              className={styles.ruleDescription}
+            >
+              {rule.description}
+            </p>
+          </div>
+
+          <div
+            aria-hidden="true"
+            className={`${styles.miniChartGroup} ${rule.enabled ? styles.stateEnabled : styles.stateDimmed}`}
+          >
+            <span
+              className={styles.simulatedBadge}
+            >
+              Simulado
+            </span>
+            <MiniChart deltas={deltas} />
+          </div>
+
           <span
-            className={styles.simulatedBadge}
+            aria-hidden="true"
+            className={`${styles.chevron} ${expanded ? styles.chevronOpen : styles.chevronClosed}`}
           >
-            Simulado
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <polyline
+                points="6 9 12 15 18 9"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
           </span>
-          <MiniChart deltas={deltas} />
-        </div>
-
-        <span
-          aria-hidden="true"
-          className={`${styles.chevron} ${expanded ? styles.chevronOpen : styles.chevronClosed}`}
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-            <polyline
-              points="6 9 12 15 18 9"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </span>
+        </button>
       </div>
 
       {expanded && (

@@ -141,6 +141,19 @@ export function AdrComparisonChart({
 
   const hovered = hoverIdx !== null ? geometry.points[hoverIdx] : null;
 
+  // Um único foco no gráfico; as setas percorrem os dias (as faixas do hover são só para mouse).
+  function moveWithKeyboard(event: React.KeyboardEvent) {
+    const last = geometry.points.length - 1;
+    const step = event.key === "ArrowRight" ? 1 : event.key === "ArrowLeft" ? -1 : 0;
+    if (event.key === "Home" || event.key === "End") {
+      event.preventDefault();
+      setHoverIdx(event.key === "Home" ? 0 : last);
+    } else if (step !== 0) {
+      event.preventDefault();
+      setHoverIdx((current) => Math.min(last, Math.max(0, (current ?? 0) + step)));
+    }
+  }
+
   // Resumo textual pra leitor de tela
   const last = geometry.points[geometry.points.length - 1];
   const first = geometry.points[0];
@@ -152,8 +165,21 @@ export function AdrComparisonChart({
         : `Sua diária média ficou estável em torno de ${formatBRL(last.yourAdr)} no período.`;
 
   return (
-    <div className={styles.chartWrapper}>
+    <div
+      className={styles.chartWrapper}
+      role="group"
+      tabIndex={0}
+      aria-label="Gráfico de diária média. Use as setas para esquerda e direita para ver cada dia."
+      onFocus={() => setHoverIdx((current) => current ?? 0)}
+      onBlur={() => setHoverIdx(null)}
+      onKeyDown={moveWithKeyboard}
+    >
       <p style={visuallyHiddenStyle}>{trendText}</p>
+      <p aria-live="polite" style={visuallyHiddenStyle}>
+        {hovered
+          ? `${formatDateLong(hovered.date)}: sua diária média ${formatBRL(hovered.yourAdr)}, média dos parecidos ${formatBRL(hovered.medianAdr)}`
+          : ""}
+      </p>
       <svg
         role="img"
         aria-label={`Gráfico comparativo de diária média, seu imóvel e imóveis parecidos, ${data.length} dias.`}
@@ -282,14 +308,7 @@ export function AdrComparisonChart({
               fill="transparent"
               onMouseEnter={() => setHoverIdx(i)}
               onMouseLeave={() => setHoverIdx(null)}
-              onFocus={() => setHoverIdx(i)}
-              onBlur={() => setHoverIdx(null)}
-              tabIndex={0}
-              // outline:none inline de propósito: a regra global :focus-visible tem mais
-              // especificidade que uma classe e faria o anel de foco aparecer.
               className={styles.hoverZone}
-              style={{ outline: "none" }}
-              aria-label={`${formatDateLong(p.date)} — sua diária média ${formatBRL(p.yourAdr)}, média dos parecidos ${formatBRL(p.medianAdr)}`}
             />
           );
         })}
