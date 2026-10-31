@@ -67,6 +67,10 @@ const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  // O botão fica sempre habilitado: ao tentar enviar, o que falta aparece inline
+  // (ligado aos campos por aria-describedby), no mesmo padrão do login.
+  const [attempted, setAttempted] = useState(false);
+  const [serverError, setServerError] = useState<{ message: string; email: boolean } | null>(null);
 
   // Hooks SEMPRE no topo. Gating depois.
   const checks: PasswordChecks = useMemo(
@@ -96,10 +100,23 @@ const Register = () => {
     return "Forte";
   }, [satisfiedCount]);
 
-  const canSubmit = useMemo(() => {
-    const allRulesOk = Object.values(checks).every(Boolean);
-    return !loading && allRulesOk && match && !!email && !!username && acceptedTerms;
-  }, [checks, match, email, username, loading, acceptedTerms]);
+  const allRulesOk = useMemo(() => Object.values(checks).every(Boolean), [checks]);
+
+  // Pendências que impedem o envio (vazio = pronto para enviar).
+  const missing = useMemo(() => {
+    const items: string[] = [];
+    if (!username.trim()) items.push("nome de usuário");
+    if (!email.trim()) items.push("e-mail");
+    if (!allRulesOk) items.push("senha que cumpra todas as regras");
+    if (!match) items.push("confirmação igual à senha");
+    if (!acceptedTerms) items.push("aceite dos Termos de Uso e da Política de Privacidade");
+    return items;
+  }, [username, email, allRulesOk, match, acceptedTerms]);
+
+  const summaryMessage =
+    attempted && missing.length > 0
+      ? `Para criar a conta, falta: ${missing.join(", ")}.`
+      : serverError?.message ?? null;
 
   // F8: durante prelaunch, /create vira waitlist em vez de signup tradicional.
   if (prelaunchLoading) {
@@ -141,7 +158,12 @@ const Register = () => {
   }
 
   const handleRegister = async () => {
-    if (!canSubmit) return;
+    if (loading) return;
+    setServerError(null);
+    if (missing.length > 0) {
+      setAttempted(true);
+      return;
+    }
     try {
       setLoading(true);
       // Senha em texto puro sob TLS; o hash é feito só no servidor (ADR 0025).
@@ -178,9 +200,10 @@ const Register = () => {
         router.push("/confirm-email");
       }, 1200);
     } catch (err: any) {
-      toast.error(
-        err.response?.data?.message || err.message || "Erro desconhecido.",
-      );
+      const message = err.response?.data?.message || err.message || "Erro desconhecido.";
+      // O erro fica também inline (o toast some sozinho); e-mail já usado marca o campo.
+      setServerError({ message, email: /e-?mail/i.test(String(message)) });
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -236,6 +259,7 @@ const Register = () => {
           />
 
           <form
+            noValidate
             onSubmit={(event) => {
               event.preventDefault();
               void handleRegister();
@@ -251,15 +275,26 @@ const Register = () => {
                 onChange={(e) => setUserName(e.target.value)}
                 placeholder="Seu usuário"
                 autoComplete="username"
+                error={attempted && !username.trim() ? "Informe um nome de usuário." : undefined}
                 leftAddon={<Icons.Sparkles size={13} />}
               />
               <AppInput
                 label="E-mail"
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (serverError?.email) setServerError(null);
+                }}
                 placeholder="Seu e-mail"
                 autoComplete="email"
+                error={
+                  attempted && !email.trim()
+                    ? "Informe seu e-mail."
+                    : serverError?.email
+                      ? serverError.message
+                      : undefined
+                }
                 leftAddon={<span className={styles.emailAddon}>@</span>}
               />
               <PasswordField
@@ -269,6 +304,7 @@ const Register = () => {
                 show={showPassword}
                 onToggle={() => setShowPassword((s) => !s)}
                 placeholder="Digite sua senha"
+                error={attempted && !allRulesOk ? "A senha ainda não cumpre todas as regras abaixo." : undefined}
               />
               <PasswordField
                 label="Confirmar senha"
@@ -287,7 +323,9 @@ const Register = () => {
                 error={
                   confirmPassword.length > 0 && !match
                     ? "As senhas não conferem."
-                    : undefined
+                    : attempted && confirmPassword.length === 0
+                      ? "Confirme a senha."
+                      : undefined
                 }
               />
             </div>
@@ -330,8 +368,9 @@ const Register = () => {
                 type="checkbox"
                 checked={acceptedTerms}
                 onChange={(e) => setAcceptedTerms(e.target.checked)}
-                required
                 aria-required="true"
+                aria-invalid={attempted && !acceptedTerms ? true : undefined}
+                aria-describedby={attempted && !acceptedTerms ? "create-error" : undefined}
               />
               <span>
                 Li e aceito os{" "}
@@ -354,13 +393,19 @@ const Register = () => {
               </span>
             </label>
 
+            {summaryMessage && (
+              <p id="create-error" role="alert" className={`urban-form-error ${styles.formError}`}>
+                {summaryMessage}
+              </p>
+            )}
+
             <AppButton
               type="submit"
               variant="primary"
               size="lg"
               fullWidth
-              disabled={!canSubmit}
               loading={loading}
+              aria-describedby={summaryMessage ? "create-error" : undefined}
               rightIcon={<Icons.ArrowRight size={14} />}
               className={styles.submitButton}
             >
