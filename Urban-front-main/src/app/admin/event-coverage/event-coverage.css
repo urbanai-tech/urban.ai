@@ -35,20 +35,20 @@
 }
 
 .urban-admin .ec-headline-number {
-  font-size: clamp(56px, 9vw, 88px);
+  font-size: var(--text-display-md);
   line-height: 1;
   font-weight: 700;
   color: var(--admin-text);
 }
 
 .urban-admin .ec-headline-target {
-  font-size: 16px;
+  font-size: var(--text-md);
   color: var(--admin-text-muted);
 }
 
 .urban-admin .ec-muted {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--text-sm);
   line-height: 1.5;
   color: var(--admin-text-muted);
 }
@@ -104,7 +104,7 @@
 
 .urban-admin .ec-axis-label {
   fill: var(--admin-text-muted);
-  font-size: 9px;
+  font-size: var(--text-xs);
 }
 
 .urban-admin .ec-quality {
@@ -120,7 +120,7 @@
 }
 
 .urban-admin .ec-quality-value {
-  font-size: 28px;
+  font-size: var(--text-3xl);
   font-weight: 600;
   color: var(--admin-text);
 }
@@ -165,7 +165,7 @@
 
 .urban-admin .ec-hint-title {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--text-sm);
   font-weight: 600;
   color: var(--admin-text);
 }
@@ -179,7 +179,7 @@
 
 .urban-admin .ec-link {
   color: var(--admin-accent);
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 600;
   text-decoration: none;
 }
@@ -190,7 +190,7 @@
 
 .urban-admin .ec-code {
   font-family: monospace;
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--admin-text-muted);
   word-break: break-all;
 }

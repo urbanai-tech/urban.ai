@@ -25,14 +25,14 @@
 .filterHelperText.filterHelperText {
   margin: 6px 0 0;
   color: var(--app-text-muted);
-  font-size: 11px;
+  font-size: var(--text-xs);
   line-height: 1.35;
 }
 
 .filterWarningText.filterWarningText {
   margin: 6px 0 0;
   color: var(--app-warning-text);
-  font-size: 11px;
+  font-size: var(--text-xs);
   line-height: 1.35;
 }
 
@@ -91,7 +91,7 @@
 .detailTitle.detailTitle {
   margin: 0;
   color: var(--app-text);
-  font-size: 24px;
+  font-size: var(--text-2xl);
   font-weight: 800;
   line-height: 1.2;
   letter-spacing: 0;
@@ -100,21 +100,21 @@
 .detailSubtitle.detailSubtitle {
   margin: 8px 0 0;
   color: var(--app-text-muted);
-  font-size: 13px;
+  font-size: var(--text-sm);
   line-height: 1.5;
 }
 
 .detailInterpretation.detailInterpretation {
   margin: 18px 0 0;
   color: var(--app-text);
-  font-size: 15px;
+  font-size: var(--text-md);
   line-height: 1.65;
 }
 
 .detailDerivedWarning.detailDerivedWarning {
   margin: 10px 0 0;
   color: var(--app-warning-text);
-  font-size: 12px;
+  font-size: var(--text-xs);
   line-height: 1.5;
 }
 
@@ -137,7 +137,7 @@
   border: 1px solid var(--app-divider-strong);
   color: var(--app-text);
   text-decoration: none;
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 700;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -151,13 +151,13 @@
 .simulatingStatusText.simulatingStatusText {
   margin: 10px 0 0;
   color: var(--app-text-muted);
-  font-size: 12px;
+  font-size: var(--text-xs);
 }
 
 .simulationErrorText.simulationErrorText {
   margin: 10px 0 0;
   color: var(--app-danger);
-  font-size: 12px;
+  font-size: var(--text-xs);
   line-height: 1.45;
 }
 
@@ -176,7 +176,7 @@
 .loadingMessage.loadingMessage {
   margin: 12px 0 0;
   color: var(--app-text-muted);
-  font-size: 13px;
+  font-size: var(--text-sm);
 }
 
 .loadingPanelsGrid.loadingPanelsGrid {
@@ -196,7 +196,7 @@
   display: block;
   margin-bottom: 6px;
   color: var(--app-text-muted);
-  font-size: 11px;
+  font-size: var(--text-xs);
   font-weight: 600;
   letter-spacing: 1.5px;
   text-transform: uppercase;
@@ -261,7 +261,7 @@
 .technicalDetails.technicalDetails {
   margin: 10px 0 0;
   color: var(--app-text-muted);
-  font-size: 12px;
+  font-size: var(--text-xs);
 }
 
 .technicalDetails dl {
@@ -281,6 +281,6 @@
   display: grid;
   gap: 6px;
   color: var(--app-text);
-  font-size: 14px;
+  font-size: var(--text-sm);
   line-height: 1.5;
 }

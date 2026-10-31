@@ -363,7 +363,7 @@ const styles = `
     display: block;
     margin-top: 10px;
     color: var(--app-accent);
-    font-size: 34px;
+    font-size: var(--text-4xl);
     font-weight: 850;
     line-height: 1;
   }
@@ -372,7 +372,7 @@ const styles = `
     display: block;
     margin-top: 10px;
     color: var(--app-text-muted);
-    font-size: 14px;
+    font-size: var(--text-sm);
     line-height: 1.45;
   }
 
@@ -393,7 +393,7 @@ const styles = `
   .settings-note strong {
     margin: 0;
     color: var(--app-text);
-    font-size: 18px;
+    font-size: var(--text-lg);
     line-height: 1.25;
   }
 
@@ -401,12 +401,12 @@ const styles = `
   .settings-note p {
     margin: 6px 0 0;
     color: var(--app-text-muted);
-    font-size: 13px;
+    font-size: var(--text-sm);
     line-height: 1.55;
   }
 
   .settings-note.compact strong {
-    font-size: 15px;
+    font-size: var(--text-md);
   }
 
   .preset-grid {
@@ -435,7 +435,7 @@ const styles = `
   .preset-card span {
     display: block;
     color: var(--app-text-muted);
-    font-size: 12px;
+    font-size: var(--text-xs);
     font-weight: 800;
     letter-spacing: 1px;
     text-transform: uppercase;
@@ -445,13 +445,13 @@ const styles = `
     display: block;
     margin-top: 10px;
     color: var(--app-text);
-    font-size: 22px;
+    font-size: var(--text-2xl);
   }
 
   .preset-card p {
     margin: 10px 0 0;
     color: var(--app-text-muted);
-    font-size: 12px;
+    font-size: var(--text-xs);
     line-height: 1.45;
   }
 

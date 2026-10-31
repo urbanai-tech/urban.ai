@@ -18,7 +18,7 @@
   background: var(--app-accent);
   color: var(--theme-app-legacy-white);
   text-decoration: none;
-  font-size: 14px;
+  font-size: var(--text-sm);
   font-weight: 650;
   outline: none;
   outline-offset: 2px;

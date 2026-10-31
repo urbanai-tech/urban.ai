@@ -1,6 +1,6 @@
 .loadingText.loadingText {
   color: var(--app-text-muted);
-  font-size: 14px;
+  font-size: var(--text-sm);
 }
 
 .credentialsPath.credentialsPath {
@@ -31,7 +31,7 @@
 }
 
 .consentLabel.consentLabel {
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--app-text);
   line-height: 1.55;
   cursor: pointer;
@@ -45,7 +45,7 @@
 
 .consentNote.consentNote {
   margin-top: 8px;
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--app-text-muted);
 }
 
@@ -55,7 +55,7 @@
   border-radius: 8px;
   padding: 10px 14px;
   color: var(--app-danger);
-  font-size: 13px;
+  font-size: var(--text-sm);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -87,7 +87,7 @@
 }
 
 .statusTitle.statusTitle {
-  font-size: 18px;
+  font-size: var(--text-lg);
   font-weight: 600;
   color: var(--app-text);
   margin: 4px 0 0;
@@ -95,7 +95,7 @@
 }
 
 .statusSyncText.statusSyncText {
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--app-text-muted);
   margin: 2px 0 0;
 }
@@ -124,7 +124,7 @@
   color: var(--app-danger);
   border-radius: 8px;
   padding: 10px 12px;
-  font-size: 13px;
+  font-size: var(--text-sm);
 }
 
 .previewResultGrid.previewResultGrid {
@@ -157,7 +157,7 @@
 }
 
 .listingsHeading.listingsHeading {
-  font-size: 20px;
+  font-size: var(--text-xl);
   font-weight: 600;
   color: var(--app-text);
   margin: 8px 0 0;
@@ -186,21 +186,21 @@
 }
 
 .disconnectTitle.disconnectTitle {
-  font-size: 14px;
+  font-size: var(--text-sm);
   font-weight: 600;
   color: var(--app-text);
   margin: 0;
 }
 
 .disconnectDescription.disconnectDescription {
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--app-text-muted);
   margin: 4px 0 0;
   max-width: 480px;
 }
 
 .disconnectStaysTitle.disconnectStaysTitle {
-  font-size: 18px;
+  font-size: var(--text-lg);
   font-weight: 600;
   margin: 0;
   color: var(--app-text);
@@ -208,7 +208,7 @@
 
 .disconnectDialogText.disconnectDialogText {
   margin-top: 10px;
-  font-size: 14px;
+  font-size: var(--text-sm);
   color: var(--app-text-muted);
   line-height: 1.55;
 }
@@ -230,21 +230,21 @@
 
 .previewStatLabel.previewStatLabel {
   margin: 0;
-  font-size: 11px;
+  font-size: var(--text-xs);
   color: var(--app-text-muted);
   font-weight: 600;
 }
 
 .previewStatValue.previewStatValue {
   margin: 4px 0 0;
-  font-size: 14px;
+  font-size: var(--text-sm);
   font-weight: 700;
 }
 
 .previewIssuePanel.previewIssuePanel {
   border-radius: 8px;
   padding: 10px 12px;
-  font-size: 13px;
+  font-size: var(--text-sm);
   line-height: 1.45;
 }
 

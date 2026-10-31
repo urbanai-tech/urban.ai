@@ -2,18 +2,18 @@
   font-weight: 600;
   color: var(--admin-text);
   margin: 0;
-  font-size: 13px;
+  font-size: var(--text-sm);
 }
 
 .propertyId.propertyId {
-  font-size: 11px;
+  font-size: var(--text-xs);
   color: var(--admin-text-dim);
   margin: 2px 0 0;
   font-family: monospace;
 }
 
 .cellMuted.cellMuted {
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--admin-text-muted);
 }
 
@@ -24,7 +24,7 @@
 }
 
 .locationText.locationText {
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--admin-text);
 }
 
@@ -74,7 +74,7 @@
 }
 
 .footerText.footerText {
-  font-size: 14px;
+  font-size: var(--text-sm);
   color: var(--admin-text-muted);
   margin: 0;
   line-height: 1.6;

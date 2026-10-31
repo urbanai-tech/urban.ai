@@ -4,7 +4,7 @@
   display: flex;
   background: var(--app-bg);
   overflow: hidden;
-  font-family: Inter, system-ui, sans-serif;
+  font-family: var(--font-brand);
 }
 
 /* ---------- Painel esquerdo (manifesto editorial) ---------- */
@@ -56,7 +56,7 @@
 }
 
 .heroEyebrow {
-  font-size: 11px;
+  font-size: var(--text-xs);
   letter-spacing: 4px;
   text-transform: uppercase;
   color: var(--theme-public-accent);
@@ -70,12 +70,12 @@
 }
 
 .heroTitle {
-  /* Archivo é larga: "QUE A CIDADE" (~9em) precisa caber numa linha no painel
+  /* Archivo é larga: "QUE A CIDADE" (~10em com peso 800) precisa caber numa linha no painel
      (50vw - 128px de padding); o teto em vh evita estourar a altura (DS-01). */
-  font-size: clamp(32px, min(calc((50vw - 128px) / 9), 15.5vh), 140px);
-  line-height: 0.88;
+  font-size: clamp(32px, min(calc((50vw - 128px) / 10), 14vh), 140px);
+  line-height: 1;
   letter-spacing: 0;
-  font-weight: 400;
+  font-weight: var(--font-weight-display);
   margin: 0;
   text-transform: uppercase;
 }
@@ -92,7 +92,7 @@
 }
 
 .heroLead {
-  font-size: 18px;
+  font-size: var(--text-lg);
   line-height: 1.65;
   font-weight: 300;
   color: var(--theme-public-muted);
@@ -109,7 +109,7 @@
   border-top: 1px solid var(--theme-public-soft);
   display: flex;
   justify-content: space-between;
-  font-size: 11px;
+  font-size: var(--text-xs);
   letter-spacing: 2px;
   text-transform: uppercase;
   color: var(--theme-public-muted);
@@ -152,10 +152,10 @@
 }
 
 .formTitle {
-  font-size: 48px;
+  font-size: var(--text-display-sm);
   line-height: 1;
   letter-spacing: 0;
-  font-weight: 400;
+  font-weight: var(--font-weight-display);
   margin: 0;
   text-transform: uppercase;
   color: var(--app-text);
@@ -172,7 +172,7 @@
   border-radius: 8px;
   background: var(--app-warning-soft);
   color: var(--app-warning-text);
-  font-size: 14px;
+  font-size: var(--text-sm);
   font-weight: 500;
   line-height: 1.5;
 }
@@ -182,7 +182,7 @@
 }
 
 .formLead {
-  font-size: 14px;
+  font-size: var(--text-sm);
   color: var(--app-text-muted);
   line-height: 1.6;
   margin: 16px 0 36px;
@@ -200,7 +200,7 @@
 
 .fieldLabel {
   display: block;
-  font-size: 11px;
+  font-size: var(--text-xs);
   font-weight: 600;
   letter-spacing: 2px;
   text-transform: uppercase;
@@ -220,11 +220,11 @@
   border: none;
   border-bottom: 1.5px solid var(--app-divider-strong);
   color: var(--app-text);
-  font-size: 16px;
+  font-size: var(--text-md);
   font-weight: 400;
   outline: none;
   transition: border-color 150ms;
-  font-family: Inter, system-ui, sans-serif;
+  font-family: var(--font-brand);
 }
 
 .fieldInputPassword {
@@ -257,7 +257,7 @@
   justify-content: space-between;
   align-items: center;
   gap: 12px;
-  font-size: 13px;
+  font-size: var(--text-sm);
 }
 
 .linkMuted.linkMuted {
@@ -284,7 +284,7 @@
   color: var(--theme-page-bg);
   border: none;
   border-radius: 12px;
-  font-size: 15px;
+  font-size: var(--text-md);
   font-weight: 600;
   letter-spacing: 0.3px;
   cursor: pointer;
@@ -293,7 +293,7 @@
   justify-content: center;
   gap: 10px;
   transition: background 180ms, transform 80ms;
-  font-family: Inter, system-ui, sans-serif;
+  font-family: var(--font-brand);
   box-shadow: none;
 }
 
@@ -303,7 +303,7 @@
 
 .secureNote {
   margin-top: 40px;
-  font-size: 11px;
+  font-size: var(--text-xs);
   letter-spacing: 2px;
   text-transform: uppercase;
   color: var(--app-text-dim);

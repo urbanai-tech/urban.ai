@@ -6,23 +6,23 @@
 
 .pushPriceCell.pushPriceCell {
   font-family: monospace;
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--admin-text);
 }
 
 .pushPreviousPrice.pushPreviousPrice {
   font-family: monospace;
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--admin-text-muted);
 }
 
 .pushOrigin.pushOrigin {
-  font-size: 11px;
+  font-size: var(--text-xs);
   color: var(--admin-text-dim);
 }
 
 .pushCreatedAt.pushCreatedAt {
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--admin-text-muted);
 }
 
@@ -39,7 +39,7 @@
 
 .heroDescription.heroDescription {
   margin-top: 12px;
-  font-size: 14px;
+  font-size: var(--text-sm);
   color: var(--admin-text-muted);
   line-height: 1.55;
 }
@@ -55,7 +55,7 @@
 
 .statCaption.statCaption {
   margin-top: 6px;
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--admin-text-muted);
 }
 
@@ -67,14 +67,14 @@
 
 .readinessTitle.readinessTitle {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 600;
   color: var(--admin-text);
 }
 
 .readinessDetail.readinessDetail {
   margin: 4px 0 0;
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--admin-text-muted);
 }
 
@@ -85,7 +85,7 @@
 }
 
 .missingEnvTag.missingEnvTag {
-  font-size: 10px;
+  font-size: var(--text-xs);
   font-family: monospace;
   color: var(--admin-warning);
   border: 1px solid color-mix(in srgb, var(--admin-warning) 30%, transparent);
@@ -102,7 +102,7 @@
 }
 
 .emptyHint.emptyHint {
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--admin-text-muted);
   margin: 0;
 }
@@ -140,7 +140,7 @@
   align-items: center;
   padding: 8px 0;
   border-bottom: 1px solid var(--admin-divider);
-  font-size: 13px;
+  font-size: var(--text-sm);
 }
 
 .accountStatus.accountStatus {
@@ -163,7 +163,7 @@
 }
 
 .pushesTitle.pushesTitle {
-  font-size: 20px;
+  font-size: var(--text-xl);
   font-weight: 600;
   color: var(--admin-text);
   margin: 8px 0 0;
@@ -232,7 +232,7 @@
   border-right: 1px solid var(--admin-divider);
   border-bottom: 2px solid transparent;
   color: var(--admin-text-muted);
-  font-size: 11px;
+  font-size: var(--text-xs);
   font-weight: 600;
   letter-spacing: 1.5px;
   text-transform: uppercase;

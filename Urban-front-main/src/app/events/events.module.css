@@ -40,7 +40,7 @@
   height: 32px;
   padding: 0 12px;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: var(--text-xs);
   font-weight: 700;
   cursor: pointer;
   min-height: 32px;
@@ -74,7 +74,7 @@
   padding: 0 12px;
   border: 0;
   border-radius: 6px;
-  font-size: 12px;
+  font-size: var(--text-xs);
   font-weight: 750;
   cursor: pointer;
   min-width: 0;
@@ -121,13 +121,13 @@
 .mapEmptyTitle.mapEmptyTitle {
   margin: 10px 0 4px;
   color: var(--app-text);
-  font-size: 15px;
+  font-size: var(--text-md);
   font-weight: 750;
 }
 
 .mapEmptyDescription.mapEmptyDescription {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--text-xs);
   line-height: 1.5;
 }
 
@@ -159,20 +159,20 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 12px;
+  font-size: var(--text-xs);
   font-weight: 800;
 }
 
 .mapPinScore.mapPinScore {
   flex-shrink: 0;
-  font-size: 11px;
+  font-size: var(--text-xs);
   font-weight: 850;
 }
 
 .mapPinMeta.mapPinMeta {
   display: block;
   margin-top: 3px;
-  font-size: 10px;
+  font-size: var(--text-xs);
   font-weight: 700;
   opacity: 0.82;
 }
@@ -230,14 +230,14 @@
 .missingGeoTitle.missingGeoTitle {
   margin: 0;
   color: var(--app-text);
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 800;
 }
 
 .missingGeoDescription.missingGeoDescription {
   margin: 4px 0 0;
   color: var(--app-text-muted);
-  font-size: 12px;
+  font-size: var(--text-xs);
   line-height: 1.45;
 }
 
@@ -264,7 +264,7 @@
 
 .eventItemName.eventItemName {
   display: block;
-  font-size: 12px;
+  font-size: var(--text-xs);
   font-weight: 800;
   overflow-wrap: anywhere;
 }
@@ -273,7 +273,7 @@
   display: block;
   margin-top: 3px;
   color: var(--app-text-muted);
-  font-size: 11px;
+  font-size: var(--text-xs);
 }
 
 .calendarDayList.calendarDayList {
@@ -292,7 +292,7 @@
 .dayGroupTitle.dayGroupTitle {
   margin: 0;
   color: var(--app-text);
-  font-size: 16px;
+  font-size: var(--text-md);
   font-weight: 750;
   letter-spacing: 0;
 }
@@ -319,7 +319,7 @@
 .calendarEventName.calendarEventName {
   display: block;
   color: var(--app-text);
-  font-size: 14px;
+  font-size: var(--text-sm);
   font-weight: 750;
   overflow-wrap: anywhere;
 }
@@ -327,7 +327,7 @@
 .calendarEventMeta.calendarEventMeta {
   display: block;
   color: var(--app-text-muted);
-  font-size: 12px;
+  font-size: var(--text-xs);
   margin-top: 3px;
 }
 
@@ -354,7 +354,7 @@
 .loadingMessage.loadingMessage {
   margin: 0;
   color: var(--app-text-muted);
-  font-size: 13px;
+  font-size: var(--text-sm);
 }
 
 .loadingSkeletonGrid.loadingSkeletonGrid {

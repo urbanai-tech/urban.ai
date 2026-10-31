@@ -25,14 +25,14 @@
 
 .successTitle {
   margin: 0;
-  font-size: 18px;
+  font-size: var(--text-lg);
   line-height: 1.35;
 }
 
 .successText {
   margin: 8px 0 0;
   color: var(--app-text-muted);
-  font-size: 14px;
+  font-size: var(--text-sm);
   line-height: 1.65;
 }
 
@@ -72,12 +72,12 @@
 
 .rulesTitle {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 650;
 }
 
 .strengthLabel {
-  font-size: 12px;
+  font-size: var(--text-xs);
 }
 
 .strengthStrong {
@@ -104,7 +104,7 @@
   gap: 8px;
   padding: 3px 0;
   color: var(--app-text-muted);
-  font-size: 12px;
+  font-size: var(--text-xs);
   line-height: 1.5;
 }
 
@@ -139,5 +139,5 @@
   border: 1px solid var(--theme-app-legacy-danger-25);
   background: var(--theme-app-legacy-danger-08);
   color: var(--app-danger);
-  font-size: 13px;
+  font-size: var(--text-sm);
 }

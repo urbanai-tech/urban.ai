@@ -36,7 +36,7 @@
 }
 
 .sectionTitle.sectionTitle {
-  font-size: 18px;
+  font-size: var(--text-lg);
   font-weight: 600;
   color: var(--app-text);
   margin: 6px 0 4px;
@@ -44,7 +44,7 @@
 }
 
 .sectionSubtitle.sectionSubtitle {
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--app-text-muted);
   margin: 0;
   line-height: 1.55;

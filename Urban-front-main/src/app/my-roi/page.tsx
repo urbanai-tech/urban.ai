@@ -335,7 +335,7 @@ const styles = `
   .roi-danger {
     margin: 12px 0 0;
     color: var(--app-text-muted);
-    font-size: 14px;
+    font-size: var(--text-sm);
     line-height: 1.5;
   }
 
@@ -379,13 +379,13 @@ const styles = `
   .roi-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 14px;
+    font-size: var(--text-sm);
   }
 
   .roi-table th {
     padding: 10px 12px;
     color: var(--app-text-muted);
-    font-size: 11px;
+    font-size: var(--text-xs);
     font-weight: 700;
     letter-spacing: 1px;
     text-align: left;
@@ -421,7 +421,7 @@ const styles = `
   .roi-property-sub {
     margin: 4px 0 0;
     color: var(--app-text-muted);
-    font-size: 12px;
+    font-size: var(--text-xs);
   }
 
   .roi-accent {
@@ -435,7 +435,7 @@ const styles = `
     gap: 12px;
     margin-bottom: 8px;
     color: var(--app-text-muted);
-    font-size: 14px;
+    font-size: var(--text-sm);
   }
 
   .roi-progress-label strong {

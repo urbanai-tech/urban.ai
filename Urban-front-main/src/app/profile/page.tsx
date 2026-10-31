@@ -351,14 +351,14 @@ const styles = `
   .profile-card-title h2 {
     margin: 0;
     color: var(--app-text);
-    font-size: 18px;
+    font-size: var(--text-lg);
     line-height: 1.2;
   }
 
   .profile-card-title p {
     margin: 6px 0 0;
     color: var(--app-text-muted);
-    font-size: 13px;
+    font-size: var(--text-sm);
     line-height: 1.5;
   }
 
@@ -406,13 +406,13 @@ const styles = `
 
   .profile-summary strong {
     color: var(--app-text);
-    font-size: 15px;
+    font-size: var(--text-md);
   }
 
   .profile-summary span {
     margin-top: 4px;
     color: var(--app-text-muted);
-    font-size: 12px;
+    font-size: var(--text-xs);
   }
 
   .profile-facts {
@@ -433,7 +433,7 @@ const styles = `
   .profile-facts span {
     display: block;
     color: var(--app-text-subtle);
-    font-size: 11px;
+    font-size: var(--text-xs);
     font-weight: 800;
     letter-spacing: 1.2px;
     text-transform: uppercase;
@@ -443,7 +443,7 @@ const styles = `
     display: block;
     margin-top: 5px;
     color: var(--app-text);
-    font-size: 14px;
+    font-size: var(--text-sm);
     overflow-wrap: anywhere;
   }
 

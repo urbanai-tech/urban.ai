@@ -54,14 +54,14 @@
   border: 1px solid var(--app-accent);
   border-radius: 999px;
   color: var(--app-accent);
-  font-size: 12px;
+  font-size: var(--text-xs);
   font-weight: 600;
   letter-spacing: 0.3px;
 }
 
 .modalTitle {
   margin: 18px 0 10px;
-  font-size: 22px;
+  font-size: var(--text-2xl);
   font-weight: 600;
   letter-spacing: -0.3px;
   color: var(--app-text);
@@ -70,7 +70,7 @@
 
 .modalText {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--text-sm);
   line-height: 1.6;
   color: var(--app-text-muted);
 }

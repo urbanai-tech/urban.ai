@@ -55,7 +55,7 @@
 .eyebrow {
   margin: 0 0 4px;
   color: var(--tone-color);
-  font-size: 10px;
+  font-size: var(--text-xs);
   font-weight: 750;
   letter-spacing: 1.4px;
   text-transform: uppercase;
@@ -64,7 +64,7 @@
 .title {
   margin: 0;
   color: var(--app-text);
-  font-size: 15px;
+  font-size: var(--text-md);
   font-weight: 700;
   line-height: 1.35;
 }
@@ -72,16 +72,16 @@
 .body {
   margin: 5px 0 0;
   color: var(--app-text-muted);
-  font-size: 13px;
+  font-size: var(--text-sm);
   line-height: 1.5;
 }
 
 .compact .title {
-  font-size: 13px;
+  font-size: var(--text-sm);
 }
 
 .compact .body {
-  font-size: 12px;
+  font-size: var(--text-xs);
 }
 
 .steps {
@@ -116,7 +116,7 @@
 
 .stepLabel {
   display: block;
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 600;
   line-height: 1.35;
 }
@@ -126,14 +126,14 @@
 }
 
 .compact .stepLabel {
-  font-size: 12px;
+  font-size: var(--text-xs);
 }
 
 .stepDetail {
   display: block;
   margin-top: 2px;
   color: var(--app-text-muted);
-  font-size: 11px;
+  font-size: var(--text-xs);
   line-height: 1.4;
 }
 

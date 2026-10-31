@@ -124,7 +124,7 @@ export const appFieldBaseStyle: React.CSSProperties = {
   borderRadius: appRadius.control,
   boxSizing: "border-box",
   color: appVar.text,
-  fontSize: 14,
+  fontSize: "var(--text-sm)",
   fontWeight: 400,
   transition: appTransition.field,
   fontFamily: appFont.sans,
@@ -132,7 +132,7 @@ export const appFieldBaseStyle: React.CSSProperties = {
 
 export const appLabelStyle: React.CSSProperties = {
   display: "block",
-  fontSize: 11,
+  fontSize: "var(--text-xs)",
   fontWeight: 600,
   letterSpacing: 1.5,
   textTransform: "uppercase",
@@ -142,13 +142,13 @@ export const appLabelStyle: React.CSSProperties = {
 
 export const appHelperTextStyle: React.CSSProperties = {
   marginTop: 6,
-  fontSize: 12,
+  fontSize: "var(--text-xs)",
   color: appVar.textMuted,
 };
 
 export const appErrorTextStyle: React.CSSProperties = {
   marginTop: 6,
-  fontSize: 12,
+  fontSize: "var(--text-xs)",
   color: appVar.danger,
 };
 

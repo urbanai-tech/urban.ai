@@ -13,7 +13,7 @@
   padding: 14px 18px;
   border-left: 2px solid var(--admin-warning);
   background: color-mix(in srgb, var(--admin-warning) 6%, transparent);
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--admin-text-muted);
   line-height: 1.55;
 }
@@ -21,7 +21,7 @@
 .warningTitle.warningTitle {
   margin: 0;
   color: var(--admin-warning);
-  font-size: 11px;
+  font-size: var(--text-xs);
   font-weight: 600;
   letter-spacing: 1.5px;
   text-transform: uppercase;
@@ -59,7 +59,7 @@
 }
 
 .planTitle.planTitle {
-  font-size: 18px;
+  font-size: var(--text-lg);
   font-weight: 600;
   color: var(--admin-text);
   margin: 0;
@@ -68,13 +68,13 @@
 
 .planName.planName {
   font-family: monospace;
-  font-size: 11px;
+  font-size: var(--text-xs);
   color: var(--admin-text-dim);
   margin: 4px 0 0;
 }
 
 .customPlanNote.customPlanNote {
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--admin-text-muted);
   margin: 0;
 }
@@ -113,7 +113,7 @@
 
 .priceIdsSummary.priceIdsSummary {
   cursor: pointer;
-  font-size: 11px;
+  font-size: var(--text-xs);
   font-weight: 600;
   letter-spacing: 1.5px;
   text-transform: uppercase;
@@ -127,7 +127,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 10px;
-  font-size: 11px;
+  font-size: var(--text-xs);
   font-family: monospace;
   color: var(--admin-text-dim);
 }
@@ -143,12 +143,12 @@
 }
 
 .mutedNote.mutedNote {
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--admin-text-muted);
 }
 
 .metricLabel.metricLabel {
-  font-size: 10px;
+  font-size: var(--text-xs);
   color: var(--admin-text-dim);
   text-transform: uppercase;
   letter-spacing: 1.2px;
@@ -161,31 +161,31 @@
 }
 
 .syncPlanName.syncPlanName {
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--admin-text);
   font-weight: 500;
 }
 
 .syncPriceId.syncPriceId {
-  font-size: 10px;
+  font-size: var(--text-xs);
   color: var(--admin-text-dim);
 }
 
 .syncAmount.syncAmount {
   font-family: monospace;
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--admin-text);
 }
 
 .syncIntro.syncIntro {
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--admin-text-muted);
   margin: 0 0 16px;
   line-height: 1.55;
 }
 
 .syncLoading.syncLoading {
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--admin-text-muted);
 }
 
@@ -206,14 +206,14 @@
 
 .gateLabel.gateLabel {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 600;
   color: var(--admin-text);
 }
 
 .gateDescription.gateDescription {
   margin: 4px 0 0;
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--admin-text-muted);
   line-height: 1.55;
 }
@@ -246,7 +246,7 @@
   flex-wrap: wrap;
   align-items: baseline;
   gap: 8px;
-  font-size: 13px;
+  font-size: var(--text-sm);
 }
 
 .diffLabel.diffLabel {

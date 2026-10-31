@@ -15,7 +15,7 @@
 
 .title.title {
   margin: 0;
-  font-size: 20px;
+  font-size: var(--text-xl);
   line-height: 1.25;
   color: var(--app-text);
 }
@@ -23,7 +23,7 @@
 .lead.lead {
   margin: 0;
   max-width: 62ch;
-  font-size: 14px;
+  font-size: var(--text-sm);
   line-height: 1.6;
   color: var(--app-text-muted);
 }
@@ -47,7 +47,7 @@
 
 .blockTitle.blockTitle {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--text-sm);
   font-weight: 700;
   color: var(--app-text);
 }
@@ -67,20 +67,20 @@
 }
 
 .itemName {
-  font-size: 14px;
+  font-size: var(--text-sm);
   font-weight: 600;
   color: var(--app-text);
   overflow-wrap: anywhere;
 }
 
 .itemMeta {
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--app-text-muted);
 }
 
 .note.note {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--text-sm);
   line-height: 1.55;
   color: var(--app-text-muted);
 }

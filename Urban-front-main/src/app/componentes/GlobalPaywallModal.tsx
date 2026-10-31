@@ -131,7 +131,7 @@ export function GlobalPaywallModal({ isOpen }: GlobalPaywallModalProps) {
         .global-paywall-modal h2 {
           margin: 0 0 18px;
           color: var(--app-text);
-          font-size: clamp(24px, 3vw, 32px);
+          font-size: var(--text-title);
           line-height: 1.1;
           text-align: center;
         }
@@ -163,14 +163,14 @@ export function GlobalPaywallModal({ isOpen }: GlobalPaywallModalProps) {
         .global-paywall-error p {
           margin: 0;
           color: var(--app-text);
-          font-size: 14px;
+          font-size: var(--text-sm);
           line-height: 1.5;
         }
 
         .global-paywall-alert p {
           margin: 0;
           color: var(--app-text);
-          font-size: 14px;
+          font-size: var(--text-sm);
           line-height: 1.5;
         }
 
@@ -187,7 +187,7 @@ export function GlobalPaywallModal({ isOpen }: GlobalPaywallModalProps) {
           background: var(--app-surface-muted);
           border: 1px solid var(--app-divider);
           border-radius: 999px;
-          font-size: 13px;
+          font-size: var(--text-sm);
           font-weight: 700;
           flex-wrap: wrap;
         }
@@ -309,7 +309,7 @@ export function GlobalPaywallModal({ isOpen }: GlobalPaywallModalProps) {
           border: 2px solid #ffffff;
           border-radius: 999px;
           box-shadow: 0 8px 18px color-mix(in srgb, var(--theme-app-accent) 22%, transparent);
-          font-size: 12px;
+          font-size: var(--text-xs);
           font-weight: 800;
           line-height: 1.2;
           white-space: nowrap;
@@ -318,7 +318,7 @@ export function GlobalPaywallModal({ isOpen }: GlobalPaywallModalProps) {
         .global-paywall-plan h3 {
           margin: 0;
           color: var(--app-text);
-          font-size: 20px;
+          font-size: var(--text-xl);
           line-height: 1.2;
         }
 
@@ -333,7 +333,7 @@ export function GlobalPaywallModal({ isOpen }: GlobalPaywallModalProps) {
 
         .global-paywall-original {
           color: var(--app-text-muted);
-          font-size: 13px;
+          font-size: var(--text-sm);
           text-decoration: line-through;
         }
 
@@ -348,13 +348,13 @@ export function GlobalPaywallModal({ isOpen }: GlobalPaywallModalProps) {
         .global-paywall-current strong,
         .global-paywall-consult {
           color: var(--app-text);
-          font-size: clamp(26px, 3vw, 34px);
+          font-size: var(--text-title);
           line-height: 1;
         }
 
         .global-paywall-current span {
           color: var(--app-text-muted);
-          font-size: 13px;
+          font-size: var(--text-sm);
         }
 
         .global-paywall-features {
@@ -371,7 +371,7 @@ export function GlobalPaywallModal({ isOpen }: GlobalPaywallModalProps) {
           align-items: flex-start;
           gap: 9px;
           color: var(--app-text-muted);
-          font-size: 14px;
+          font-size: var(--text-sm);
           line-height: 1.35;
         }
 

@@ -22,7 +22,7 @@
 
 .paginationLabel {
   margin: 0;
-  font-size: 16px;
+  font-size: var(--text-md);
   font-weight: 650;
 }
 

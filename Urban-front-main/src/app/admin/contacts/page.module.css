@@ -56,14 +56,14 @@
 }
 
 .messageDate.messageDate {
-  font-size: 11px;
+  font-size: var(--text-xs);
   color: var(--admin-text-dim);
   font-family: monospace;
   letter-spacing: 0.5px;
 }
 
 .messageSubject.messageSubject {
-  font-size: 18px;
+  font-size: var(--text-lg);
   font-weight: 600;
   color: var(--admin-text);
   margin: 0;
@@ -72,7 +72,7 @@
 
 .messageSender.messageSender {
   margin-top: 6px;
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--admin-text-muted);
 }
 
@@ -95,14 +95,14 @@
 
 .messageBody.messageBody {
   white-space: pre-wrap;
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--admin-text);
   line-height: 1.6;
   margin: 0;
 }
 
 .messageNotes.messageNotes {
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--admin-text-muted);
   border-left: 2px solid var(--admin-accent);
   padding-left: 12px;
@@ -119,7 +119,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--admin-text-muted);
 }
 
@@ -133,7 +133,7 @@
 }
 
 .modalSenderValue.modalSenderValue {
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--admin-text);
   margin: 6px 0 0;
 }

@@ -36,7 +36,7 @@ function createPropertyIcon(name: string, imageUrl: string) {
         />
         <div style="
           font-weight: 600;
-          font-size: 14px;
+          font-size: var(--text-sm);
           color: #333;
           text-align: center;
           white-space: normal;

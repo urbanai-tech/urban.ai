@@ -37,14 +37,14 @@
 .dayDetailTitle.dayDetailTitle {
   margin: 0;
   color: var(--app-text);
-  font-size: 22px;
+  font-size: var(--text-2xl);
   line-height: 1.2;
 }
 
 .dayDetailSubtitle.dayDetailSubtitle {
   margin: 6px 0 0;
   color: var(--app-text-muted);
-  font-size: 13px;
+  font-size: var(--text-sm);
 }
 
 .dayDetailCloseButton.dayDetailCloseButton {
@@ -86,14 +86,14 @@
 .eventName.eventName {
   display: block;
   color: var(--app-text);
-  font-size: 16px;
+  font-size: var(--text-md);
   line-height: 1.35;
 }
 
 .eventHelperText.eventHelperText {
   margin: 8px 0 0;
   color: var(--app-text-muted);
-  font-size: 13px;
+  font-size: var(--text-sm);
   line-height: 1.45;
 }
 
@@ -120,7 +120,7 @@
 
 .metricValue.metricValue {
   display: block;
-  font-size: 18px;
+  font-size: var(--text-lg);
   line-height: 1.2;
   overflow-wrap: anywhere;
 }
@@ -139,7 +139,7 @@
 
 .dateFieldLabel.dateFieldLabel {
   display: block;
-  font-size: 11px;
+  font-size: var(--text-xs);
   font-weight: 600;
   letter-spacing: 1.5px;
   text-transform: uppercase;
@@ -154,9 +154,9 @@
   border: 1px solid var(--app-divider-strong);
   border-radius: 10px;
   color: var(--app-text);
-  font-size: 14px;
+  font-size: var(--text-sm);
   font-weight: 400;
-  font-family: Inter, system-ui, sans-serif;
+  font-family: var(--font-brand);
 }
 
 .dayDetailOverlay.dayDetailOverlay {

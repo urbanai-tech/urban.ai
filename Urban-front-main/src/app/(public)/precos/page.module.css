@@ -7,5 +7,5 @@
 }
 
 .priceCustom.priceCustom {
-  font-size: 48px;
+  font-size: var(--text-display-sm);
 }

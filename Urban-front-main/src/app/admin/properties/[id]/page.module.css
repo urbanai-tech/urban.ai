@@ -15,7 +15,7 @@
 }
 
 .noticeContent.noticeContent {
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--admin-text);
   margin: 0;
   display: flex;
@@ -43,7 +43,7 @@
 }
 
 .healthSubtitle.healthSubtitle {
-  font-size: 12px;
+  font-size: var(--text-xs);
   font-weight: 400;
   color: var(--admin-text-muted);
 }
@@ -77,27 +77,27 @@
 }
 
 .healthCheckLabel.healthCheckLabel {
-  font-size: 12px;
+  font-size: var(--text-xs);
   font-weight: 600;
   color: var(--admin-text);
   margin: 0;
 }
 
 .healthCheckHint.healthCheckHint {
-  font-size: 11px;
+  font-size: var(--text-xs);
   color: var(--admin-text-muted);
   margin: 4px 0 0;
   padding-left: 16px;
 }
 
 .recommendationEventName.recommendationEventName {
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 500;
   color: var(--admin-text);
 }
 
 .dateCell.dateCell {
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--admin-text-muted);
   font-family: monospace;
 }
@@ -124,12 +124,12 @@
 }
 
 .eventName.eventName {
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 500;
 }
 
 .cityCell.cityCell {
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--admin-text-muted);
 }
 
@@ -139,7 +139,7 @@
 }
 
 .changeCell.changeCell {
-  font-size: 12px;
+  font-size: var(--text-xs);
 }
 
 .changeArrow.changeArrow {

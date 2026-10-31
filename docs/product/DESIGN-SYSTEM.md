@@ -51,15 +51,19 @@ Cada superfície tem seu conjunto de tokens (`--theme-public-*`, `--theme-app-*`
 | Warning | `#C8810E` / `#9A6508` | `#F5B547` |
 | Danger | `#C2342E` / `#B42318` | `#F87171` |
 
-### 2.4 Tipografia
-| Papel | Fonte | Uso |
-|-------|-------|-----|
-| Display/Headline | **Bebas Neue** (fallback Inter) | `.urban-*-display-hero/md/sm`, números grandes |
-| Corpo/UI | **Inter** (system fallback) | texto, controles |
-| Eyebrow | Inter 600, 11–12px, letter-spacing 3–4px, uppercase, cor accent | rótulos de seção |
-| ⚠️ Legado | **Poppins** forçado em `* { ... !important }` (linhas 1–7) | **conflito** — ver dívida 4.1 |
+### 2.4 Tipografia (atualizado na onda 3, DS-10/DS-17)
+Uma única família web: **Archivo** (OFL, eixo de largura), substituta livre da Artegra Sans Extended (comercial, sem licença web). Poppins e Bebas Neue foram removidas. Tokens em `Urban-front-main/src/app/componentes/ui/brand-tokens.css`.
 
-Hero: `clamp(56px, 9vw, 120px)`, line-height .92, letter-spacing -1px. Mobile reduz para `clamp(42px,13vw,64px)`.
+| Token | Valor | Uso |
+|-------|-------|-----|
+| `--text-xs` | 12px | só legenda, rótulo em caixa-alta, metadado (nada abaixo de 12px) |
+| `--text-sm` | 14px | corpo mínimo do app, controles, tabelas |
+| `--text-md` / `--text-lg` / `--text-xl` | 16 / 18 / 20px | corpo, lead, subtítulo |
+| `--text-2xl` / `--text-3xl` / `--text-4xl` | 24 / 32 / 40px | títulos |
+| `--text-title` | fluido 24–40px | título de página/seção |
+| `--text-display-sm/md/lg` | fluido 32–48 / 36–64 / 40–80px | hero e H1 do site público |
+
+Pesos de título: `--font-weight-display` (800, hero/H1 de página) e `--font-weight-title` (700, seção e cartão). Todo `font-size` novo usa um token da escala; não use px solto.
 
 ### 2.5 Forma & profundidade
 - Radius: card 12px, control 10px, pill 999px (`--app-radius-*`).

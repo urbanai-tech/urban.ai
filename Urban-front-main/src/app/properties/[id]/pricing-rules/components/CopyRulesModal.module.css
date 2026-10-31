@@ -29,7 +29,7 @@
   justify-content: center;
   line-height: 0;
   border-radius: 6px;
-  font-size: 18px;
+  font-size: var(--text-lg);
 }
 
 .closeButtonBusy.closeButtonBusy {
@@ -42,7 +42,7 @@
 
 .eyebrow.eyebrow {
   margin: 0;
-  font-size: 11px;
+  font-size: var(--text-xs);
   font-weight: 600;
   letter-spacing: 1.5px;
   text-transform: uppercase;
@@ -51,7 +51,7 @@
 
 .modalTitle.modalTitle {
   margin: 6px 0 0;
-  font-size: 18px;
+  font-size: var(--text-lg);
   font-weight: 600;
   color: var(--app-text);
   letter-spacing: -0.2px;
@@ -60,7 +60,7 @@
 
 .modalDescription.modalDescription {
   margin: 8px 0 0;
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--app-text-muted);
   line-height: 1.5;
 }
@@ -76,14 +76,14 @@
   padding: 24px 0;
   text-align: center;
   color: var(--app-text-muted);
-  font-size: 13px;
+  font-size: var(--text-sm);
 }
 
 .emptyState.emptyState {
   padding: 24px 16px;
   text-align: center;
   color: var(--app-text-muted);
-  font-size: 13px;
+  font-size: var(--text-sm);
   background: var(--app-surface-muted);
   border-radius: 10px;
   border: 1px dashed var(--app-divider-strong);
@@ -104,7 +104,7 @@
   background: var(--app-surface-muted);
   border: 1px solid var(--app-divider);
   color: var(--app-text-muted);
-  font-size: 12px;
+  font-size: var(--text-xs);
   line-height: 1.45;
 }
 
@@ -147,5 +147,5 @@
   background: var(--theme-app-legacy-danger-06);
   border-radius: 10px;
   color: var(--app-danger);
-  font-size: 13px;
+  font-size: var(--text-sm);
 }

@@ -209,7 +209,7 @@ export function AdrComparisonChart({
                 x={PADDING_LEFT - 8}
                 y={y + 4}
                 textAnchor="end"
-                fontSize={10}
+                fontSize={12}
                 fill="var(--app-text-muted)"
                 className={styles.axisTickLabel}
               >
@@ -250,7 +250,7 @@ export function AdrComparisonChart({
             x={p.x}
             y={VIEWBOX_HEIGHT - 10}
             textAnchor="middle"
-            fontSize={10}
+            fontSize={12}
             fill="var(--app-text-muted)"
             className={styles.axisTickLabel}
           >

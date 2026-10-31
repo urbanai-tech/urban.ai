@@ -33,9 +33,9 @@ type Props = React.ButtonHTMLAttributes<HTMLButtonElement> & {
 };
 
 const sizes: Record<AdminButtonSize, React.CSSProperties> = {
-  sm: { height: 28, padding: "0 12px", fontSize: 11 },
-  md: { height: 36, padding: "0 18px", fontSize: 12 },
-  lg: { height: 44, padding: "0 24px", fontSize: 13 },
+  sm: { height: 28, padding: "0 12px", fontSize: "var(--text-xs)" },
+  md: { height: 36, padding: "0 18px", fontSize: "var(--text-xs)" },
+  lg: { height: 44, padding: "0 24px", fontSize: "var(--text-sm)" },
 };
 
 function styleForVariant(variant: AdminButtonVariant): React.CSSProperties {

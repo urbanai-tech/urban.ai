@@ -1,10 +1,10 @@
 .jobName.jobName {
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--admin-text);
 }
 
 .startedAtCell.startedAtCell {
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--admin-text-muted);
 }
 
@@ -18,7 +18,7 @@
   background: transparent;
   border: none;
   color: var(--admin-accent);
-  font-size: 11px;
+  font-size: var(--text-xs);
   font-weight: 600;
   letter-spacing: 1.5px;
   text-transform: uppercase;
@@ -28,7 +28,7 @@
 
 .durationText.durationText {
   font-family: monospace;
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--admin-text-muted);
 }
 
@@ -43,7 +43,7 @@
   padding: 14px 18px;
   border-left: 2px solid var(--admin-danger);
   background: color-mix(in srgb, var(--admin-danger) 6%, transparent);
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--admin-danger);
   line-height: 1.55;
 }
@@ -53,7 +53,7 @@
   padding: 14px 18px;
   border-left: 2px solid var(--admin-warning);
   background: color-mix(in srgb, var(--admin-warning) 6%, transparent);
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--admin-text);
   line-height: 1.55;
 }
@@ -62,7 +62,7 @@
   margin: 0;
   font-weight: 600;
   color: var(--admin-warning);
-  font-size: 12px;
+  font-size: var(--text-xs);
   letter-spacing: 1.5px;
   text-transform: uppercase;
 }
@@ -97,7 +97,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 14px 4px;
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--admin-text);
   text-decoration: none;
   transition: color 120ms;
@@ -108,7 +108,7 @@
 }
 
 .lastRunMeta.lastRunMeta {
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--admin-text-muted);
   margin: 0 0 14px;
 }
@@ -121,7 +121,7 @@
   background: var(--admin-surface-elevated);
   border: 1px solid var(--admin-divider);
   border-radius: 2px;
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--admin-text-muted);
   font-family: monospace;
   line-height: 1.55;
@@ -141,7 +141,7 @@
 }
 
 .historyTitle.historyTitle {
-  font-size: 20px;
+  font-size: var(--text-xl);
   font-weight: 600;
   color: var(--admin-text);
   margin: 8px 0 0;
@@ -152,7 +152,7 @@
   margin-top: 32px;
   padding-top: 20px;
   border-top: 1px solid var(--admin-divider);
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--admin-text-muted);
   line-height: 1.55;
 }
@@ -165,14 +165,14 @@
 }
 
 .jobStatusLabel.jobStatusLabel {
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 700;
   color: var(--admin-text);
   text-transform: lowercase;
 }
 
 .jobTitle.jobTitle {
-  font-size: 16px;
+  font-size: var(--text-md);
   font-weight: 600;
   color: var(--admin-text);
   margin: 0;
@@ -180,7 +180,7 @@
 }
 
 .jobDescription.jobDescription {
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--admin-text-muted);
   margin: 0;
   line-height: 1.55;

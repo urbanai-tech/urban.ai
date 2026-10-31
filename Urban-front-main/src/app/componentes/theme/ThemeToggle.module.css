@@ -33,7 +33,7 @@
   cursor: pointer;
   opacity: 1;
   font-family: var(--font-brand);
-  font-size: 11px;
+  font-size: var(--text-xs);
   font-weight: 600;
   letter-spacing: 0;
   line-height: 1;

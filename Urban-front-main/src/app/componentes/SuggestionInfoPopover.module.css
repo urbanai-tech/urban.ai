@@ -12,7 +12,7 @@
   border: 1px solid transparent;
   border-radius: 8px;
   background: transparent;
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 650;
   cursor: pointer;
   /* Token de aviso: #7A4F05 no claro, #F5B547 no escuro (antes #92400E fixo, 2,96:1 sobre preto). */
@@ -55,6 +55,6 @@
 .popoverDescription {
   margin: 0;
   padding: 12px;
-  font-size: 13px;
+  font-size: var(--text-sm);
   line-height: 1.5;
 }
