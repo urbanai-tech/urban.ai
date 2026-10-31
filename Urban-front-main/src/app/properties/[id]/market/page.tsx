@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
+  AppBadge,
   AppButton,
   AppEmptyState,
   AppMetricCard,
@@ -22,16 +23,37 @@ import { PercentileHero } from "./components/PercentileHero";
 import { AdrComparisonChart } from "./components/AdrComparisonChart";
 import styles from "./page.module.css";
 import { brlWhole } from "../../../lib/format";
+import {
+  CAPACITY_OPTIONS,
+  DEFAULT_FILTERS,
+  eventEffectView,
+  filtersFromTarget,
+  filtersToInput,
+  hasTypologyFilter,
+  insufficiencyView,
+  LISTING_TYPE_OPTIONS,
+  occupancyView,
+  originPhrase,
+  RADIUS_OPTIONS,
+  ROOMS_OPTIONS,
+  seasonalityBars,
+  sourceBadges,
+  targetHasTypology,
+  trendView,
+  type MarketFilters,
+} from "./market-domain";
 
 /**
- * /properties/:id/market — Market Intel dashboard (Gap 3 — Track 2, semana 5-6).
+ * /properties/:id/market — Market Intel dashboard (ADR 0028: mercado multifonte).
  *
  * Zonas:
- *  1) PercentileHero (full-width)
- *  2) 4 KPI cards
+ *  0) Filtros: período, raio (1–5 km) e tipologia (quartos, tipo de anúncio, capacidade)
+ *  1) PercentileHero (full-width) + selos de fonte e data de coleta
+ *  2) KPI cards (ocupação indisponível/estimada é dita, nunca vira 0%)
  *  3) Gráfico ADR diário (sua propriedade vs comp set)
  *  4) Faixas agregadas (P25/mediana/P75) — nunca dados por imóvel de terceiros
- *  5) Empty state "dados insuficientes" quando o backend sinaliza grupo < mínimo
+ *  5) Tendência de 30 dias, sazonalidade e efeito dos eventos no bairro
+ *  6) Estado "amostra insuficiente" explicando o que falta e o que dá para mudar
  */
 
 const PERIOD_OPTIONS: ReadonlyArray<{ id: string; label: string; days: number }> = [
@@ -39,8 +61,6 @@ const PERIOD_OPTIONS: ReadonlyArray<{ id: string; label: string; days: number }>
   { id: "60d", label: "Últimos 60 dias", days: 60 },
   { id: "90d", label: "Últimos 90 dias", days: 90 },
 ];
-
-const DEFAULT_MIN_COMPARABLES = 5;
 
 function isoOffset(daysAhead: number): string {
   return formatLocalDate(dateAtLocalOffset(daysAhead));
@@ -71,6 +91,10 @@ function MarketIntelContent() {
   const propertyId = params?.id ?? "";
 
   const [periodId, setPeriodId] = useState<string>("30d");
+  const [filters, setFilters] = useState<MarketFilters>(DEFAULT_FILTERS);
+  // Último valor dos filtros: duas mudanças seguidas (ex.: raio e depois quartos) se compõem
+  // mesmo antes do próximo render, em vez de a segunda ler o estado antigo.
+  const filtersRef = useRef<MarketFilters>(DEFAULT_FILTERS);
   const [data, setData] = useState<MarketIntelResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -81,7 +105,7 @@ function MarketIntelContent() {
     [periodId],
   );
 
-  // Carga inicial + reage a mudanças de período / reload.
+  // Carga inicial + reage a mudanças de período / raio / tipologia / reload.
   useEffect(() => {
     if (!propertyId) return;
     let cancelled = false;
@@ -94,6 +118,7 @@ function MarketIntelContent() {
           propertyId,
           from: isoOffset(-(period.days - 1)),
           to: isoOffset(0),
+          ...filtersToInput(filters),
         });
         if (!cancelled) {
           setData(result);
@@ -102,6 +127,9 @@ function MarketIntelContent() {
             period: period.id,
             percentile: result.percentile,
             comparables: result.comparablesCount,
+            radiusKm: filters.radiusKm,
+            typology: hasTypologyFilter(filters),
+            insufficient: Boolean(result.insufficientData),
           });
         }
       } catch (err) {
@@ -119,7 +147,7 @@ function MarketIntelContent() {
     return () => {
       cancelled = true;
     };
-  }, [propertyId, period, reloadCount]);
+  }, [propertyId, period, filters, reloadCount]);
 
   const handlePeriodChange = useCallback(
     (next: string) => {
@@ -132,6 +160,26 @@ function MarketIntelContent() {
     [propertyId],
   );
 
+  const applyFilters = useCallback((next: MarketFilters) => {
+    filtersRef.current = next;
+    setFilters(next);
+  }, []);
+
+  const updateFilters = useCallback(
+    (patch: Partial<MarketFilters>) => {
+      const next = { ...filtersRef.current, ...patch };
+      applyFilters(next);
+      trackEvent("market_intel_filters_changed", {
+        propertyId,
+        radiusKm: next.radiusKm,
+        rooms: next.rooms,
+        listingType: next.listingType,
+        capacity: next.capacity,
+      });
+    },
+    [applyFilters, propertyId],
+  );
+
   const handleRetry = useCallback(() => {
     setReloadCount((c) => c + 1);
   }, []);
@@ -140,15 +188,37 @@ function MarketIntelContent() {
     router.push("/properties");
   }, [router]);
 
+  const radiusLabel = `${filters.radiusKm} km`;
+  const header = (
+    <AppSectionHeader
+      eyebrow="MERCADO · IMÓVEIS PARECIDOS"
+      title="Como seu imóvel se compara"
+      subtitle={`Comparação com imóveis parecidos em até ${radiusLabel} · atualizado a cada 24h${
+        data?.updatedAt ? ` · última atualização ${formatUpdatedAt(data.updatedAt)}` : ""
+      }`}
+      actions={
+        <div className={styles.periodSelectWrap}>
+          <AppSelect
+            label="Período"
+            value={periodId}
+            onChange={(e) => handlePeriodChange(e.target.value)}
+          >
+            {PERIOD_OPTIONS.map((opt) => (
+              <option key={opt.id} value={opt.id}>
+                {opt.label}
+              </option>
+            ))}
+          </AppSelect>
+        </div>
+      }
+    />
+  );
+
   // Render skeleton — 3 retângulos animados.
   if (loading && !data) {
     return (
       <AppPageShell maxWidth={1280}>
-        <AppSectionHeader
-          eyebrow="MERCADO · IMÓVEIS PARECIDOS"
-          title="Como seu imóvel se compara"
-          subtitle="Comparação com imóveis parecidos em até 3 km · atualizado a cada 24h"
-        />
+        {header}
         <div
           className={styles.loadingStack}
         >
@@ -179,11 +249,7 @@ function MarketIntelContent() {
   if (error) {
     return (
       <AppPageShell maxWidth={1280}>
-        <AppSectionHeader
-          eyebrow="MERCADO · IMÓVEIS PARECIDOS"
-          title="Como seu imóvel se compara"
-          subtitle="Comparação com imóveis parecidos em até 3 km · atualizado a cada 24h"
-        />
+        {header}
         <AppEmptyState
           eyebrow="ALGO DEU ERRADO"
           title="Não conseguimos carregar"
@@ -203,69 +269,141 @@ function MarketIntelContent() {
     return null;
   }
 
-  const minGroupSize = data.minGroupSize ?? DEFAULT_MIN_COMPARABLES;
-  const insufficient = data.insufficientData ?? data.comparablesCount < minGroupSize;
+  const insufficient = data.insufficientData ?? false;
   const deltaAdr = data.yourAdr - data.medianAdr;
   const deltaPct =
     data.medianAdr > 0 ? Math.round((deltaAdr / data.medianAdr) * 100) : 0;
+  const badges = sourceBadges(data.dataSources);
+  const origin = originPhrase(data.dataSources);
+  const occupancy = occupancyView(data);
+  const trend = trendView(data);
+  const bars = seasonalityBars(data.seasonality);
+  const eventEffect = eventEffectView(data.neighborhoodEventEffect);
+  const canUseMyTypology = targetHasTypology(data.typology?.target);
+  const radiusMin = data.radius?.min ?? RADIUS_OPTIONS[0];
+  const radiusMax = data.radius?.max ?? RADIUS_OPTIONS[RADIUS_OPTIONS.length - 1];
+  const radiusChoices = RADIUS_OPTIONS.filter((km) => km >= radiusMin && km <= radiusMax);
 
   return (
     <AppPageShell maxWidth={1280}>
-      <AppSectionHeader
-        eyebrow="MERCADO · IMÓVEIS PARECIDOS"
-        title="Como seu imóvel se compara"
-        subtitle={`Comparação com imóveis parecidos em até 3 km · atualizado a cada 24h${
-          data.updatedAt
-            ? ` · última atualização ${formatUpdatedAt(data.updatedAt)}`
-            : ""
-        }`}
-        actions={
-          <div className={styles.periodSelectWrap}>
-            <AppSelect
-              label="Período"
-              value={periodId}
-              onChange={(e) => handlePeriodChange(e.target.value)}
+      {header}
+
+      {/* ZONA 0 — Filtros de raio e tipologia */}
+      <section aria-label="Filtros do mercado" className={styles.filters}>
+        <div className={styles.filterGrid}>
+          <AppSelect
+            label="Raio"
+            value={String(filters.radiusKm)}
+            onChange={(e) => updateFilters({ radiusKm: Number(e.target.value) })}
+          >
+            {radiusChoices.map((km) => (
+              <option key={km} value={km}>
+                {km} km
+              </option>
+            ))}
+          </AppSelect>
+          <AppSelect
+            label="Quartos"
+            value={filters.rooms}
+            onChange={(e) => updateFilters({ rooms: e.target.value })}
+          >
+            {ROOMS_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </AppSelect>
+          <AppSelect
+            label="Tipo de anúncio"
+            value={filters.listingType}
+            onChange={(e) => updateFilters({ listingType: e.target.value })}
+          >
+            {LISTING_TYPE_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </AppSelect>
+          <AppSelect
+            label="Capacidade"
+            value={filters.capacity}
+            onChange={(e) => updateFilters({ capacity: e.target.value })}
+          >
+            {CAPACITY_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </AppSelect>
+        </div>
+        <div className={styles.filterActions}>
+          {canUseMyTypology ? (
+            <AppButton
+              variant="secondary"
+              size="sm"
+              onClick={() => applyFilters(filtersFromTarget(data.typology?.target, filters.radiusKm))}
             >
-              {PERIOD_OPTIONS.map((opt) => (
-                <option key={opt.id} value={opt.id}>
-                  {opt.label}
-                </option>
-              ))}
-            </AppSelect>
-          </div>
-        }
-      />
+              Igual ao meu imóvel
+            </AppButton>
+          ) : null}
+          {hasTypologyFilter(filters) ? (
+            <AppButton
+              variant="ghost"
+              size="sm"
+              onClick={() => applyFilters({ ...DEFAULT_FILTERS, radiusKm: filters.radiusKm })}
+            >
+              Limpar tipologia
+            </AppButton>
+          ) : null}
+          <span role="status" className={styles.filterStatus}>
+            {loading ? "Atualizando comparação…" : ""}
+          </span>
+        </div>
+      </section>
 
       {insufficient ? (
-        <AppEmptyState
-          eyebrow="POUCOS IMÓVEIS PARECIDOS"
-          title="Ainda precisamos de mais referências"
-          body={`Dados insuficientes: precisamos de pelo menos ${minGroupSize} anfitriões com imóveis parecidos na região para comparar sem expor ninguém. Vamos buscar mais nos próximos 7 dias.`}
-          icon={<Icons.MapPin size={32} />}
-          action={
-            <AppButton
-              variant="primary"
-              size="md"
-              onClick={handleGotoProperties}
-            >
-              Ver outros imóveis
-            </AppButton>
-          }
+        <InsufficientState
+          data={data}
+          filters={filters}
+          onWiden={(km) => updateFilters({ radiusKm: km })}
+          onClearTypology={() => applyFilters({ ...DEFAULT_FILTERS, radiusKm: filters.radiusKm })}
+          onGotoProperties={handleGotoProperties}
         />
       ) : (
-        <div className={styles.contentStack}>
-          {/* ZONA 1 — Hero metric */}
+        <div className={styles.contentStack} aria-busy={loading}>
+          {/* ZONA 1 — Hero metric + selos de fonte */}
           <PercentileHero
             percentile={data.percentile}
             neighborhood={data.neighborhood}
             comparablesCount={data.comparablesCount}
             medianAdr={data.medianAdr}
             trend30d={data.percentileTrend30d}
+            trend={trend}
+            origin={origin}
+            radiusKm={data.radiusKm ?? filters.radiusKm}
           />
 
-          {/* ZONA 2 — 4 KPI cards */}
+          {badges.length ? (
+            <section aria-label="Fontes dos dados" className={styles.sourceStrip}>
+              <p className="urban-app-eyebrow-muted">DE ONDE VÊM OS DADOS</p>
+              <ul className={styles.sourceList}>
+                {badges.map((badge) => (
+                  <li key={badge.id}>
+                    <AppBadge kind={badge.id === "customers" ? "accent" : "neutral"}>
+                      {badge.label} · {badge.detail}
+                    </AppBadge>
+                  </li>
+                ))}
+              </ul>
+              {data.attribution?.length ? (
+                <p className={styles.attribution}>{data.attribution.join(" · ")}</p>
+              ) : null}
+            </section>
+          ) : null}
+
+          {/* ZONA 2 — KPI cards */}
           <section aria-label="Indicadores chave">
-            <div className="market-intel-kpi-grid">
+            <div className={styles.kpiGrid}>
               <KpiCardWrap>
                 <AppMetricCard
                   label="Diária média dos parecidos"
@@ -276,8 +414,8 @@ function MarketIntelContent() {
               <KpiCardWrap>
                 <AppMetricCard
                   label="Ocupação média dos parecidos"
-                  value={formatPct(data.medianOccupancy)}
-                  sub={`Sua ocupação ${formatPct(data.yourOccupancy)}`}
+                  value={occupancy.value}
+                  sub={occupancy.sub}
                 />
               </KpiCardWrap>
               <KpiCardWrap>
@@ -336,7 +474,7 @@ function MarketIntelContent() {
                   Mostramos apenas faixas agregadas (25% abaixo, mediana e 25% acima). Nunca exibimos dados de um imóvel específico de outro anfitrião.
                 </p>
               </header>
-              <div className="market-intel-kpi-grid">
+              <div className={styles.kpiGrid}>
                 {data.adrPercentiles ? (
                   <KpiCardWrap>
                     <AppMetricCard
@@ -346,10 +484,10 @@ function MarketIntelContent() {
                     />
                   </KpiCardWrap>
                 ) : null}
-                {data.occupancyPercentiles ? (
+                {data.occupancyPercentiles && occupancy.available ? (
                   <KpiCardWrap>
                     <AppMetricCard
-                      label="Ocupação · faixa central"
+                      label={data.occupancyIsProxy ? "Ocupação · faixa central (estimada)" : "Ocupação · faixa central"}
                       value={formatPct(data.occupancyPercentiles.p50)}
                       sub={`${formatPct(data.occupancyPercentiles.p25)} a ${formatPct(data.occupancyPercentiles.p75)}`}
                     />
@@ -358,20 +496,148 @@ function MarketIntelContent() {
               </div>
             </section>
           ) : null}
+
+          {/* ZONA 5 — Tendência, eventos no bairro e sazonalidade */}
+          <section aria-label="Tendência, eventos e sazonalidade do bairro">
+            <header className={styles.sectionHeader}>
+              <p className="urban-app-eyebrow-muted">MOVIMENTO DO BAIRRO</p>
+              <h2 className={styles.sectionTitle}>Tendência, eventos e sazonalidade</h2>
+              <p className={styles.sectionSubtitle}>
+                Calculados só com os anúncios que têm histórico de preço. Quando não há dado suficiente, dizemos isso em vez de inventar um número.
+              </p>
+            </header>
+            <div className={styles.kpiGrid}>
+              <KpiCardWrap>
+                {data.trend30d?.available && data.trend30d.medianAdrChangePct != null ? (
+                  <AppMetricCard
+                    label="Diária do bairro · 30 dias"
+                    value={`${data.trend30d.medianAdrChangePct > 0 ? "+" : ""}${data.trend30d.medianAdrChangePct.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%`}
+                    trend={data.trend30d.medianAdrChangePct > 0 ? "up" : data.trend30d.medianAdrChangePct < 0 ? "down" : undefined}
+                    sub={`Mediana de ${formatBRL(data.trend30d.previousMedianAdr ?? 0)} para ${formatBRL(data.trend30d.currentMedianAdr ?? 0)} (${data.trend30d.pairedListings} anúncios com histórico)`}
+                  />
+                ) : (
+                  <AppMetricCard label="Diária do bairro · 30 dias" value="Indisponível" sub={trend.hint} />
+                )}
+              </KpiCardWrap>
+              <KpiCardWrap>
+                {eventEffect ? (
+                  <AppMetricCard label="Efeito dos eventos no bairro" value={eventEffect.value} sub={eventEffect.sub} />
+                ) : (
+                  <AppMetricCard
+                    label="Efeito dos eventos no bairro"
+                    value="Indisponível"
+                    sub="Poucos dias com evento de alto impacto e preço do bairro neste período."
+                  />
+                )}
+              </KpiCardWrap>
+            </div>
+            {bars.length ? (
+              <div className={styles.seasonBlock}>
+                <h3 className={styles.seasonTitle}>Sazonalidade da diária por mês</h3>
+                <svg
+                  className={styles.seasonSvg}
+                  viewBox={`0 0 ${bars.length * 48} 120`}
+                  width={bars.length * 48}
+                  height={120}
+                  role="img"
+                  aria-label={`Sazonalidade da diária: ${bars.map((bar) => `${bar.label} ${bar.delta}`).join(", ")}`}
+                >
+                  {bars.map((bar, i) => (
+                    <g key={bar.month}>
+                      <rect
+                        className={styles.seasonBar}
+                        x={i * 48 + 8}
+                        y={100 - bar.heightPct * 0.9}
+                        width={32}
+                        height={bar.heightPct * 0.9}
+                        rx={4}
+                      >
+                        <title>{`${bar.label}: ${bar.delta}`}</title>
+                      </rect>
+                      <text className={styles.seasonLabel} x={i * 48 + 24} y={115} textAnchor="middle">
+                        {bar.label}
+                      </text>
+                    </g>
+                  ))}
+                </svg>
+                <ul className={styles.seasonList}>
+                  {bars.map((bar) => (
+                    <li key={bar.month}>
+                      <strong>{bar.label}</strong> {bar.delta}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : (
+              <p className={styles.sectionSubtitle}>
+                Sazonalidade indisponível: precisamos de pelo menos dois meses de histórico de preços dos parecidos.
+              </p>
+            )}
+          </section>
         </div>
       )}
-
-      <style>{`
-        .market-intel-kpi-grid {
-          display: grid;
-          gap: 20px;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-        @media (min-width: 900px) {
-          .market-intel-kpi-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-        }
-      `}</style>
     </AppPageShell>
+  );
+}
+
+function InsufficientState({
+  data,
+  filters,
+  onWiden,
+  onClearTypology,
+  onGotoProperties,
+}: {
+  data: MarketIntelResponse;
+  filters: MarketFilters;
+  onWiden: (km: number) => void;
+  onClearTypology: () => void;
+  onGotoProperties: () => void;
+}) {
+  const view = insufficiencyView(data, filters);
+  return (
+    <div className={styles.contentStack}>
+      <AppEmptyState
+        eyebrow="AMOSTRA INSUFICIENTE"
+        title={view.title}
+        body={view.body}
+        icon={<Icons.MapPin size={32} />}
+        action={
+          <div className={styles.insufficiencyActions}>
+            {view.widenTo ? (
+              <AppButton variant="primary" size="md" onClick={() => onWiden(view.widenTo as number)}>
+                Aumentar raio para {view.widenTo} km
+              </AppButton>
+            ) : null}
+            {view.canClearTypology ? (
+              <AppButton variant="secondary" size="md" onClick={onClearTypology}>
+                Limpar tipologia
+              </AppButton>
+            ) : null}
+            <AppButton variant="ghost" size="md" onClick={onGotoProperties}>
+              Ver outros imóveis
+            </AppButton>
+          </div>
+        }
+      />
+      <section aria-label="O que falta para comparar" className={styles.insufficiencyBox}>
+        <h2 className={styles.sectionTitle}>O que falta</h2>
+        <ul className={styles.reasonList}>
+          {view.reasons.map((reason) => (
+            <li key={reason}>{reason}</li>
+          ))}
+        </ul>
+        {view.hints.length ? (
+          <>
+            <h3 className={styles.seasonTitle}>O que você pode fazer</h3>
+            <ul className={styles.reasonList}>
+              {view.hints.map((hint) => (
+                <li key={hint}>{hint}</li>
+              ))}
+            </ul>
+          </>
+        ) : null}
+      </section>
+    </div>
   );
 }
 

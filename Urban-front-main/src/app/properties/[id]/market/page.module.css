@@ -58,6 +58,151 @@
   box-shadow: 0 1px 2px var(--theme-app-legacy-ink-04);
 }
 
+.kpiGrid.kpiGrid {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+@media (max-width: 1180px) {
+  .kpiGrid.kpiGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.filters.filters {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px 24px;
+  margin-bottom: 32px;
+  background: var(--app-surface);
+  border: 1px solid var(--app-divider);
+  border-radius: 12px;
+}
+
+.filterGrid.filterGrid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+@media (max-width: 1180px) {
+  .filterGrid.filterGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767px) {
+  .filterGrid.filterGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .kpiGrid.kpiGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.filterActions.filterActions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.filterStatus.filterStatus {
+  font-size: var(--text-sm);
+  color: var(--app-text-muted);
+  min-height: 1.2em;
+}
+
+.sourceStrip.sourceStrip {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sourceList.sourceList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.attribution.attribution {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--app-text-muted);
+}
+
+.seasonBlock.seasonBlock {
+  margin-top: 24px;
+  padding: 20px 24px;
+  background: var(--app-surface);
+  border: 1px solid var(--app-divider);
+  border-radius: 12px;
+}
+
+.seasonTitle.seasonTitle {
+  font-size: var(--text-md);
+  font-weight: 600;
+  color: var(--app-text);
+  margin: 0 0 12px;
+}
+
+.seasonSvg.seasonSvg {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+.seasonBar {
+  fill: var(--app-accent);
+}
+
+.seasonLabel {
+  fill: var(--app-text-muted);
+  font-size: 11px;
+}
+
+.seasonList.seasonList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  font-size: var(--text-sm);
+  color: var(--app-text-muted);
+}
+
+.insufficiencyActions.insufficiencyActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+
+.insufficiencyBox.insufficiencyBox {
+  padding: 24px;
+  background: var(--app-surface);
+  border: 1px solid var(--app-divider);
+  border-radius: 12px;
+}
+
+.reasonList.reasonList {
+  margin: 0 0 16px;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: var(--text-sm);
+  color: var(--app-text-muted);
+  line-height: 1.55;
+}
+
 .kpiCard.kpiCard {
   padding: 20px;
   background: var(--app-surface);

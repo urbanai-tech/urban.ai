@@ -4,6 +4,7 @@ import React from "react";
 import { TrendingUp, TrendingDown } from "../../../../componentes/ui/Icons";
 import styles from "./PercentileHero.module.css";
 import { brlWhole } from "../../../../lib/format";
+import type { TrendView } from "../market-domain";
 
 /**
  * <PercentileHero> — Archivo (display) gigante "PERCENTIL X" + subtitle contextual
@@ -18,6 +19,12 @@ export interface PercentileHeroProps {
   comparablesCount: number;
   medianAdr: number;
   trend30d: number; // delta em pontos (positivo = melhorou)
+  /** Tendência já interpretada (inclui "indisponível"); quando ausente vale o `trend30d` numérico. */
+  trend?: TrendView;
+  /** Origem dos dados em uma frase ("clientes e dataset licenciado"). */
+  origin?: string;
+  /** Raio da comparação em km (padrão 3). */
+  radiusKm?: number;
 }
 
 function formatBRL(value: number): string {
@@ -30,14 +37,27 @@ export function PercentileHero({
   comparablesCount,
   medianAdr,
   trend30d,
+  trend,
+  origin,
+  radiusKm,
 }: PercentileHeroProps) {
-  const isUp = trend30d > 0;
-  const isDown = trend30d < 0;
-  const isFlat = trend30d === 0;
+  const kind = trend
+    ? trend.kind
+    : trend30d > 0
+      ? "up"
+      : trend30d < 0
+        ? "down"
+        : "flat";
+  const isUp = kind === "up";
+  const isDown = kind === "down";
+  const isFlat = kind === "flat";
+  const isUnavailable = kind === "unavailable";
 
-  const trendLabel = isFlat
-    ? "estável"
-    : `${isUp ? "+" : ""}${trend30d} pontos`;
+  const trendLabel = trend
+    ? trend.label
+    : isFlat
+      ? "estável"
+      : `${isUp ? "+" : ""}${trend30d} pontos`;
 
   return (
     <section
@@ -58,12 +78,17 @@ export function PercentileHero({
 
         <span
           role="status"
-          aria-label={`Tendência ${trendLabel} nos últimos 30 dias`}
+          aria-label={
+            isUnavailable
+              ? `Tendência de 30 dias indisponível: ${trend?.hint ?? ""}`
+              : `Tendência ${trendLabel} nos últimos 30 dias`
+          }
+          title={trend?.hint}
           className={`${styles.trendChip} ${isUp ? styles.trendChipUp : ""}`}
         >
           {isUp && <TrendingUp size={14} />}
           {isDown && <TrendingDown size={14} />}
-          {isFlat && <span aria-hidden>=</span>}
+          {(isFlat || isUnavailable) && <span aria-hidden>=</span>}
           {trendLabel}
         </span>
       </div>
@@ -75,7 +100,9 @@ export function PercentileHero({
         imóveis parecidos em{" "}
         <strong className={styles.heroEmphasis}>{neighborhood}</strong> (
         {comparablesCount} referência{comparablesCount === 1 ? "" : "s"} · diária
-        média {formatBRL(medianAdr)})
+        média {formatBRL(medianAdr)}
+        {radiusKm ? ` · até ${radiusKm} km` : ""}
+        {origin ? ` · fonte: ${origin}` : ""})
       </p>
     </section>
   );

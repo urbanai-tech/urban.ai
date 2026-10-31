@@ -71,6 +71,49 @@ test("normalizeMarketIntel preenche números e listas e lança sem objeto", () =
   assert.deepEqual(full.adrPercentiles, { p25: 1, p50: 2, p75: 3 });
 });
 
+test("normalizeMarketIntel: campos novos do mercado multifonte são seguros e opcionais", () => {
+  // backend antigo: nenhum campo novo aparece
+  const legacy = n.normalizeMarketIntel({ percentile: 50 });
+  assert.equal(legacy.dataSources, undefined);
+  assert.equal(legacy.trend30d, undefined);
+  assert.equal(legacy.insufficiency, undefined);
+
+  const out = n.normalizeMarketIntel({
+    dataSources: [
+      { id: "customers", label: "Clientes My Urban", listings: "5", latestCollectedAt: null, licenses: ["first_party", 3] },
+      null,
+      "x",
+      { id: "licensed_dataset", listings: 8, latestCollectedAt: "2026-10-01", licenses: "nope" },
+    ],
+    attribution: ["Inside Airbnb", 7],
+    seasonality: [{ month: 1, index: "1.2", sample: 30 }, { month: 14, index: 1, sample: 1 }, null],
+    neighborhoodEventEffect: { upliftPct: "12.5", eventDays: 3, baselineDays: 9 },
+    trend30d: { available: true, percentilePoints: 4, medianAdrChangePct: "x", pairedListings: 7, ownBasis: "weird" },
+    insufficiency: { reasons: ["a", 1], hints: null, customers: { distinct: 2, required: 5 }, external: null },
+    radius: { km: 4, min: 1, max: 5 },
+    typology: { applied: { rooms: 2 }, target: { rooms: null, listingType: "entire_home", capacity: "1-2" } },
+  });
+  assert.deepEqual(out.dataSources, [
+    { id: "customers", label: "Clientes My Urban", listings: 5, latestCollectedAt: null, licenses: ["first_party"] },
+    { id: "licensed_dataset", label: "", listings: 8, latestCollectedAt: "2026-10-01", licenses: [] },
+  ]);
+  assert.deepEqual(out.attribution, ["Inside Airbnb"]);
+  assert.deepEqual(out.seasonality, [{ month: 1, index: 1.2, sample: 30 }]);
+  assert.deepEqual(out.neighborhoodEventEffect, { upliftPct: 12.5, eventDays: 3, baselineDays: 9 });
+  assert.equal(out.trend30d.available, true);
+  assert.equal(out.trend30d.medianAdrChangePct, null);
+  assert.equal(out.trend30d.ownBasis, null);
+  assert.deepEqual(out.insufficiency.reasons, ["a"]);
+  assert.deepEqual(out.insufficiency.hints, []);
+  assert.deepEqual(out.insufficiency.external, { distinct: 0, required: 0, qualified: false });
+  assert.deepEqual(out.radius, { km: 4, min: 1, max: 5 });
+  assert.deepEqual(out.typology.applied, { rooms: 2, listingType: null, capacity: null });
+  assert.deepEqual(out.typology.target, { rooms: null, listingType: "entire_home", capacity: "1-2" });
+
+  assert.equal(n.normalizeMarketIntel({ seasonality: null }).seasonality, null);
+  assert.equal(n.normalizeMarketIntel({ insufficiency: null }).insufficiency, null);
+});
+
 test("normalizePricingRules descarta entradas inválidas e garante params", () => {
   assert.throws(() => n.normalizePricingRules(undefined));
   const out = n.normalizePricingRules({ rules: [null, { type: "last_minute", enabled: 1 }, "x"] }, "p9");
