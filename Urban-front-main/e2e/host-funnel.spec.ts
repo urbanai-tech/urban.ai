@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { acceptCookieConsent } from './test-helpers';
+import { acceptCookieConsent, gotoHydrated } from './test-helpers';
 
 /**
  * Funil do anfitrião (mocked local): termos no cadastro, e-mail verificado,
@@ -47,7 +47,7 @@ test.describe('Funil do anfitrião', () => {
       await route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify({ enviado: true }) });
     });
 
-    await page.goto('/create');
+    await gotoHydrated(page, '/create');
 
     await page.getByLabel(/^Nome/i).first().fill('Ana Host');
     await page.getByLabel(/E-mail/i).first().fill('ana.host@urbanai.invalid');
@@ -78,7 +78,7 @@ test.describe('Funil do anfitrião', () => {
   test('admin: host comum é enviado para /forbidden sem montar o shell', async ({ page }) => {
     await acceptCookieConsent(page);
     await mockSession(page, 'host');
-    await page.goto('/admin', { waitUntil: 'domcontentloaded' });
+    await gotoHydrated(page, '/admin');
     await expect(page).toHaveURL(/\/forbidden/, { timeout: 10_000 });
   });
 
@@ -93,7 +93,7 @@ test.describe('Funil do anfitrião', () => {
       return route.fulfill({ status: 200, contentType: 'application/json', body: '[]' });
     });
 
-    await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
+    await gotoHydrated(page, '/dashboard');
 
     await expect(page.getByTestId('subscription-check-error')).toBeVisible({ timeout: 15_000 });
     await expect(page.getByRole('button', { name: /Tentar de novo/i })).toBeVisible();
@@ -129,7 +129,7 @@ test.describe('Funil do anfitrião', () => {
       await route.fulfill({ status: 200, contentType: 'text/html', body: '<html><body>stripe-checkout-mock</body></html>' });
     });
 
-    await page.goto('/plans');
+    await gotoHydrated(page, '/plans');
     await page.getByRole('button', { name: /Continuar para pagamento/i }).click();
 
     await expect(page).toHaveURL(/checkout\.stripe\.com\/c\/pay\/cs_test_e2e/, { timeout: 10_000 });
@@ -142,8 +142,19 @@ test.describe('Funil do anfitrião', () => {
       if (route.request().resourceType() === 'document') return route.continue();
       return route.fulfill({ status: 200, contentType: 'application/json', body: '[]' });
     });
+    // E2E-18: sem estes mocks o shell consultava a API real (fora do ar) e a página remontava
+    // depois do aviso; com tudo mockado e a espera pela hidratação o aviso é determinístico.
+    await page.route('**/payments/getSubscription', (route) =>
+      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ status: 'inactive' }) }),
+    );
+    await page.route('**/propriedades/dropdown/list', (route) =>
+      route.fulfill({ status: 200, contentType: 'application/json', body: '[]' }),
+    );
+    await page.route('**/notifications/user/unread-count', (route) =>
+      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ unread: 0 }) }),
+    );
 
-    await page.goto('/plans?checkout=canceled');
+    await gotoHydrated(page, '/plans?checkout=canceled');
 
     await expect(page.getByText(/Checkout cancelado\. Nenhuma cobrança foi feita/i)).toBeVisible({ timeout: 10_000 });
     await expect(page).not.toHaveURL(/checkout=canceled/);

@@ -1,4 +1,5 @@
 import { expect, type Page, test } from '@playwright/test';
+import { gotoHydrated } from './test-helpers';
 
 async function mockPlans(page: Page) {
   await page.route('**/plans', async (route) => {
@@ -158,7 +159,7 @@ test.describe('Onboarding Airbnb import', () => {
       });
     });
 
-    await page.goto('/onboarding');
+    await gotoHydrated(page, '/onboarding');
 
     await expect(page.getByRole('heading', { name: /Bem-vindo ao My Urban/i })).toBeVisible();
     await page.getByRole('button', { name: /Come.*configura/i }).click();
@@ -254,7 +255,7 @@ test.describe('Onboarding Airbnb import', () => {
       });
     });
 
-    await page.goto('/onboarding');
+    await gotoHydrated(page, '/onboarding');
 
     await page.getByRole('button', { name: /Come.*configura/i }).click();
     await page
@@ -358,7 +359,7 @@ test.describe('Onboarding Airbnb import', () => {
       });
     });
 
-    await page.goto('/onboarding');
+    await gotoHydrated(page, '/onboarding');
 
     await page.getByRole('button', { name: /Come.*configura/i }).click();
     await page

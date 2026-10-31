@@ -355,15 +355,23 @@ function Badge({ children, ...props }: PrimitiveProps) {
   );
 }
 
+const GRID_MAX_COLUMNS = 6;
+
+function gridColumnCount(value: any, fallback: number) {
+  const count = Math.floor(Number(value));
+  return Number.isFinite(count) && count >= 1 ? Math.min(count, GRID_MAX_COLUMNS) : fallback;
+}
+
+// E2E-04: colunas responsivas ({ base, md }) viram classes do CSS Module (≤767px usa `base`),
+// em vez de resolver só o valor de desktop e espremer a grade no celular.
 function SimpleGrid({ columns = 1, spacing: gap = 4, children, ...props }: PrimitiveProps) {
-  const count = Number(resolveResponsive(columns)) || 1;
+  const responsive = columns && typeof columns === 'object' ? columns : null;
+  const desktop = gridColumnCount(responsive ? (responsive.md ?? responsive.lg ?? responsive.base) : columns, 1);
+  const mobile = gridColumnCount(responsive?.base, desktop);
   const Component = primitive(
     'div',
-    {
-      gridTemplateColumns: `repeat(${count}, minmax(0, 1fr))`,
-      gap: cssValue('gap', gap),
-    },
-    styles.gridBase,
+    { gap: cssValue('gap', gap) },
+    cx(styles.gridBase, styles[`gridDesktop${desktop}`], styles[`gridMobile${mobile}`]),
   );
   return <Component {...props}>{children}</Component>;
 }
@@ -500,12 +508,25 @@ function Alert({ children, ...props }: PrimitiveProps) {
   return <Component {...props}>{children}</Component>;
 }
 
+/** Tamanho do ícone a partir de `boxSize` (escala x4 como o resto: 3.5 → 14px; "10px" → 10). */
+function resolveIconSize(boxSize: unknown, fallback: number): number {
+  const resolved = resolveResponsive(boxSize);
+  if (typeof resolved === 'number' && Number.isFinite(resolved) && resolved > 0) return resolved * 4;
+  if (typeof resolved === 'string') {
+    const parsed = parseFloat(resolved);
+    if (Number.isFinite(parsed) && parsed > 0) return /rem$/.test(resolved) ? parsed * 16 : parsed;
+  }
+  return fallback;
+}
+
 function SvgIcon({ children, size = 16, color, ...props }: PrimitiveProps & { size?: number }) {
   const { style } = splitPrimitiveProps(props);
+  // E2E-14: boxSize em string ("10px") virava NaN no atributo width/height do <svg>.
+  const iconSize = resolveIconSize(props.boxSize, size);
   return (
     <svg
-      width={props.boxSize ? Number(resolveResponsive(props.boxSize)) * 4 : size}
-      height={props.boxSize ? Number(resolveResponsive(props.boxSize)) * 4 : size}
+      width={iconSize}
+      height={iconSize}
       viewBox="0 0 24 24"
       fill="none"
       stroke={colorMap[color] ?? color ?? 'currentColor'}

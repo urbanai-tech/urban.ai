@@ -22,6 +22,7 @@ import {
 import { EventCard, type EventItem } from './components/ItemEvento';
 import { SuggestionInfoPopover } from '../componentes/SuggestionInfoPopover';
 import { PushNotificationOptIn } from '../componentes/PushNotificationOptIn';
+import { NextSuggestionsGuide } from '../componentes/NextSuggestionsGuide';
 import {
   AppPageShell,
   AppSectionHeader,
@@ -273,6 +274,7 @@ export default function CalendarioPage() {
     nextPeriodCount: nextMonthWithEvents?.count,
   });
   const propertyPreparing = selectedPropertyInfo && !isPropertyReady(selectedPropertyInfo);
+  const guideProperties = selectedPropertyInfo ? [selectedPropertyInfo, ...propsInfo] : propsInfo;
 
   const periodSelector = (
     <div className="urban-cal-period" data-calendar-period>
@@ -337,6 +339,13 @@ export default function CalendarioPage() {
           Ver o mês inteiro
         </AppButton>
       }
+    />
+  ) : !nextMonthWithEvents && !propertyPreparing ? (
+    // MKT-05: nenhum evento à frente, nem nos próximos meses: explica e mostra o que vem a seguir.
+    <NextSuggestionsGuide
+      properties={guideProperties}
+      eyebrow="SEM SUGESTÕES NO PERÍODO"
+      title={empty.title}
     />
   ) : (
     <AppEmptyState

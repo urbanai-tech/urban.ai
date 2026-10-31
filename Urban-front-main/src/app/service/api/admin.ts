@@ -1,4 +1,5 @@
 import { api } from "./client";
+import { asArray, asList, asNumber, normalizeAdminFunnel } from "../../lib/api-normalize";
 
 export * from "./event-radar";
 
@@ -305,7 +306,14 @@ export async function fetchAdminUsers(page = 1, limit = 20): Promise<AdminUsersR
   const { data } = await api.get<AdminUsersResponse>('/admin/users', {
     params: { page, limit },
   });
-  return data;
+  // E2E-09: lista ausente vira página vazia, não exceção na tabela.
+  return {
+    data: asList<AdminUser>(data),
+    total: asNumber(data?.total),
+    page: asNumber(data?.page, page),
+    limit: asNumber(data?.limit, limit),
+    totalPages: asNumber(data?.totalPages, 1),
+  };
 }
 
 export async function setAdminUserRole(
@@ -478,12 +486,12 @@ export async function staysGetCapabilities(): Promise<StaysCapabilities> {
 
 export async function staysListLinkableProperties(): Promise<StaysLinkableProperty[]> {
   const { data } = await api.get<StaysLinkableProperty[]>('/stays/properties');
-  return data;
+  return asArray<StaysLinkableProperty>(data);
 }
 
 export async function staysMatchSuggestions(): Promise<StaysMatchSuggestion[]> {
   const { data } = await api.get<StaysMatchSuggestion[]>('/stays/listings/match-suggestions');
-  return data;
+  return asArray<StaysMatchSuggestion>(data);
 }
 
 export async function staysLinkListing(listingId: string, propriedadeId: string): Promise<StaysListingPublic> {
@@ -505,7 +513,7 @@ export async function staysListPriceUpdates(listingId?: string, limit = 5): Prom
   const { data } = await api.get<PriceUpdatePublic[]>('/stays/price-updates', {
     params: { ...(listingId ? { listingId } : {}), limit },
   });
-  return data;
+  return asArray<PriceUpdatePublic>(data);
 }
 
 export async function staysSyncListings(): Promise<{ count: number; listings: StaysListingPublic[] }> {
@@ -515,7 +523,7 @@ export async function staysSyncListings(): Promise<{ count: number; listings: St
 
 export async function staysListListings(): Promise<StaysListingPublic[]> {
   const { data } = await api.get<StaysListingPublic[]>('/stays/listings');
-  return data;
+  return asArray<StaysListingPublic>(data);
 }
 
 export async function staysPreviewPrice(input: {
@@ -643,7 +651,7 @@ export interface ManualOccupancyRecord extends ManualOccupancyPayload {
 export const fetchAdminStays = () =>
   api.get<AdminStaysHealth>('/admin/stays/health').then((r) => r.data);
 export const fetchAdminFunnel = () =>
-  api.get<AdminProductFunnel>('/admin/funnel').then((r) => r.data);
+  api.get<AdminProductFunnel>('/admin/funnel').then((r) => normalizeAdminFunnel(r.data));
 export const fetchAdminPricingQuality = () =>
   api.get<AdminPricingQuality>('/admin/pricing/quality').then((r) => r.data);
 export const fetchAdminOccupancy = () =>

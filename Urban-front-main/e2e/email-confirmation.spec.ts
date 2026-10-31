@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { acceptCookieConsent } from './test-helpers';
+import { acceptCookieConsent, gotoHydrated } from './test-helpers';
 
 test.describe('Confirmacao de e-mail', () => {
   test('envia codigo ao abrir, valida 6 digitos e redireciona apos confirmar', async ({ page }) => {
@@ -37,7 +37,7 @@ test.describe('Confirmacao de e-mail', () => {
     await page.addInitScript(() => {
       window.sessionStorage.setItem('urbanai:confirm-email', 'host.confirm@urbanai.com.br');
     });
-    await page.goto('/confirm-email');
+    await gotoHydrated(page, '/confirm-email');
 
     await expect(page.getByRole('heading', { name: /Confirme seu e-mail/i })).toBeVisible();
     await expect(page.getByText('ho***@urbanai.com.br')).toBeVisible();
@@ -71,7 +71,7 @@ test.describe('Confirmacao de e-mail', () => {
       await route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify({ enviado: true }) });
     });
 
-    await page.goto('/confirm-email');
+    await gotoHydrated(page, '/confirm-email');
     await expect(page.getByLabel('E-mail da conta')).toBeVisible();
     expect(sentCodes).toHaveLength(0);
 
@@ -89,7 +89,7 @@ test.describe('Confirmacao de e-mail', () => {
       await route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify({ enviado: true }) });
     });
 
-    await page.goto('/confirm-email/antigo%40urbanai.com.br');
+    await gotoHydrated(page, '/confirm-email/antigo%40urbanai.com.br');
     await expect(page).toHaveURL(/\/confirm-email$/);
     expect(page.url()).not.toMatch(/antigo|%40/);
     await expect.poll(() => sentCodes[0]).toEqual({ email: 'antigo@urbanai.com.br' });

@@ -1,0 +1,102 @@
+/* Estado vazio com "o que vem a seguir" (MKT-05). Sem estilos inline, só tokens. */
+.guide {
+  display: grid;
+  gap: 20px;
+  padding: 24px;
+  border: 1px dashed var(--app-divider-strong);
+  border-radius: 12px;
+  background: var(--app-surface-muted);
+}
+
+.head {
+  display: grid;
+  gap: 8px;
+}
+
+.title.title {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.25;
+  color: var(--app-text);
+}
+
+.lead.lead {
+  margin: 0;
+  max-width: 62ch;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--app-text-muted);
+}
+
+.blocks {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.block {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--app-divider);
+  border-radius: 10px;
+  background: var(--app-surface);
+}
+
+.blockTitle.blockTitle {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--app-text);
+}
+
+.list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.itemName {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--app-text);
+  overflow-wrap: anywhere;
+}
+
+.itemMeta {
+  font-size: 12px;
+  color: var(--app-text-muted);
+}
+
+.note.note {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--app-text-muted);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+@media (max-width: 767px) {
+  .guide {
+    padding: 16px;
+  }
+
+  .blocks {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

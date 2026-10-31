@@ -75,3 +75,13 @@ export async function loginViaForm(
   await page.waitForURL(isPostLoginRoute, { timeout: 15_000 });
   await expect(page.getByText(/credenciais invalidas|invalid credentials/i)).toHaveCount(0);
 }
+
+/**
+ * Navega e espera a hidratação do React (atributo `data-app-hydrated` no <html>).
+ * `domcontentloaded` não depende de recursos externos lentos (o `load` estourava 30 s sob
+ * paralelismo) e a espera pela hidratação evita clicar antes dos handlers existirem.
+ */
+export async function gotoHydrated(page: Page, url: string) {
+  await page.goto(url, { waitUntil: 'domcontentloaded' });
+  await page.waitForSelector('html[data-app-hydrated="true"]', { state: 'attached' });
+}

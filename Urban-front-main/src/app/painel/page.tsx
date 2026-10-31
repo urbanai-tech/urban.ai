@@ -15,6 +15,7 @@ import { Pagination } from '../componentes/Pagination';
 import { EventCard } from './components/ItemEventoPainel';
 import MetricStrip from './components/StatCard';
 import { PushNotificationOptIn } from '../componentes/PushNotificationOptIn';
+import { NextSuggestionsGuide } from '../componentes/NextSuggestionsGuide';
 import {
   AppButton,
   AppCard,
@@ -84,6 +85,9 @@ export default function HojePage() {
     realProperties.length > 0 && realProperties.every((property) => !isPropertyReady(property));
   const preparingSetupStatus = realProperties.find((property) => property.setupStatus)?.setupStatus;
   const hasNoProperties = !loadingProps && !propsError && realProperties.length === 0;
+  // Cidade da agenda: do imóvel escolhido ou, em "Todos", do primeiro imóvel pronto.
+  const guideCandidates = realProperties.filter((property) => !propertyId || property.id === propertyId);
+  const guideProperties = guideCandidates.filter(isPropertyReady).concat(guideCandidates);
 
   useEffect(() => {
     async function fetchProps() {
@@ -264,22 +268,21 @@ export default function HojePage() {
               }
             />
           ) : opportunities.length === 0 ? (
-            allPreparing ? null : (
+            allPreparing ? null : hasNoProperties ? (
               <AppEmptyState
-                eyebrow={hasNoProperties ? 'COMECE POR AQUI' : 'NADA PARA DECIDIR AGORA'}
-                title={hasNoProperties ? 'Adicione seu primeiro imóvel' : 'Nenhuma sugestão para decidir agora'}
-                body={
-                  hasNoProperties
-                    ? 'Com o endereço e a diária de referência, o My Urban encontra eventos perto e sugere o preço da noite.'
-                    : 'Sugestões aparecem quando um evento perto de um imóvel pronto mexe com a procura. Confira em Imóveis se o endereço e a diária de referência estão preenchidos — o resto é com a gente: avisamos quando surgir oportunidade.'
-                }
+                eyebrow="COMECE POR AQUI"
+                title="Adicione seu primeiro imóvel"
+                body="Com o endereço e a diária de referência, o My Urban encontra eventos perto e sugere o preço da noite."
                 icon={<Icons.Sparkles size={32} />}
                 action={
                   <AppButton as="a" href="/properties" variant="primary" size="md" rightIcon={<Icons.ArrowRight size={14} />}>
-                    {hasNoProperties ? 'Adicionar imóvel' : 'Ver Imóveis'}
+                    Adicionar imóvel
                   </AppButton>
                 }
               />
+            ) : (
+              // MKT-05: sem sugestão não é tela vazia: explica o porquê e o que vem a seguir.
+              <NextSuggestionsGuide properties={guideProperties} />
             )
           ) : (
             <>

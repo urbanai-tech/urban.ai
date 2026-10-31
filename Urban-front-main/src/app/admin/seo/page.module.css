@@ -4,6 +4,25 @@
   padding: 40px 32px;
 }
 
+.sampleNotice.sampleNotice {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 32px;
+  padding: 14px 16px;
+  border: 1px solid var(--admin-warning);
+  border-radius: 10px;
+}
+
+.sampleNoticeText.sampleNoticeText {
+  flex: 1 1 320px;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--admin-text-muted);
+}
+
 .section.section {
   margin-bottom: 56px;
 }

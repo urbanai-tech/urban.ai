@@ -16,7 +16,8 @@
 
 .sectionHeaderText {
   min-width: 0;
-  flex: 1;
+  /* DS-07: base mínima de 240px, assim as ações descem para a linha de baixo em vez de espremer o título. */
+  flex: 1 1 240px;
 }
 
 .sectionHeaderEyebrow.sectionHeaderEyebrow.sectionHeaderEyebrow {

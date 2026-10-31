@@ -51,11 +51,21 @@ export default function AdminSeoPage() {
         title="Governança de busca e AI Search"
         subtitle="Painel dedicado para indexação, citabilidade em mecanismos generativos e backlog técnico de descoberta orgânica."
         actions={
-          <AdminBadge kind="accent">
-            Atualizado {adminSeoPanelData.lastUpdatedLabel}
+          <AdminBadge kind="warn">
+            Exemplo de {adminSeoPanelData.lastUpdatedLabel}
           </AdminBadge>
         }
       />
+
+      {/* UX-18: os números abaixo vêm de um arquivo de exemplo, não de medição. */}
+      <div className={styles.sampleNotice} role="note" data-seo-sample-notice>
+        <AdminBadge kind="warn">DADOS DE EXEMPLO</AdminBadge>
+        <p className={styles.sampleNoticeText}>
+          Esta tela ainda não lê Search Console, GA4 nem logs de bots. Percentuais, readiness e indicadores
+          são um retrato de exemplo de {adminSeoPanelData.lastUpdatedLabel} e não representam medição real
+          até os conectores abaixo estarem ligados.
+        </p>
+      </div>
 
       <section className={styles.section}>
         <p className={`urban-admin-eyebrow ${styles.sectionEyebrow}`}>
@@ -81,7 +91,7 @@ export default function AdminSeoPage() {
                   {completion.value}%
                 </strong>
                 <span className={styles.scoreValueLabel}>
-                  geral
+                  geral (exemplo)
                 </span>
               </div>
             </div>
@@ -179,7 +189,7 @@ export default function AdminSeoPage() {
 
       <section className={styles.section}>
         <header className={styles.sectionHeader}>
-          <p className="urban-admin-eyebrow">READINESS 100%</p>
+          <p className="urban-admin-eyebrow">READINESS DOS CONECTORES (EXEMPLO)</p>
           <h2 className={styles.sectionTitle}>
             Conectores prontos para dados reais
           </h2>

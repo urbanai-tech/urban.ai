@@ -227,6 +227,8 @@ export type HostEventCatalogFilters = {
   nearMyProperties?: boolean;
   radiusKm?: string | number;
   highImpact?: boolean;
+  propertyId?: string;
+  limit?: number;
 };
 
 export type HostEventRadarFilters = {

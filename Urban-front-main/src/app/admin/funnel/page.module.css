@@ -110,6 +110,13 @@
   margin: 0;
 }
 
+.stageItemValue.stageItemValue {
+  margin-left: 8px;
+  font-size: 13px;
+  letter-spacing: 0;
+  color: var(--admin-text);
+}
+
 .stageItemDesc.stageItemDesc {
   font-size: 12px;
   color: var(--admin-text-muted);
@@ -165,4 +172,15 @@
   justify-content: center;
   text-align: center;
   pointer-events: none;
+}
+
+/* DS-20: no celular o trapézio fica estreito demais para os rótulos; a lista abaixo já traz os valores. */
+@media (max-width: 767px) {
+  .funnelLayout.funnelLayout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .funnelChartWrap.funnelChartWrap {
+    display: none;
+  }
 }

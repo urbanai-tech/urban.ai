@@ -513,7 +513,7 @@ const styles = `
 
     .roi-main-grid,
     .roi-wins {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
     }
   }
 

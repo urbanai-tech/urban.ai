@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { loadStripe } from "@stripe/stripe-js";
 import { pickCheckoutRedirect } from "../lib/checkout";
 import type { BillingCycle, Plan } from "../service/api";
 import { createCheckoutSession, getFriendlyApiErrorMessage } from "../service/api";
@@ -36,9 +35,17 @@ interface PricingSelfServiceCalculatorProps {
 
 const DEFAULT_PRESETS = [1, 3, 5, 10, 20, 50, 100];
 
-const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
-  ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
-  : null;
+/**
+ * E2E-11: Stripe.js só é baixado se o fallback por `sessionId` for usado (o caminho normal é o
+ * redirect hospedado por `url`). Importar `@stripe/stripe-js` injeta o script da Stripe na página,
+ * então o import é dinâmico e nunca acontece no carregamento das telas logadas.
+ */
+async function loadStripeOnDemand() {
+  const key = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+  if (!key) return null;
+  const { loadStripe } = await import("@stripe/stripe-js");
+  return loadStripe(key);
+}
 
 function clampQuantity(value: number, max: number): number {
   if (!Number.isFinite(value)) return 1;
@@ -100,10 +107,10 @@ export function PricingSelfServiceCalculator({
 
       // Fallback para respostas antigas do backend, sem `url`.
       if (redirect?.mode === "sessionId") {
-        if (!stripePromise) {
+        if (!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) {
           throw new Error("Checkout indisponível: chave pública Stripe não configurada.");
         }
-        const stripe = await stripePromise;
+        const stripe = await loadStripeOnDemand();
         if (!stripe) throw new Error("Checkout indisponível: Stripe.js não carregou.");
         const result = await stripe.redirectToCheckout({ sessionId: redirect.sessionId });
         if (result.error) throw new Error("Não foi possível abrir o checkout agora.");

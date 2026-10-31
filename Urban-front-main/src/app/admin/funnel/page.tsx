@@ -267,6 +267,7 @@ function FunnelChart({ stages, max }: { stages: Stage[]; max: number }) {
                   className={styles.stageItemTitle}
                 >
                   {String(i + 1).padStart(2, "0")} {s.label}
+                  <span className={styles.stageItemValue}>{s.value.toLocaleString("pt-BR")}</span>
                 </p>
                 <p
                   className={styles.stageItemDesc}

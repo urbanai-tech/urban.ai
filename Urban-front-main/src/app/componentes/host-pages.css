@@ -44,6 +44,14 @@
     width: 100%;
   }
 
+  /* DS-07: o subtítulo em uma linha não pode alargar a coluna além da viewport (reflow a 320px). */
+  .urban-host-page > header > div:first-child {
+    flex: 0 0 auto !important;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
   .urban-host-page > header p:not(.urban-app-eyebrow) {
     margin-top: 6px !important;
     overflow: hidden;

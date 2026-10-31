@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { acceptCookieConsent } from './test-helpers';
+import { acceptCookieConsent, gotoHydrated } from './test-helpers';
 
 test.describe('Reset de senha', () => {
   test.beforeEach(async ({ page }) => {
@@ -18,11 +18,16 @@ test.describe('Reset de senha', () => {
       });
     });
 
-    await page.goto('/request-reset-password');
+    await gotoHydrated(page, '/request-reset-password');
 
     await expect(page.getByRole('heading', { name: /Redefinir senha/i })).toBeVisible();
     await page.locator('input[type="email"]').fill('host.reset@urbanai.com.br');
-    await page.getByRole('button', { name: /^Enviar link$/i }).click();
+    // E2E-18: o formulário pode terminar de hidratar depois do marcador global; o clique é refeito
+    // até o handler existir (a requisição é a condição observada, não um timeout fixo).
+    await expect(async () => {
+      await page.getByRole('button', { name: /^Enviar link$/i }).click();
+      expect(payloads.length).toBeGreaterThan(0);
+    }).toPass({ timeout: 10_000 });
 
     await expect.poll(() => payloads.length).toBe(1);
     expect(payloads[0]).toEqual({ email: 'host.reset@urbanai.com.br' });
@@ -54,7 +59,7 @@ test.describe('Reset de senha', () => {
       });
     });
 
-    await page.goto('/reset-password#token=TOKEN_RESET_E2E');
+    await gotoHydrated(page, '/reset-password#token=TOKEN_RESET_E2E');
 
     await expect(page.getByRole('heading', { name: /Crie uma senha segura/i })).toBeVisible();
     const submit = page.getByRole('button', { name: /Confirmar nova senha/i });
@@ -76,7 +81,7 @@ test.describe('Reset de senha', () => {
   });
 
   test('o token sai do fragmento da URL assim que a página carrega', async ({ page }) => {
-    await page.goto('/reset-password#token=TOKEN_RESET_E2E');
+    await gotoHydrated(page, '/reset-password#token=TOKEN_RESET_E2E');
     await expect(page.getByRole('heading', { name: /Crie uma senha segura/i })).toBeVisible();
     await expect.poll(() => new URL(page.url()).hash).toBe('');
     expect(page.url()).not.toContain('TOKEN_RESET_E2E');
@@ -93,7 +98,7 @@ test.describe('Reset de senha', () => {
       });
     });
 
-    await page.goto('/reset-password/TOKEN_LEGADO_E2E');
+    await gotoHydrated(page, '/reset-password/TOKEN_LEGADO_E2E');
     await expect(page).toHaveURL(/\/reset-password$/);
     expect(page.url()).not.toContain('TOKEN_LEGADO_E2E');
 
@@ -105,7 +110,7 @@ test.describe('Reset de senha', () => {
   });
 
   test('sem token mostra link incompleto e não permite enviar', async ({ page }) => {
-    await page.goto('/reset-password');
+    await gotoHydrated(page, '/reset-password');
     await expect(page.getByText(/Link de redefinição incompleto/i)).toBeVisible();
     await expect(page.getByRole('button', { name: /Confirmar nova senha/i })).toBeDisabled();
   });

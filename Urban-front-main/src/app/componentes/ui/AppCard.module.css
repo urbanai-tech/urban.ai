@@ -30,6 +30,7 @@
 
 .header {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
@@ -38,6 +39,7 @@
 
 .headerText.headerText {
   min-width: 0;
+  flex: 1 1 200px;
 }
 
 .title.title {
@@ -57,6 +59,12 @@
 
 .actions.actions {
   flex-shrink: 0;
+  max-width: 100%;
+}
+
+/* E2E-03: selo longo no cabeçalho quebra de linha em vez de estourar a largura do cartão. */
+.actions.actions > span {
+  white-space: normal;
 }
 
 /* Seletor triplicado para vencer `.urban-app .urban-app-eyebrow-muted` (margin: 0). */

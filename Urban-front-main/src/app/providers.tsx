@@ -13,6 +13,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
   // Token antigo no localStorage (pré-migração) não deve sobreviver: só o cookie httpOnly vale.
   useEffect(() => {
     purgeLegacyAuthStorage();
+    // Marca que a hidratação terminou: os e2e esperam este atributo antes de clicar (E2E-18).
+    document.documentElement.dataset.appHydrated = 'true';
   }, []);
 
   return (
