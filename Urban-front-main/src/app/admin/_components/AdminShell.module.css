@@ -149,6 +149,38 @@
   padding: 8px 0 24px;
 }
 
+/* Cabeçalho de seção colapsável: botão com a tipografia do rótulo de seção. */
+.sectionToggle.sectionToggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin: 0;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+}
+
+.sectionToggle.sectionToggle:hover {
+  color: var(--admin-text);
+}
+
+.sectionToggle.sectionToggle:focus-visible {
+  outline: 2px solid var(--admin-accent);
+  outline-offset: -2px;
+}
+
+.sectionChevron.sectionChevron {
+  display: inline-flex;
+  transition: transform 120ms;
+}
+
+.sectionChevron.sectionChevron[data-open="true"] {
+  transform: rotate(90deg);
+}
+
 .navItemInner.navItemInner {
   display: inline-flex;
   align-items: center;

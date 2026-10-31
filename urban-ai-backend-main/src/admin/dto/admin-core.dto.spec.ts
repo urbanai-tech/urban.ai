@@ -2,6 +2,7 @@ import { BadRequestException, ValidationPipe } from '@nestjs/common';
 import {
   AdminManualOccupancyDto,
   BackfillEventIntelligenceDto,
+  ListAdminUsersQueryDto,
   RejectEventDedupCandidateDto,
   ScanEventDedupCandidatesDto,
   SetUserActiveDto,
@@ -36,6 +37,24 @@ describe('admin core runtime DTOs', () => {
     ).resolves.toEqual(expect.objectContaining({ lookaheadDays: 90, limit: 25, force: true }));
   });
 
+  it('coerces the users list query (pagination and filters are optional)', async () => {
+    await expect(validate(ListAdminUsersQueryDto, {})).resolves.toBeInstanceOf(ListAdminUsersQueryDto);
+    await expect(
+      validate(ListAdminUsersQueryDto, {
+        page: '2',
+        limit: '50',
+        q: 'ana@',
+        role: 'host',
+        ativo: 'false',
+        plan: 'profissional',
+        createdFrom: '2026-10-01',
+        createdTo: '2026-10-31',
+      }),
+    ).resolves.toEqual(
+      expect.objectContaining({ page: 2, limit: 50, q: 'ana@', role: 'host', ativo: false, plan: 'profissional' }),
+    );
+  });
+
   it('accepts both supported property identifiers for manual occupancy', async () => {
     const base = { date: '2026-12-31', status: 'booked' as const, revenueCents: '1000', currency: 'BRL' };
     await expect(validate(AdminManualOccupancyDto, { ...base, listId })).resolves.toEqual(
@@ -61,6 +80,14 @@ describe('admin core runtime DTOs', () => {
     [AdminManualOccupancyDto, { listId, date: '2026-12-31', status: 'booked', currency: 'brl' }],
     [SetUserRoleDto, { role: 'owner' }],
     [SetUserActiveDto, { ativo: 'false' }],
+    [ListAdminUsersQueryDto, { page: '0' }],
+    [ListAdminUsersQueryDto, { limit: '101' }],
+    [ListAdminUsersQueryDto, { role: 'owner' }],
+    [ListAdminUsersQueryDto, { ativo: 'talvez' }],
+    [ListAdminUsersQueryDto, { createdFrom: '01/10/2026' }],
+    [ListAdminUsersQueryDto, { plan: "x'; DROP TABLE users;--" }],
+    [ListAdminUsersQueryDto, { q: 'x'.repeat(121) }],
+    [ListAdminUsersQueryDto, { sort: 'password' }],
   ])('rejects unknown fields, ambiguous values and out-of-contract boundaries', async (metatype, input) => {
     await expect(validate(metatype as new () => object, input)).rejects.toBeInstanceOf(BadRequestException);
   });

@@ -23,6 +23,7 @@ import {
   useAdminToast,
   Icons,
 } from "../_components";
+import { statusLabel } from "../_lib/status-labels";
 import styles from "./page.module.css";
 import { brl } from "../../lib/format";
 
@@ -219,7 +220,7 @@ export default function AdminAlphaPage() {
       width: 120,
       render: (r) => (
         <code className={styles.statusCode}>
-          {r.lifecycle.status}
+          {statusLabel(r.lifecycle.status)}
         </code>
       ),
     },
@@ -228,7 +229,7 @@ export default function AdminAlphaPage() {
       header: "Resultado",
       render: (r) => (
         <span className={styles.outcomeCell}>
-          {r.outcome.reservationStatus || "pendente"}
+          {r.outcome.reservationStatus ? statusLabel(r.outcome.reservationStatus) : "Pendente"}
           {r.outcome.realRevenue ? ` · ${formatBRL(r.outcome.realRevenue)}` : ""}
         </span>
       ),

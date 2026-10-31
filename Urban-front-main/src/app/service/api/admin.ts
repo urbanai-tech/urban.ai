@@ -302,10 +302,27 @@ export const runAdminResetStaleEnrichmentJob = () =>
     )
     .then((r) => r.data);
 
-export async function fetchAdminUsers(page = 1, limit = 20): Promise<AdminUsersResponse> {
-  const { data } = await api.get<AdminUsersResponse>('/admin/users', {
-    params: { page, limit },
-  });
+/** Busca/filtros opcionais da listagem de usuários (todos em AND; vazios são omitidos). */
+export interface AdminUsersFilters {
+  q?: string;
+  role?: 'host' | 'admin' | 'support';
+  ativo?: boolean;
+  plan?: string;
+  /** YYYY-MM-DD, inclusivo. */
+  createdFrom?: string;
+  createdTo?: string;
+}
+
+export async function fetchAdminUsers(
+  page = 1,
+  limit = 20,
+  filters: AdminUsersFilters = {},
+): Promise<AdminUsersResponse> {
+  const params: Record<string, string | number | boolean> = { page, limit };
+  for (const [key, value] of Object.entries(filters)) {
+    if (value !== undefined && value !== '') params[key] = value;
+  }
+  const { data } = await api.get<AdminUsersResponse>('/admin/users', { params });
   // E2E-09: lista ausente vira página vazia, não exceção na tabela.
   return {
     data: asList<AdminUser>(data),

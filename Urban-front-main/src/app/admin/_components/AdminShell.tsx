@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useId, useRef, useState } from "react";
 import { useDialogFocus } from "../../componentes/ui/useDialogFocus";
 import NextLink from "next/link";
 import { usePathname } from "next/navigation";
@@ -35,13 +35,15 @@ import styles from "./AdminShell.module.css";
  * AdminShell — layout-wrapper para todas as rotas /admin/*.
  *
  * Substitui o grid de 17 NavCards no /admin antigo. Estrutura:
- *  - Sidebar fixa 240px à esquerda, agrupada em 4 seções (Negócio, Motor de
- *    eventos, Operações, Sistema).
+ *  - Sidebar fixa 240px à esquerda, agrupada em 5 seções colapsáveis
+ *    (Operação, Clientes, Receita, Dados e eventos, Sistema); o item ativo
+ *    fica sempre visível, mesmo com a seção recolhida.
  *  - Topbar 56px com breadcrumb dinâmico (path → labels) + badge ambiente +
  *    avatar admin (placeholder).
  *  - Main area com max-width 1400px + padding consistente.
  *
- * Em mobile <768px: sidebar vira drawer hamburger.
+ * Em mobile <768px: sidebar vira drawer hamburger, com as seções recolhidas
+ * (exceto a da rota atual) para caber sem rolagem longa.
  */
 
 type NavItem = {
@@ -57,20 +59,40 @@ type NavSection = {
 
 const NAV: NavSection[] = [
   {
-    title: "Negócio",
+    title: "Operação",
     items: [
       { href: "/admin", label: "Resumo", icon: <Layers size={16} /> },
       { href: "/admin/dashboard", label: "Painel executivo", icon: <Activity size={16} /> },
-      { href: "/admin/finance", label: "Financeiro", icon: <DollarSign size={16} /> },
-      { href: "/admin/funnel", label: "Funil", icon: <TrendingUp size={16} /> },
-      { href: "/admin/roi", label: "ROI", icon: <Briefcase size={16} /> },
-      { href: "/admin/alpha", label: "Alpha", icon: <Zap size={16} /> },
-      { href: "/admin/contacts", label: "Contatos", icon: <Inbox size={16} /> },
-      { href: "/admin/waitlist", label: "Lista de espera", icon: <Users size={16} /> },
+      { href: "/admin/jobs", label: "Tarefas do sistema", icon: <Server size={16} /> },
+      { href: "/admin/properties", label: "Imóveis detalhados", icon: <Briefcase size={16} /> },
+      { href: "/admin/stays", label: "Stays", icon: <Database size={16} /> },
     ],
   },
   {
-    title: "Motor de eventos",
+    title: "Clientes",
+    items: [
+      { href: "/admin/users", label: "Usuários", icon: <Users size={16} /> },
+      { href: "/admin/contacts", label: "Contatos", icon: <Inbox size={16} /> },
+      { href: "/admin/waitlist", label: "Lista de espera", icon: <Users size={16} /> },
+      { href: "/admin/alpha", label: "Alpha", icon: <Zap size={16} /> },
+      { href: "/admin/funnel", label: "Funil", icon: <TrendingUp size={16} /> },
+      { href: "/admin/communications", label: "Comunicações", icon: <Mail size={16} /> },
+      { href: "/admin/onboarding-drip", label: "E-mails de boas-vindas", icon: <Mail size={16} /> },
+    ],
+  },
+  {
+    title: "Receita",
+    items: [
+      { href: "/admin/finance", label: "Financeiro", icon: <DollarSign size={16} /> },
+      { href: "/admin/roi", label: "ROI", icon: <Briefcase size={16} /> },
+      { href: "/admin/billing-hosts", label: "Cobrança dos anfitriões", icon: <DollarSign size={16} /> },
+      { href: "/admin/pricing-config", label: "Config. de preços", icon: <Settings size={16} /> },
+      { href: "/admin/price-intelligence", label: "Price Intelligence", icon: <DollarSign size={16} /> },
+      { href: "/admin/outcomes", label: "Resultados v1 × v2", icon: <TrendingUp size={16} /> },
+    ],
+  },
+  {
+    title: "Dados e eventos",
     items: [
       { href: "/admin/event-radar", label: "Radar de demanda", icon: <Activity size={16} /> },
       { href: "/admin/events", label: "Eventos", icon: <Calendar size={16} /> },
@@ -83,31 +105,26 @@ const NAV: NavSection[] = [
     ],
   },
   {
-    title: "Operações",
-    items: [
-      { href: "/admin/properties", label: "Imóveis detalhados", icon: <Briefcase size={16} /> },
-      { href: "/admin/jobs", label: "Tarefas do sistema", icon: <Server size={16} /> },
-      { href: "/admin/stays", label: "Stays", icon: <Database size={16} /> },
-      { href: "/admin/users", label: "Usuários", icon: <Users size={16} /> },
-      { href: "/admin/billing-hosts", label: "Cobrança dos anfitriões", icon: <DollarSign size={16} /> },
-      { href: "/admin/outcomes", label: "Resultados v1 × v2", icon: <TrendingUp size={16} /> },
-    ],
-  },
-  {
     title: "Sistema",
     items: [
       { href: "/admin/audit-logs", label: "Auditoria", icon: <Shield size={16} /> },
-      { href: "/admin/pricing-config", label: "Config. de preços", icon: <Settings size={16} /> },
-      { href: "/admin/price-intelligence", label: "Price Intelligence", icon: <DollarSign size={16} /> },
       { href: "/admin/seo", label: "SEO / GEO", icon: <Search size={16} /> },
       { href: "/admin/quality", label: "Qualidade", icon: <AlertCircle size={16} /> },
-      { href: "/admin/communications", label: "Comunicações", icon: <Mail size={16} /> },
-      { href: "/admin/onboarding-drip", label: "E-mails de boas-vindas", icon: <Mail size={16} /> },
     ],
   },
 ];
 
 const FLAT_ITEMS: NavItem[] = NAV.flatMap((s) => s.items);
+
+/** Seção que contém a rota atual (a mais específica vence, como no breadcrumb). */
+function activeSectionTitle(pathname: string): string | null {
+  const flat = NAV.flatMap((s) => s.items.map((it) => ({ title: s.title, href: it.href })));
+  const sorted = flat.sort((a, b) => b.href.length - a.href.length);
+  return (
+    sorted.find((it) => pathname === it.href || pathname.startsWith(it.href + "/"))?.title ??
+    null
+  );
+}
 
 function getBreadcrumb(pathname: string): string {
   // Mais específico primeiro (ex: /admin/events/new antes de /admin/events)
@@ -146,8 +163,16 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       })).filter((s) => s.items.length > 0)
     : NAV;
 
-  const isActive = (href: string) =>
-    pathname === href || (href !== "/admin" && pathname.startsWith(href + "/"));
+  const activeSection = activeSectionTitle(pathname);
+
+  // Só o item mais específico fica ativo (ex.: /admin/events/dedup não acende /admin/events).
+  const activeHref = [...FLAT_ITEMS]
+    .sort((a, b) => b.href.length - a.href.length)
+    .find(
+      (item) =>
+        pathname === item.href || (item.href !== "/admin" && pathname.startsWith(item.href + "/")),
+    )?.href;
+  const isActive = (href: string) => href === activeHref;
 
   return (
     <div
@@ -164,6 +189,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           search={search}
           setSearch={setSearch}
           isActive={isActive}
+          activeSection={activeSection}
         />
       </aside>
 
@@ -189,6 +215,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               search={search}
               setSearch={setSearch}
               isActive={isActive}
+              activeSection={activeSection}
+              startCollapsed
             />
           </aside>
         </div>
@@ -257,12 +285,31 @@ function SidebarContent({
   search,
   setSearch,
   isActive,
+  activeSection,
+  startCollapsed = false,
 }: {
   NAV: NavSection[];
   search: string;
   setSearch: (v: string) => void;
   isActive: (href: string) => boolean;
+  activeSection: string | null;
+  /** Drawer mobile: começa só com a seção da rota atual aberta. */
+  startCollapsed?: boolean;
 }) {
+  const baseId = useId();
+  // Seções recolhidas pelo usuário (ou pelo padrão do mobile). Busca ativa
+  // mostra tudo aberto; seção recolhida ainda mostra o item da rota atual.
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>(() =>
+    startCollapsed
+      ? Object.fromEntries(
+          NAV.filter((s) => s.title !== activeSection).map((s) => [s.title, true]),
+        )
+      : {},
+  );
+  const searching = search.trim().length > 0;
+  const toggle = (title: string) =>
+    setCollapsed((prev) => ({ ...prev, [title]: !prev[title] }));
+
   return (
     <>
       {/* Wordmark */}
@@ -342,25 +389,46 @@ function SidebarContent({
       </div>
 
       {/* Navigation */}
-      <nav className={styles.navList}>
-        {NAV.map((section) => (
-          <div key={section.title}>
-            <p className="urban-admin-sidebar-section">{section.title}</p>
-            {section.items.map((item) => (
-              <NextLink
-                key={item.href}
-                href={item.href}
-                className="urban-admin-sidebar-item"
-                data-active={isActive(item.href)}
+      <nav className={styles.navList} aria-label="Seções do admin">
+        {NAV.map((section, index) => {
+          const isCollapsed = !searching && Boolean(collapsed[section.title]);
+          const items = isCollapsed
+            ? section.items.filter((item) => isActive(item.href))
+            : section.items;
+          const listId = `${baseId}-section-${index}`;
+          return (
+            <div key={section.title}>
+              <button
+                type="button"
+                className={`urban-admin-sidebar-section ${styles.sectionToggle}`}
+                aria-expanded={!isCollapsed}
+                aria-controls={listId}
+                onClick={() => toggle(section.title)}
               >
-                <span className={styles.navItemInner}>
-                  {item.icon}
+                <span>{section.title}</span>
+                <span className={styles.sectionChevron} data-open={!isCollapsed} aria-hidden>
+                  <ChevronRight size={12} />
                 </span>
-                {item.label}
-              </NextLink>
-            ))}
-          </div>
-        ))}
+              </button>
+              <div id={listId}>
+                {items.map((item) => (
+                  <NextLink
+                    key={item.href}
+                    href={item.href}
+                    className="urban-admin-sidebar-item"
+                    data-active={isActive(item.href)}
+                    aria-current={isActive(item.href) ? "page" : undefined}
+                  >
+                    <span className={styles.navItemInner}>
+                      {item.icon}
+                    </span>
+                    {item.label}
+                  </NextLink>
+                ))}
+              </div>
+            </div>
+          );
+        })}
         {NAV.length === 0 && (
           <p
             className={styles.navEmpty}

@@ -30,6 +30,7 @@ import {
   useAdminToast,
   Icons,
 } from "../_components";
+import { cycleLabel } from "../_lib/status-labels";
 import styles from "./page.module.css";
 import { brlFromCents, decimal, pct } from "../../lib/format";
 
@@ -138,7 +139,7 @@ export default function AdminFinancePage() {
       width: 110,
       render: (c) => (
         <span className={styles.costCategoryCell}>
-          {c.recurrence}
+          {cycleLabel(c.recurrence)}
         </span>
       ),
     },

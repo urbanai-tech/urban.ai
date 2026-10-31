@@ -18,6 +18,7 @@ import {
   Icons,
 } from "../_components";
 import type { AdminStatusKind } from "../_components";
+import { statusLabel } from "../_lib/status-labels";
 import styles from "./page.module.css";
 
 /**
@@ -749,7 +750,7 @@ function ReadinessTile({
           <strong className={styles.readinessTileLabel}>{item.label}</strong>
         </span>
         <AdminBadge kind={item.status === "ready" ? "success" : "warn"}>
-          {item.status === "ready" ? "ready" : "bloqueado"}
+          {item.status === "ready" ? statusLabel("ready") : "Bloqueado"}
         </AdminBadge>
       </div>
       <p className={styles.readinessTileBlockers}>

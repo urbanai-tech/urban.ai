@@ -1,11 +1,21 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Brackets, Repository } from 'typeorm';
 import { User } from '../entities/user.entity';
 import { Address } from '../entities/addresses.entity';
 import { Payment } from '../entities/payment.entity';
 import { AnalisePreco } from '../entities/AnalisePreco';
 import { AuthService } from '../auth/auth.service';
+
+export interface AdminUsersFilters {
+  q?: string;
+  role?: 'host' | 'admin' | 'support';
+  ativo?: boolean;
+  plan?: string;
+  /** YYYY-MM-DD (UTC), inclusivo. */
+  createdFrom?: string;
+  createdTo?: string;
+}
 
 /**
  * AdminUsersService — gestão de usuários no painel admin (listagem, detalhe,
@@ -25,30 +35,65 @@ export class AdminUsersService {
   ) {}
 
   /**
-   * Lista paginada de usuários para o painel admin.
-   * Não expõe campo password.
+   * Lista paginada de usuários para o painel admin, com busca e filtros
+   * opcionais (todos combinam em AND). Sem filtros, o resultado é idêntico ao
+   * contrato anterior. Não expõe campo password.
    */
-  async listUsers(page = 1, limit = 20) {
+  async listUsers(page = 1, limit = 20, filters: AdminUsersFilters = {}) {
     const safePage = Math.max(1, Number(page) || 1);
     const safeLimit = Math.min(100, Math.max(1, Number(limit) || 20));
-    const [data, total] = await this.userRepo.findAndCount({
-      skip: (safePage - 1) * safeLimit,
-      take: safeLimit,
-      order: { createdAt: 'DESC' },
-      select: [
-        'id',
-        'username',
-        'email',
-        'role',
-        'ativo',
-        'createdAt',
-        'phone',
-        'company',
-        'pricingStrategy',
-        'operationMode',
-        'airbnbHostId',
-      ],
-    });
+    const qb = this.userRepo
+      .createQueryBuilder('user')
+      .select([
+        'user.id',
+        'user.username',
+        'user.email',
+        'user.role',
+        'user.ativo',
+        'user.createdAt',
+        'user.phone',
+        'user.company',
+        'user.pricingStrategy',
+        'user.operationMode',
+        'user.airbnbHostId',
+      ])
+      .orderBy('user.createdAt', 'DESC')
+      .addOrderBy('user.id', 'ASC')
+      .skip((safePage - 1) * safeLimit)
+      .take(safeLimit);
+
+    const term = filters.q?.trim();
+    if (term) {
+      // Barra, % e _ do termo viram literais (escape padrão do MySQL); busca por substring.
+      const escaped = term.toLowerCase().replace(/[\\%_]/g, (c) => `\\${c}`);
+      const like = `%${escaped}%`;
+      qb.andWhere(
+        new Brackets((w) => {
+          w.where('LOWER(user.email) LIKE :like', { like })
+            .orWhere('LOWER(user.username) LIKE :like', { like })
+            .orWhere('LOWER(user.company) LIKE :like', { like });
+        }),
+      );
+    }
+    if (filters.role) qb.andWhere('user.role = :role', { role: filters.role });
+    if (typeof filters.ativo === 'boolean') qb.andWhere('user.ativo = :ativo', { ativo: filters.ativo });
+    if (filters.createdFrom) {
+      qb.andWhere('user.createdAt >= :createdFrom', { createdFrom: new Date(`${filters.createdFrom}T00:00:00.000Z`) });
+    }
+    if (filters.createdTo) {
+      // Limite superior inclusivo: até o fim do dia informado.
+      qb.andWhere('user.createdAt <= :createdTo', { createdTo: new Date(`${filters.createdTo}T23:59:59.999Z`) });
+    }
+    if (filters.plan) {
+      const sub = this.paymentRepo
+        .createQueryBuilder('p')
+        .select('1')
+        .where('p.user_id = user.id')
+        .andWhere('p.planName = :plan');
+      qb.andWhere(`EXISTS (${sub.getQuery()})`, { plan: filters.plan });
+    }
+
+    const [data, total] = await qb.getManyAndCount();
     return {
       data,
       total,

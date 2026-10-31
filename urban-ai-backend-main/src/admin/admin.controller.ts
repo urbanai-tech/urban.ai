@@ -31,6 +31,7 @@ import {
   ScanEventDedupCandidatesDto,
   SetUserActiveDto,
   SetUserRoleDto,
+  ListAdminUsersQueryDto,
 } from './dto/admin-core.dto';
 import { AdminAuditedInHandler } from '../admin-audit/admin-audit.decorator';
 
@@ -412,8 +413,9 @@ export class AdminController {
 
   @ApiOperation({ summary: 'Listar usuários (paginado)' })
   @Get('users')
-  async listUsers(@Query('page') page: string = '1', @Query('limit') limit: string = '20') {
-    return this.adminUsers.listUsers(parseInt(page, 10), parseInt(limit, 10));
+  async listUsers(@Query() query: ListAdminUsersQueryDto) {
+    const { page, limit, ...filters } = query;
+    return this.adminUsers.listUsers(page ?? 1, limit ?? 20, filters);
   }
 
   @ApiOperation({ summary: 'Detalhe de usuário para painel admin' })

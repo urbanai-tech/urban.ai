@@ -28,6 +28,7 @@ import {
   useAdminToast,
   Icons,
 } from "../_components";
+import { statusLabel } from "../_lib/status-labels";
 import styles from "./page.module.css";
 
 /**
@@ -179,9 +180,9 @@ export default function CoverageAdminPage() {
           shellClassName={styles.statusSelectShell}
           className={`${styles.statusSelect} ${busyId === r.id ? styles.statusSelectBusy : ""}`}
         >
-          <option value="active">active</option>
-          <option value="bootstrap">bootstrap</option>
-          <option value="inactive">inactive</option>
+          <option value="active">{statusLabel("active")}</option>
+          <option value="bootstrap">{statusLabel("bootstrap")}</option>
+          <option value="inactive">{statusLabel("inactive")}</option>
         </AdminSelect>
       ),
     },
@@ -536,9 +537,9 @@ function NewRegionForm({
           setStatus(e.target.value as "active" | "bootstrap" | "inactive")
         }
       >
-        <option value="active">active</option>
-        <option value="bootstrap">bootstrap</option>
-        <option value="inactive">inactive</option>
+        <option value="active">{statusLabel("active")}</option>
+        <option value="bootstrap">{statusLabel("bootstrap")}</option>
+        <option value="inactive">{statusLabel("inactive")}</option>
       </AdminSelect>
 
       <div>

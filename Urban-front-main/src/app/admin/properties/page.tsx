@@ -223,7 +223,7 @@ export default function AdminPropertiesPage() {
       <AdminSectionHeader
         eyebrow="ADMIN · IMÓVEIS"
         title="Drill-down por imóvel"
-        subtitle="Visão consolidada de todos os imóveis cadastrados. Cobre o gap I5 do roadmap — suporte entende um imóvel sem abrir SQL."
+        subtitle="Visão consolidada de todos os imóveis cadastrados: o suporte entende a situação de um imóvel sem consultar o banco."
       />
 
       {error ? (
@@ -291,15 +291,13 @@ export default function AdminPropertiesPage() {
               <p
                 className={styles.footerText}
               >
-                Esta tela cobre o item{" "}
-                <strong className={styles.emphasisAccent}>I5</strong> (detalhe do
-                imóvel) do roadmap. Para destravar:{" "}
+                Para completar os dados desta tela:{" "}
                 <strong className={styles.emphasis}>
                   ativar Geocoding API
                 </strong>{" "}
                 no GCP corrige a coluna Geo e Localidade automaticamente, e{" "}
                 <strong className={styles.emphasis}>
-                  rodar o smoke autenticado de recomendação
+                  gerar uma recomendação de teste com uma conta real
                 </strong>{" "}
                 preenche a coluna Recomendações futuras.
               </p>
