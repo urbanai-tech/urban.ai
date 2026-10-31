@@ -100,6 +100,7 @@ const NAV: NavSection[] = [
       { href: "/admin/events/new", label: "Cadastrar evento", icon: <Plus size={16} /> },
       { href: "/admin/events/import", label: "Importar CSV", icon: <Upload size={16} /> },
       { href: "/admin/event-coverage", label: "Cobertura de eventos", icon: <Calendar size={16} /> },
+      { href: "/admin/event-coverage/reference", label: "Lista de referência", icon: <Shield size={16} /> },
       { href: "/admin/coverage", label: "Regiões de cobertura", icon: <MapPin size={16} /> },
       { href: "/admin/collectors-health", label: "Coletores", icon: <Activity size={16} /> },
     ],

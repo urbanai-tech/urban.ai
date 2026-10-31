@@ -1,0 +1,270 @@
+/* /admin/event-coverage/reference — só tokens --admin-* (claro/escuro), sem cores cruas. */
+
+.page {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 40px 32px;
+}
+
+.section {
+  margin-bottom: 48px;
+}
+
+.headerActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.muted {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: 1.55;
+  color: var(--admin-text-muted);
+}
+
+.cellStrong {
+  display: block;
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--admin-text);
+}
+
+.cellMuted {
+  display: block;
+  font-size: var(--text-xs);
+  color: var(--admin-text-muted);
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+  color: var(--admin-text);
+}
+
+.link {
+  color: var(--admin-accent);
+  font-size: var(--text-xs);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.warnings {
+  list-style: none;
+  margin: 0 0 32px;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.warning {
+  padding: 12px 16px;
+  border-left: 2px solid var(--admin-warning);
+  background: color-mix(in srgb, var(--admin-warning) 6%, transparent);
+  font-size: var(--text-sm);
+  line-height: 1.55;
+  color: var(--admin-text);
+}
+
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.countRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  margin-top: 20px;
+}
+
+.countItem {
+  font-size: var(--text-sm);
+  color: var(--admin-text);
+}
+
+.chart {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 180px;
+}
+
+.chartLine {
+  fill: none;
+  stroke: var(--admin-accent);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.chartDot {
+  fill: var(--admin-accent);
+}
+
+.chartFloor {
+  stroke: var(--admin-danger);
+  stroke-width: 1;
+  stroke-dasharray: 4 4;
+}
+
+.actionsRow {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.actionsText {
+  flex: 1 1 380px;
+  display: grid;
+  gap: 6px;
+}
+
+.result {
+  margin: 16px 0 0;
+  padding: 12px 16px;
+  border-left: 2px solid var(--admin-accent);
+  background: var(--admin-accent-soft);
+  font-size: var(--text-sm);
+  line-height: 1.55;
+  color: var(--admin-text);
+}
+
+.conflictList {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 16px;
+}
+
+.conflict {
+  display: grid;
+  gap: 14px;
+}
+
+.conflictHead {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.reason {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--admin-danger);
+}
+
+.votes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.vote {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  align-items: baseline;
+  padding-top: 8px;
+  border-top: 1px solid var(--admin-divider);
+}
+
+.voteWho {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--admin-text);
+}
+
+.conflictActions {
+  display: flex;
+  gap: 12px;
+}
+
+.breakdownHead {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.missingList {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.filters {
+  display: grid;
+  grid-template-columns: minmax(160px, 220px) minmax(200px, 320px);
+  gap: 16px;
+  margin: 16px 0;
+}
+
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.importForm {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-end;
+  margin-top: 16px;
+}
+
+.fileLabel {
+  display: grid;
+  gap: 6px;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--admin-text-muted);
+}
+
+.fileInput {
+  font-size: var(--text-sm);
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--admin-text);
+}
+
+.invalidList {
+  margin: 12px 0 0;
+  padding-left: 20px;
+  font-size: var(--text-xs);
+  color: var(--admin-danger);
+  line-height: 1.6;
+}
+
+@media (max-width: 767px) {
+  .page {
+    padding: 24px 16px;
+  }
+
+  .filters {
+    grid-template-columns: 1fr;
+  }
+
+  .conflictHead {
+    flex-direction: column;
+  }
+}
