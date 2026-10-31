@@ -238,6 +238,7 @@ export default function AdminContactsPage() {
           shellClassName={styles.searchShell}
         />
         <AdminSelect
+          aria-label="Filtrar por status"
           value={statusFilter}
           onChange={(e) => {
             setStatusFilter(e.target.value as ContactSubmissionStatus | "all");
@@ -294,11 +295,11 @@ export default function AdminContactsPage() {
                           {new Date(entry.createdAt).toLocaleString("pt-BR")}
                         </span>
                       </div>
-                      <h3
+                      <h2
                         className={styles.messageSubject}
                       >
                         {entry.subject}
-                      </h3>
+                      </h2>
                       <p
                         className={styles.messageSender}
                       >
@@ -325,6 +326,7 @@ export default function AdminContactsPage() {
                       className={styles.messageActions}
                     >
                       <AdminSelect
+                        aria-label="Status do contato"
                         value={entry.status}
                         disabled={busyId === entry.id}
                         onChange={(e) =>

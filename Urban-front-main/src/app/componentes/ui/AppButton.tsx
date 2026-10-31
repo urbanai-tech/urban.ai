@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { appDisabledStyle, appRadius, appTransition, appVar } from "./styles";
+import styles from "./AppButton.module.css";
 
 /**
  * Botao app autenticado Urban AI.
@@ -10,6 +10,8 @@ import { appDisabledStyle, appRadius, appTransition, appVar } from "./styles";
  * (`#ff5a5f`, `#1C1D3B`, `#E46E2E`, `#3FCF19`) que existia espalhado nas telas
  * antigas do anfitrião. Sempre accent accent da marca como primary, radius 10px,
  * letter-spacing 0.5, sem uppercase forcado.
+ *
+ * Estilos e estados (hover/active/disabled) vivem em AppButton.module.css.
  *
  * Variantes:
  *  - primary    — bg accent accent da marca, texto branco
@@ -33,41 +35,6 @@ type Props = React.ButtonHTMLAttributes<HTMLButtonElement> & {
   fullWidth?: boolean;
 };
 
-const sizes: Record<AppButtonSize, React.CSSProperties> = {
-  sm: { height: 32, padding: "0 14px", fontSize: 13 },
-  md: { height: 40, padding: "0 18px", fontSize: 14 },
-  lg: { height: 48, padding: "0 24px", fontSize: 15 },
-};
-
-function styleForVariant(variant: AppButtonVariant): React.CSSProperties {
-  switch (variant) {
-    case "primary":
-      return {
-        background: appVar.accent,
-        color: "var(--app-accent-contrast)",
-        border: `1px solid ${appVar.accent}`,
-      };
-    case "secondary":
-      return {
-        background: "transparent",
-        color: appVar.text,
-        border: `1px solid ${appVar.dividerStrong}`,
-      };
-    case "ghost":
-      return {
-        background: "transparent",
-        color: appVar.textMuted,
-        border: "1px solid transparent",
-      };
-    case "danger":
-      return {
-        background: "transparent",
-        color: appVar.danger,
-        border: `1px solid ${appVar.dangerBorder}`,
-      };
-  }
-}
-
 export const AppButton = React.forwardRef<HTMLButtonElement, Props>(function AppButton(
   {
     variant = "primary",
@@ -89,25 +56,6 @@ export const AppButton = React.forwardRef<HTMLButtonElement, Props>(function App
   },
   ref,
 ) {
-  const base: React.CSSProperties = {
-    ...sizes[size],
-    ...styleForVariant(variant),
-    ...appDisabledStyle(Boolean(disabled || loading)),
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    borderRadius: appRadius.control,
-    fontWeight: 600,
-    letterSpacing: 0.2,
-    transition: appTransition.control,
-    whiteSpace: "nowrap",
-    textDecoration: "none",
-    lineHeight: 1,
-    width: fullWidth ? "100%" : undefined,
-    ...style,
-  };
-
   const contextualLabel =
     ariaLabel ??
     (typeof children === "string" || typeof children === "number"
@@ -118,7 +66,15 @@ export const AppButton = React.forwardRef<HTMLButtonElement, Props>(function App
   const resolvedAriaLabel = loading
     ? `${contextualLabel ?? "Ação"} — carregando`
     : ariaLabel;
-  const resolvedClassName = ["urban-canonical-button", "urban-focus-ring", className]
+  const resolvedClassName = [
+    "urban-canonical-button",
+    "urban-focus-ring",
+    styles.button,
+    styles[size],
+    styles[variant],
+    fullWidth ? styles.fullWidth : undefined,
+    className,
+  ]
     .filter(Boolean)
     .join(" ");
 
@@ -136,7 +92,7 @@ export const AppButton = React.forwardRef<HTMLButtonElement, Props>(function App
       <a
         href={href}
         className={resolvedClassName}
-        style={base}
+        style={style}
         aria-label={resolvedAriaLabel}
         aria-busy={loading || ariaBusy || undefined}
         aria-disabled={disabled || loading || undefined}
@@ -151,7 +107,7 @@ export const AppButton = React.forwardRef<HTMLButtonElement, Props>(function App
       ref={ref}
       disabled={disabled || loading}
       className={resolvedClassName}
-      style={base}
+      style={style}
       aria-label={resolvedAriaLabel}
       aria-busy={loading || ariaBusy || undefined}
       {...rest}

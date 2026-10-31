@@ -49,6 +49,7 @@ export function AppCardHeader({
   actions,
   style,
   className,
+  titleAs: TitleTag = "h2",
 }: {
   eyebrow?: string;
   title: React.ReactNode;
@@ -56,6 +57,8 @@ export function AppCardHeader({
   actions?: React.ReactNode;
   style?: React.CSSProperties;
   className?: string;
+  /** Nivel do titulo. Padrao h2 (card direto sob o h1 da pagina); use h3 dentro de uma secao com h2. */
+  titleAs?: "h2" | "h3" | "h4";
 }) {
   return (
     <header className={[styles.header, className].filter(Boolean).join(" ")} style={style}>
@@ -63,7 +66,7 @@ export function AppCardHeader({
         {eyebrow && (
           <p className={`urban-app-eyebrow-muted ${styles.eyebrow}`}>{eyebrow}</p>
         )}
-        <h3 className={styles.title}>{title}</h3>
+        <TitleTag className={styles.title}>{title}</TitleTag>
         {subtitle && <p className={styles.subtitle}>{subtitle}</p>}
       </div>
       {actions && <div className={styles.actions}>{actions}</div>}

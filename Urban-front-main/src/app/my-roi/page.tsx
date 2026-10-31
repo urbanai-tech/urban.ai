@@ -92,6 +92,7 @@ export default function MyRoiPage() {
       <AppPageShell>
         <AppEmptyState
           eyebrow="ERRO"
+          headingAs="h1"
           title="Não foi possível carregar"
           body={error ?? 'Não foi possível carregar seus ganhos.'}
           icon={<Icons.AlertCircle size={32} />}
@@ -136,6 +137,7 @@ export default function MyRoiPage() {
               />
             </div>
             <AppSelect
+              aria-label="Período de análise"
               value={windowDays}
               onChange={(event) => {
                 const next = Number(event.target.value);

@@ -19,14 +19,14 @@
   --theme-admin-divider: rgba(16, 20, 26, 0.08);
   --theme-admin-divider-strong: rgba(16, 20, 26, 0.14);
   --theme-admin-select-chevron: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='rgba(16,20,26,0.58)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
-  --theme-admin-success: #137A55;
+  --theme-admin-success: #10724D;
   --theme-admin-surface: #FFFFFF;
   --theme-admin-surface-elevated: #FFFFFF;
   --theme-admin-surface-sidebar: #FFFFFF;
   --theme-admin-text: #10141A;
   --theme-admin-text-dim: rgba(16, 20, 26, 0.62);
   --theme-admin-text-muted: rgba(16, 20, 26, 0.62);
-  --theme-admin-warning: #9A6508;
+  --theme-admin-warning: #8A5A0A;
 
   /* app */
   --theme-app-accent: #103134;
@@ -116,7 +116,7 @@
   --theme-app-sheet-shadow: 0 -12px 40px rgba(16, 49, 52, 0.16);
   --theme-app-skeleton-base: rgba(16, 49, 52, 0.05);
   --theme-app-skeleton-shine: rgba(16, 49, 52, 0.10);
-  --theme-app-success: #137A55;
+  --theme-app-success: #10724D;
   --theme-app-success-border: rgba(19, 122, 85, 0.25);
   --theme-app-success-soft: rgba(19, 122, 85, 0.10);
   --theme-app-surface: #FFFFFF;
@@ -152,7 +152,7 @@
   --theme-public-shadow-overlay: 0 18px 48px rgba(14, 17, 22, 0.12);
   --theme-public-soft: rgba(16, 49, 52, 0.08);
   --theme-public-strong: rgba(16, 49, 52, 0.14);
-  --theme-public-success: #137A55;
+  --theme-public-success: #10724D;
   --theme-public-success-soft: rgba(19, 122, 85, 0.10);
   --theme-public-surface: #FFFFFF;
   --theme-public-text: #103134;

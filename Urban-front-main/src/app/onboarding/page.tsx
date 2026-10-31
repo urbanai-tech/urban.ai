@@ -786,7 +786,7 @@ function OnboardingWizardContent() {
               <MotionBox key="step1" initial="initial" animate="in" exit="out"
                 variants={pageVariants} transition={{ duration: 0.4 }}>
                 <VStack spacing={6} align="center" textAlign="center">
-                  <Heading size="xl" color="gray.800" lineHeight="shorter" mt={4}>
+                  <Heading as="h1" size="xl" color="gray.800" lineHeight="shorter" mt={4}>
                     Bem-vindo ao My Urban
                   </Heading>
                   <Text fontSize="lg" color="gray.500" maxW="440px" lineHeight="tall">
@@ -801,7 +801,7 @@ function OnboardingWizardContent() {
                   <Button
                     mt={4}
                     bg="var(--app-accent)"
-                    color="white"
+                    color="var(--app-accent-contrast)"
                     _hover={{ bg: 'var(--app-accent-hover)', transform: 'translateY(-2px)', boxShadow: 'lg' }}
                     _active={{ bg: 'var(--app-accent-hover)' }}
                     size="lg"
@@ -827,7 +827,7 @@ function OnboardingWizardContent() {
                   <Box textAlign="center">
                     <Text fontSize="xs" color="gray.400" fontWeight="bold" textTransform="uppercase"
                       letterSpacing="widest" mb={2}>Passo 1 de 3</Text>
-                    <Heading size="lg" mb={3} color="gray.800">Conecte seus Imóveis</Heading>
+                    <Heading as="h1" size="lg" mb={3} color="gray.800">Conecte seus Imóveis</Heading>
                     <Text color="gray.500" maxW="440px" mx="auto">
                       Importe seus imóveis colando o link de um <strong>anúncio individual</strong> ou
                       do seu <strong>perfil de anfitrião</strong> para buscar todos de uma vez.
@@ -916,7 +916,7 @@ function OnboardingWizardContent() {
                               Voltar
                             </Button>
                             <Button
-                              bg="var(--app-accent)" color="white" _hover={{ bg: 'var(--app-accent-hover)' }}
+                              bg="var(--app-accent)" color="var(--app-accent-contrast)" _hover={{ bg: 'var(--app-accent-hover)' }}
                               _active={{ bg: 'var(--app-surface-elevated)' }} size="lg" flex={1}
                               isLoading={loadingIndividual}
                               loadingText="Buscando imóveis…"
@@ -965,7 +965,7 @@ function OnboardingWizardContent() {
                               Voltar
                             </Button>
                             <Button
-                              bg="var(--app-accent)" color="white" _hover={{ bg: 'var(--app-accent-hover)' }}
+                              bg="var(--app-accent)" color="var(--app-accent-contrast)" _hover={{ bg: 'var(--app-accent-hover)' }}
                               _active={{ bg: 'var(--app-surface-elevated)' }} size="lg" flex={1}
                               isLoading={isLoading}
                               loadingText="Rastreando imóveis…"
@@ -1010,7 +1010,7 @@ function OnboardingWizardContent() {
                   <Box textAlign="center">
                     <Text fontSize="xs" color="gray.400" fontWeight="bold" textTransform="uppercase"
                       letterSpacing="widest" mb={2}>Passo 2 de 3</Text>
-                    <Heading size="lg" mb={2} color="gray.800">Selecionar Imóveis</Heading>
+                    <Heading as="h1" size="lg" mb={2} color="gray.800">Selecionar Imóveis</Heading>
                     <Text color="gray.500">
                       Encontramos <strong>{properties.length}</strong> {properties.length === 1 ? 'imóvel' : 'imóveis'}.
                       Ative os que deseja monitorar com a inteligência do My Urban.
@@ -1147,7 +1147,7 @@ function OnboardingWizardContent() {
                                         ` (${property.reviewCount})`}
                                     </Badge>
                                   ) : property.isNewListing ? (
-                                    <Badge bg="var(--app-accent)" color="white" fontSize="2xs" borderRadius="full" px={2}>
+                                    <Badge bg="var(--app-accent)" color="var(--app-accent-contrast)" fontSize="2xs" borderRadius="full" px={2}>
                                       Novidade
                                     </Badge>
                                   ) : null}
@@ -1225,7 +1225,7 @@ function OnboardingWizardContent() {
                       isDisabled={isLoading || pendingPricingProperties.length > 0}>
                       Voltar
                     </Button>
-                    <Button bg="var(--app-accent)" color="white" _hover={{ bg: 'var(--app-accent-hover)' }} size="lg" flex={1}
+                    <Button bg="var(--app-accent)" color="var(--app-accent-contrast)" _hover={{ bg: 'var(--app-accent-hover)' }} size="lg" flex={1}
                       onClick={pendingPricingProperties.length > 0 ? handleSaveManualPricesAndContinue : handleRegisterProperties}
                       isDisabled={
                         pendingPricingProperties.length > 0
@@ -1259,7 +1259,7 @@ function OnboardingWizardContent() {
                   <Box textAlign="center">
                     <Text fontSize="xs" color="gray.400" fontWeight="bold" textTransform="uppercase"
                       letterSpacing="widest" mb={2}>Passo 3 de 3</Text>
-                    <Heading size="lg" mb={3} color="gray.800">Ajustar as recomendações</Heading>
+                    <Heading as="h1" size="lg" mb={3} color="gray.800">Ajustar as recomendações</Heading>
                     <Text color="gray.500" maxW="440px" mx="auto">
                       Escolha o quanto você quer que as sugestões sejam cautelosas ou ousadas.
                       Você poderá mudar isso depois.
@@ -1311,7 +1311,7 @@ function OnboardingWizardContent() {
                                     {preset.label}
                                   </Text>
                                   {key === 'balanced' && (
-                                    <Badge bg="var(--app-accent)" color="white" fontSize="0.6rem" px={2} py={0.5} borderRadius="md">
+                                    <Badge bg="var(--app-accent)" color="var(--app-accent-contrast)" fontSize="0.6rem" px={2} py={0.5} borderRadius="md">
                                       Recomendado
                                     </Badge>
                                   )}
@@ -1407,7 +1407,7 @@ function OnboardingWizardContent() {
                         Pular
                       </Button>
                     )}
-                    <Button bg="var(--app-accent)" color="white" _hover={{ bg: 'var(--app-accent-hover)' }} size="lg" flex={1}
+                    <Button bg="var(--app-accent)" color="var(--app-accent-contrast)" _hover={{ bg: 'var(--app-accent-hover)' }} size="lg" flex={1}
                       onClick={handleSaveConfig}
                       isLoading={isLoading}
                       loadingText="Salvando…">
@@ -1433,7 +1433,7 @@ function OnboardingWizardContent() {
                         <polyline points="22 4 12 14.01 9 11.01" />
                       </svg>
                     </Box>
-                    <Heading size="lg" mb={3} color="gray.800">
+                    <Heading as="h1" size="lg" mb={3} color="gray.800">
                       Tudo configurado!
                     </Heading>
                     <Text color="gray.500" maxW="440px" mx="auto">

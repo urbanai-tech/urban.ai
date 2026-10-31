@@ -160,6 +160,7 @@ export default function AdminUsersPage() {
       width: 140,
       render: (u) => (
         <AdminSelect
+          aria-label="Papel do usuário"
           value={u.role}
           onChange={(e) =>
             setConfirmRole({ user: u, role: e.target.value as UserRole })

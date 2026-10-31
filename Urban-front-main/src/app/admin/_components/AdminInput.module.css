@@ -16,8 +16,7 @@
 /*
  * Base dos campos. Seletores com 2 classes (0,2,0): uma classe do chamador
  * com 3 classes (`.x.x.x`) vence, como o `style` inline vencia a base.
- * O `outline: none` usa 3 classes (0,3,0) para continuar vencendo o anel de
- * foco global `.urban-admin input:focus-visible` (0,2,1), como o inline fazia.
+ * O anel de foco fica em `.field:focus-visible` (sem `outline: none`).
  */
 .shell.shell {
   display: block;
@@ -63,8 +62,11 @@
   font-family: var(--font-brand);
 }
 
-.field.field.field {
-  outline: none;
+/* Foco por teclado visivel: anel 2px no acento do admin + borda (WCAG 2.4.7). */
+.field.field:focus-visible {
+  outline: 2px solid var(--admin-accent);
+  outline-offset: 2px;
+  border-color: var(--admin-accent);
 }
 
 .fieldWithAddon.fieldWithAddon {

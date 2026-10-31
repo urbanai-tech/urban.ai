@@ -126,7 +126,6 @@ export const appFieldBaseStyle: React.CSSProperties = {
   color: appVar.text,
   fontSize: 14,
   fontWeight: 400,
-  outline: "none",
   transition: appTransition.field,
   fontFamily: appFont.sans,
 };

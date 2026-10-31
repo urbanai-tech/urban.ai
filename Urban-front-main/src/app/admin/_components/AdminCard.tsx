@@ -55,12 +55,15 @@ export function AdminCardHeader({
   actions,
   style,
   className,
+  titleAs: TitleTag = "h2",
 }: {
   eyebrow?: string;
   title: React.ReactNode;
   actions?: React.ReactNode;
   style?: React.CSSProperties;
   className?: string;
+  /** Nivel do titulo. Padrao h2 (card direto sob o h1 da pagina). */
+  titleAs?: "h2" | "h3" | "h4";
 }) {
   return (
     <header
@@ -75,11 +78,11 @@ export function AdminCardHeader({
             {eyebrow}
           </p>
         )}
-        <h3
+        <TitleTag
           className={styles.headerTitle}
         >
           {title}
-        </h3>
+        </TitleTag>
       </div>
       {actions && <div className={styles.headerActions}>{actions}</div>}
     </header>

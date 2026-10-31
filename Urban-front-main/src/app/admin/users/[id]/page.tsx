@@ -249,6 +249,7 @@ export default function AdminUserDetailPage() {
             </div>
             <div className={styles.roleActions}>
               <AdminSelect
+                aria-label="Papel do usuário"
                 value={user.role}
                 onChange={(e) => {
                   const next = e.target.value;

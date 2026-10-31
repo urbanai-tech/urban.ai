@@ -431,6 +431,7 @@ export default function AdminWaitlistPage() {
           shellClassName={styles.searchShell}
         />
         <AdminSelect
+          aria-label="Filtrar por status"
           value={statusFilter}
           onChange={(e) => {
             setStatusFilter(e.target.value);

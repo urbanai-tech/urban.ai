@@ -514,9 +514,9 @@ function CalendarView({
       {groupedByDate.map((group) => (
         <AppCard key={group.day} variant="default" className={styles.dayGroupCard}>
           <div className={styles.dayGroupHeader}>
-            <h3 className={styles.dayGroupTitle}>
+            <h2 className={styles.dayGroupTitle}>
               {formatDateRange(group.day, null)}
-            </h3>
+            </h2>
             <AppBadge kind="neutral">{group.events.length} {group.events.length === 1 ? "evento" : "eventos"}</AppBadge>
           </div>
           <div className={styles.calendarEventList}>

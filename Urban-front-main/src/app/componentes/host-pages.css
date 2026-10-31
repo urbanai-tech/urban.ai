@@ -424,6 +424,11 @@ a.urban-metric-chip:hover {
   font-weight: 750;
 }
 
+/* O numero sai do DOM (so pseudo-elemento): o texto visivel do botao fica so o dia e o aria-label comeca por ele (WCAG 2.5.3). */
+.urban-cal-day__dot::before {
+  content: attr(data-count);
+}
+
 .urban-cal-panel {
   display: grid;
   gap: 12px;
