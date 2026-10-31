@@ -1,5 +1,14 @@
 import type { AdminProductFunnel } from "../service/api/admin";
-import type { MarketIntelResponse, PricingRule, PricingRulesPreviewResponse, PricingRulesResponse, RoiSummary } from "../service/api/pricing";
+import type {
+  MarketDataSourceInfo,
+  MarketIntelResponse,
+  MarketPrivacyGroup,
+  MarketTypologySelection,
+  PricingRule,
+  PricingRulesPreviewResponse,
+  PricingRulesResponse,
+  RoiSummary,
+} from "../service/api/pricing";
 
 /**
  * Normalizadores de resposta da API (E2E-09).
@@ -156,11 +165,96 @@ function asPercentilesOrNull(value: unknown): { p25: number; p50: number; p75: n
   return { p25: asNumber(value.p25), p50: asNumber(value.p50), p75: asNumber(value.p75) };
 }
 
+function asStringList(value: unknown): string[] {
+  return asArray(value).filter((item): item is string => typeof item === "string");
+}
+
+function asPrivacyGroup(value: unknown): MarketPrivacyGroup {
+  const group = asRecord(value);
+  return { distinct: asNumber(group.distinct), required: asNumber(group.required), qualified: Boolean(group.qualified) };
+}
+
+/** Campos novos do mercado (ADR 0028): listas e objetos sempre seguros; ausentes continuam ausentes. */
+function normalizeMarketExtras(raw: Record<string, unknown>): Partial<MarketIntelResponse> {
+  const extras: Partial<MarketIntelResponse> = {};
+  if (Array.isArray(raw.dataSources)) {
+    extras.dataSources = asArray<Record<string, unknown>>(raw.dataSources)
+      .filter(isRecord)
+      .map((source) => ({
+        id: asString(source.id) as MarketDataSourceInfo["id"],
+        label: asString(source.label),
+        listings: asNumber(source.listings),
+        latestCollectedAt: typeof source.latestCollectedAt === "string" ? source.latestCollectedAt : null,
+        licenses: asStringList(source.licenses) as MarketDataSourceInfo["licenses"],
+      }));
+  }
+  if (Array.isArray(raw.attribution)) extras.attribution = asStringList(raw.attribution);
+  if (Array.isArray(raw.seasonality)) {
+    extras.seasonality = asArray<Record<string, unknown>>(raw.seasonality)
+      .filter(isRecord)
+      .map((point) => ({ month: asNumber(point.month), index: asNumber(point.index), sample: asNumber(point.sample) }))
+      .filter((point) => point.month >= 1 && point.month <= 12);
+  } else if (raw.seasonality === null) {
+    extras.seasonality = null;
+  }
+  if (isRecord(raw.neighborhoodEventEffect)) {
+    const effect = raw.neighborhoodEventEffect;
+    extras.neighborhoodEventEffect = {
+      upliftPct: asNumber(effect.upliftPct),
+      eventDays: asNumber(effect.eventDays),
+      baselineDays: asNumber(effect.baselineDays),
+    };
+  } else if (raw.neighborhoodEventEffect === null) {
+    extras.neighborhoodEventEffect = null;
+  }
+  if (isRecord(raw.trend30d)) {
+    const trend = raw.trend30d;
+    const nullableNumber = (value: unknown) => (typeof value === "number" && Number.isFinite(value) ? value : null);
+    extras.trend30d = {
+      available: Boolean(trend.available),
+      percentilePoints: nullableNumber(trend.percentilePoints),
+      medianAdrChangePct: nullableNumber(trend.medianAdrChangePct),
+      currentMedianAdr: nullableNumber(trend.currentMedianAdr),
+      previousMedianAdr: nullableNumber(trend.previousMedianAdr),
+      pairedListings: asNumber(trend.pairedListings),
+      ownBasis: trend.ownBasis === "observed" || trend.ownBasis === "current" ? trend.ownBasis : null,
+      reason: typeof trend.reason === "string" ? trend.reason : undefined,
+    };
+  }
+  if (isRecord(raw.insufficiency)) {
+    const info = raw.insufficiency;
+    extras.insufficiency = {
+      reasons: asStringList(info.reasons),
+      hints: asStringList(info.hints),
+      customers: asPrivacyGroup(info.customers),
+      external: asPrivacyGroup(info.external),
+    };
+  } else if (raw.insufficiency === null) {
+    extras.insufficiency = null;
+  }
+  if (isRecord(raw.radius)) {
+    extras.radius = { km: asNumber(raw.radius.km, 3), min: asNumber(raw.radius.min, 1), max: asNumber(raw.radius.max, 5) };
+  }
+  if (isRecord(raw.typology)) {
+    const selection = (value: unknown): MarketTypologySelection => {
+      const item = asRecord(value);
+      return {
+        rooms: typeof item.rooms === "number" ? item.rooms : null,
+        listingType: typeof item.listingType === "string" ? (item.listingType as MarketTypologySelection["listingType"]) : null,
+        capacity: typeof item.capacity === "string" ? (item.capacity as MarketTypologySelection["capacity"]) : null,
+      };
+    };
+    extras.typology = { applied: selection(raw.typology.applied), target: selection(raw.typology.target) };
+  }
+  return extras;
+}
+
 /** Inteligência de mercado com números/listas garantidos; lança se a resposta nem é um objeto. */
 export function normalizeMarketIntel(raw: unknown, propertyId = ""): MarketIntelResponse {
   if (!isRecord(raw)) throw new Error("invalid market-intel response");
   return {
     ...(raw as Partial<MarketIntelResponse>),
+    ...normalizeMarketExtras(raw),
     propertyId: asString(raw.propertyId, propertyId),
     neighborhood: asString(raw.neighborhood, "sua região"),
     percentile: asNumber(raw.percentile),

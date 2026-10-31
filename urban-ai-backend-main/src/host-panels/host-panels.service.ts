@@ -4,6 +4,7 @@ import {
   HttpException,
   HttpStatus,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
@@ -30,6 +31,11 @@ import {
   PricingRuleType,
 } from '../entities/pricing-rule-config.entity';
 import { DEFAULT_PRICING_RULES } from '../knn-engine/pricing-rules';
+import { clampRadiusKm, resolveMarketConfig } from '../market-data/market-config';
+import { MarketIntelService } from '../market-data/market-intel.service';
+import { capacityBandOf } from '../market-data/market-math';
+import { marketTargetFromAddress } from '../market-data/market-target';
+import type { MarketTypology } from '../market-data/market-data.types';
 import { Payment } from '../entities/payment.entity';
 import { User } from '../entities/user.entity';
 import {
@@ -38,6 +44,14 @@ import {
 } from './portfolio-action-target-resolver.service';
 
 type DateRange = { from: string; to: string; dates: string[] };
+
+/** Entrada do mercado por bairro: período, raio (1–5 km) e tipologia (todos opcionais). */
+export type MarketIntelInput = {
+  from?: string;
+  to?: string;
+  radiusKm?: number | string;
+  typology?: MarketTypology | null;
+};
 
 type AskUsageReason =
   | null
@@ -105,13 +119,11 @@ const PRICING_RULE_TYPES: PricingRuleType[] = [
 // DEFAULT_PRICING_RULES agora vem de knn-engine/pricing-rules.ts (fonte única
 // para o preview do painel e para o motor de pricing v2).
 
-const MARKET_INTEL_RADIUS_KM = 3;
-const MARKET_INTEL_DEFAULT_MIN_GROUP_SIZE = 5;
-const MARKET_INTEL_FLOOR_MIN_GROUP_SIZE = 3;
-const MARKET_INTEL_CANDIDATE_LIMIT = 5000;
 
 @Injectable()
 export class HostPanelsService {
+  private readonly logger = new Logger(HostPanelsService.name);
+
   constructor(
     @InjectRepository(Address) private readonly addressRepo: Repository<Address>,
     @InjectRepository(List) private readonly listRepo: Repository<List>,
@@ -128,6 +140,7 @@ export class HostPanelsService {
     @InjectRepository(PortfolioActionItem) private readonly portfolioItemRepo: Repository<PortfolioActionItem>,
     @InjectDataSource() private readonly dataSource: DataSource,
     private readonly portfolioTargetResolver: PortfolioActionTargetResolverService,
+    private readonly marketIntelService: MarketIntelService,
   ) {}
 
   async portfolioCalendar(
@@ -581,71 +594,172 @@ export class HostPanelsService {
     return this.savePricingRules(userId, target.id, sourceConfig?.rules?.length ? sourceConfig.rules : this.cloneDefaultRules());
   }
 
-  async marketIntel(userId: string, propertyId: string, input: { from?: string; to?: string }) {
+  /**
+   * Mercado por bairro (ADR 0028). Contrato legado preservado (campos antigos com o mesmo
+   * significado); campos novos são opcionais: fontes, tipologia, raio, sazonalidade, efeito de
+   * eventos, tendência de 30 dias e explicação do que falta quando a amostra é insuficiente.
+   */
+  async marketIntel(userId: string, propertyId: string, input: MarketIntelInput) {
     const address = await this.getOwnedAddress(userId, propertyId);
     const range = this.resolveRange(input.from, input.to, 30, 90);
     const ownAdr = this.resolveBasePrice(address.list);
-    const minGroupSize = this.marketIntelMinGroupSize();
-    const comparables = await this.getComparableAddresses(userId, address);
-    const ownerCount = this.countDistinctOwners(comparables);
+    const config = resolveMarketConfig();
+    const radiusKm = clampRadiusKm(input.radiusKm, config);
+    const typology = input.typology ?? null;
     const neighborhood = address.bairro ?? address.list?.neighborhood ?? address.cidade ?? 'Não informado';
-    const ownOccupancy = await this.occupancyRate([address.list?.id].filter(Boolean), range.from, range.to);
+    const target = marketTargetFromAddress(address, userId, ownAdr);
+    const ownList = [address.list?.id].filter(Boolean);
+    const ownOccupancyRecords = await this.findOccupancy(ownList, range.from, range.to);
+    const ownOccupancy = this.occupancyFraction(ownOccupancyRecords);
+    const [eventReactivity, ownDaily, eventDays] = await Promise.all([
+      this.eventReactivity(userId, address.id, range.from, range.to),
+      this.ownDailyPrices(address, range.to),
+      this.highImpactEventDays(address, range),
+    ]);
 
-    // Privacidade (LGPD / segredo comercial): dados de imóveis de outros clientes
-    // só saem agregados e apenas quando o grupo tem >= minGroupSize anfitriões distintos.
-    if (ownerCount < minGroupSize) {
+    // Privacidade (LGPD / segredo comercial): dados de imóveis de outros clientes só saem
+    // agregados e apenas quando o grupo tem >= minHosts anfitriões distintos; fontes externas,
+    // >= minExternalListings anúncios distintos. A regra mora em `buildCompSet`.
+    const built = await this.marketIntelService.build({
+      target,
+      city: address.cidade ?? null,
+      state: address.estado ?? null,
+      from: range.from,
+      to: range.to,
+      dates: range.dates,
+      radiusKm,
+      typology,
+      use: 'display',
+      ownOccupancy,
+      ownDaily,
+      eventDays,
+      config,
+    });
+    const metrics = built.metrics;
+    const common = {
+      propertyId: address.id,
+      neighborhood,
+      yourAdr: ownAdr,
+      yourOccupancy: ownOccupancy ?? 0,
+      yourOccupancyAvailable: ownOccupancy !== null,
+      eventReactivity,
+      /** @deprecated lista por imóvel removida por privacidade; use os agregados. */
+      comparables: [],
+      aggregatedOnly: true,
+      minGroupSize: built.config.minHosts,
+      minExternalListings: built.config.minExternalListings,
+      radiusKm,
+      radius: { km: radiusKm, min: config.minRadiusKm, max: config.maxRadiusKm },
+      typology: {
+        applied: {
+          rooms: typology?.rooms ?? null,
+          listingType: typology?.listingType ?? null,
+          capacity: typology?.capacity ?? null,
+        },
+        target: {
+          rooms: target.bedrooms,
+          listingType: target.listingType,
+          capacity: capacityBandOf(target.capacity),
+        },
+      },
+      schemaVersion: 2,
+      updatedAt: new Date().toISOString(),
+    };
+
+    if (!metrics) {
       return {
-        propertyId: address.id,
-        neighborhood,
+        ...common,
         percentile: 0,
         percentileTrend30d: 0,
         comparablesCount: 0,
         medianAdr: 0,
         medianOccupancy: 0,
-        yourAdr: ownAdr,
-        yourOccupancy: ownOccupancy,
-        eventReactivity: await this.eventReactivity(userId, address.id, range.from, range.to),
         daily: [],
-        comparables: [],
-        aggregatedOnly: true,
         insufficientData: true,
-        minGroupSize,
-        radiusKm: MARKET_INTEL_RADIUS_KM,
         adrPercentiles: null,
         occupancyPercentiles: null,
+        dataSources: [],
+        insufficiency: built.insufficiency,
         message: 'Dados insuficientes: ainda não há imóveis parecidos suficientes na região para comparar com segurança.',
-        updatedAt: new Date().toISOString(),
       };
     }
 
-    const aggregates = await this.buildComparableAggregates(comparables, range.from, range.to);
-    const daily = await this.buildMarketDaily(address, comparables, range, minGroupSize);
-    const medianAdr = this.median(aggregates.map((row) => row.medianAdr)) || 0;
-    const medianOccupancy = this.median(aggregates.map((row) => row.occupancy)) || 0;
-    const percentile = Math.round((aggregates.filter((row) => row.medianAdr <= ownAdr).length / aggregates.length) * 100);
-
     return {
-      propertyId: address.id,
-      neighborhood,
-      percentile,
-      percentileTrend30d: 0,
-      comparablesCount: aggregates.length,
-      medianAdr,
-      medianOccupancy,
-      yourAdr: ownAdr,
-      yourOccupancy: ownOccupancy,
-      eventReactivity: await this.eventReactivity(userId, address.id, range.from, range.to),
-      daily,
-      /** @deprecated lista por imóvel removida por privacidade; use os agregados. */
-      comparables: [],
-      aggregatedOnly: true,
+      ...common,
+      percentile: metrics.percentile,
+      percentileTrend30d: metrics.trend30d.available ? (metrics.trend30d.percentilePoints ?? 0) : 0,
+      comparablesCount: metrics.comparablesCount,
+      medianAdr: metrics.medianAdr,
+      medianOccupancy: metrics.medianOccupancy ?? 0,
+      daily: metrics.daily,
       insufficientData: false,
-      minGroupSize,
-      radiusKm: MARKET_INTEL_RADIUS_KM,
-      adrPercentiles: this.percentiles(aggregates.map((row) => row.medianAdr)),
-      occupancyPercentiles: this.percentiles(aggregates.map((row) => row.occupancy), 2),
-      updatedAt: new Date().toISOString(),
+      adrPercentiles: metrics.adrPercentiles,
+      occupancyPercentiles: metrics.occupancyPercentiles,
+      occupancyAvailable: metrics.medianOccupancy !== null,
+      occupancyIsProxy: metrics.occupancyIsProxy,
+      occupancySample: metrics.occupancySample,
+      seasonality: metrics.seasonality,
+      neighborhoodEventEffect: metrics.eventEffect,
+      trend30d: metrics.trend30d,
+      dataSources: built.compSet.sources.map((source) => ({
+        id: source.source,
+        label: source.label,
+        listings: source.listings,
+        latestCollectedAt: source.latestCollectedAt,
+        licenses: source.licenses,
+      })),
+      attribution: built.compSet.sources.some((source) => source.licenses.includes('cc_by_4'))
+        ? ['Inside Airbnb (insideairbnb.com), licença CC BY 4.0']
+        : [],
     };
+  }
+
+  /** Taxa de ocupação (reservado ÷ reservado+disponível); null quando não há registro. */
+  private occupancyFraction(records: OccupancyHistory[]): number | null {
+    const denominator = records.filter((record) => record.status === 'booked' || record.status === 'available').length;
+    if (!denominator) return null;
+    return Number((records.filter((record) => record.status === 'booked').length / denominator).toFixed(2));
+  }
+
+  /** Diária observada do próprio imóvel por data (snapshots do último ano até `to`). */
+  private async ownDailyPrices(address: Address, to: string): Promise<Map<string, number>> {
+    const out = new Map<string, number>();
+    const listId = address.list?.id;
+    if (!listId) return out;
+    try {
+      const snapshots = await this.snapshotRepo
+        .createQueryBuilder('snapshot')
+        .leftJoinAndSelect('snapshot.list', 'list')
+        .where('list.id = :listId', { listId })
+        .andWhere('snapshot.snapshotDate BETWEEN :from AND :to', {
+          from: this.dateOnly(new Date(this.startDate(to).getTime() - 365 * MS_PER_DAY)),
+          to,
+        })
+        .getMany();
+      for (const snapshot of snapshots) {
+        const date = this.dateOnly(snapshot.snapshotDate);
+        const cents = Number(snapshot.priceCents);
+        if (date && Number.isFinite(cents) && cents > 0) out.set(date, Math.round(cents / 100));
+      }
+    } catch (err) {
+      this.logger.warn(`Preço próprio indisponível no mercado (address=${address.id}): ${(err as Error).message}`);
+    }
+    return out;
+  }
+
+  /** Datas com evento de alto impacto no entorno do imóvel (insumo do efeito de eventos no bairro). */
+  private async highImpactEventDays(address: Address, range: DateRange): Promise<Set<string>> {
+    try {
+      const byDate = await this.eventsByDateForAddresses([address], range.from, range.to);
+      return new Set(
+        Array.from(byDate.entries())
+          .filter(([, events]) => events.some((event) => this.eventImpact(event) === 'alta'))
+          .map(([date]) => date),
+      );
+    } catch (err) {
+      this.logger.warn(`Eventos indisponíveis no mercado (address=${address.id}): ${(err as Error).message}`);
+      return new Set();
+    }
   }
 
   async askUsage(userId: string) {
@@ -1101,121 +1215,6 @@ export class HostPanelsService {
     return address;
   }
 
-  private marketIntelMinGroupSize() {
-    const parsed = Number.parseInt(process.env.MARKET_INTEL_MIN_GROUP_SIZE ?? '', 10);
-    if (!Number.isFinite(parsed)) return MARKET_INTEL_DEFAULT_MIN_GROUP_SIZE;
-    return Math.max(MARKET_INTEL_FLOOR_MIN_GROUP_SIZE, parsed);
-  }
-
-  private ownerKey(address: Address) {
-    return address.user?.id ?? address.list?.user?.id ?? `address:${address.id}`;
-  }
-
-  private countDistinctOwners(addresses: Address[]) {
-    return new Set(addresses.map((address) => this.ownerKey(address))).size;
-  }
-
-  /**
-   * Imóveis de OUTROS clientes na região. Filtro geográfico feito no SQL
-   * (bounding box de 3 km; fallback cidade+estado quando o alvo não tem coordenadas),
-   * sem varrer a base inteira.
-   */
-  private async getComparableAddresses(userId: string, target: Address) {
-    const targetLat = this.num(target.latitude);
-    const targetLng = this.num(target.longitude);
-    const qb = this.addressRepo
-      .createQueryBuilder('address')
-      .innerJoinAndSelect('address.list', 'list')
-      .leftJoinAndSelect('address.user', 'user')
-      .leftJoinAndSelect('list.user', 'listUser')
-      .where('address.ativo = :ativo', { ativo: true })
-      .andWhere('address.id != :targetId', { targetId: target.id });
-
-    if (targetLat != null && targetLng != null) {
-      const dLat = MARKET_INTEL_RADIUS_KM / 111.32;
-      const cosLat = Math.max(0.01, Math.cos((targetLat * Math.PI) / 180));
-      const dLng = MARKET_INTEL_RADIUS_KM / (111.32 * cosLat);
-      qb.andWhere('address.latitude BETWEEN :minLat AND :maxLat', {
-        minLat: targetLat - dLat,
-        maxLat: targetLat + dLat,
-      }).andWhere('address.longitude BETWEEN :minLng AND :maxLng', {
-        minLng: targetLng - dLng,
-        maxLng: targetLng + dLng,
-      });
-    } else if (target.cidade && target.estado) {
-      qb.andWhere('LOWER(address.cidade) = :cidade', { cidade: this.normalize(target.cidade) }).andWhere(
-        'LOWER(address.estado) = :estado',
-        { estado: this.normalize(target.estado) },
-      );
-    } else {
-      return [];
-    }
-
-    const candidates = await qb.take(MARKET_INTEL_CANDIDATE_LIMIT).getMany();
-    return candidates.filter((address) => {
-      if (!address.list?.id || address.id === target.id) return false;
-      if (this.ownerKey(address) === userId) return false; // só outros clientes
-      if (targetLat != null && targetLng != null) {
-        const lat = this.num(address.latitude);
-        const lng = this.num(address.longitude);
-        if (lat == null || lng == null) return false;
-        return this.distanceKm(targetLat, targetLng, lat, lng) <= MARKET_INTEL_RADIUS_KM;
-      }
-      return true;
-    });
-  }
-
-  /** Valores individuais ficam só em memória, para calcular agregados; nunca são devolvidos. */
-  private async buildComparableAggregates(comparables: Address[], from: string, to: string) {
-    const rows: Array<{ medianAdr: number; occupancy: number }> = [];
-    for (const address of comparables) {
-      rows.push({
-        medianAdr: await this.medianAdrForList(address.list?.id, from, to, this.resolveBasePrice(address.list)),
-        occupancy: await this.occupancyRate([address.list?.id].filter(Boolean), from, to),
-      });
-    }
-    return rows;
-  }
-
-  private percentiles(values: number[], digits = 0) {
-    const nums = values.filter((value) => Number.isFinite(value)).sort((a, b) => a - b);
-    if (!nums.length) return null;
-    const at = (q: number) => {
-      const pos = (nums.length - 1) * q;
-      const lo = Math.floor(pos);
-      const hi = Math.ceil(pos);
-      const value = nums[lo] + (nums[hi] - nums[lo]) * (pos - lo);
-      return Number(value.toFixed(digits));
-    };
-    return { p25: at(0.25), p50: at(0.5), p75: at(0.75) };
-  }
-
-  private async buildMarketDaily(target: Address, comparables: Address[], range: DateRange, minGroupSize: number) {
-    const ids = [target.list?.id, ...comparables.map((address) => address.list?.id)].filter(Boolean);
-    const snapshots = ids.length
-      ? await this.snapshotRepo
-          .createQueryBuilder('snapshot')
-          .leftJoinAndSelect('snapshot.list', 'list')
-          .where('list.id IN (:...ids)', { ids })
-          .andWhere('snapshot.snapshotDate BETWEEN :from AND :to', { from: range.from, to: range.to })
-          .getMany()
-      : [];
-    const targetListId = target.list?.id;
-    const compIds = new Set(comparables.map((address) => address.list?.id).filter(Boolean));
-
-    return range.dates.map((date) => {
-      const own = snapshots.find((snapshot) => snapshot.snapshotDate === date && snapshot.list?.id === targetListId);
-      const comps = snapshots
-        .filter((snapshot) => snapshot.snapshotDate === date && compIds.has(snapshot.list?.id))
-        .map((snapshot) => Math.round(Number(snapshot.priceCents) / 100));
-      return {
-        date,
-        yourAdr: own ? Math.round(Number(own.priceCents) / 100) : this.resolveBasePrice(target.list),
-        medianAdr: (comps.length >= minGroupSize ? this.median(comps) : 0) || this.median(comparables.map((address) => this.resolveBasePrice(address.list))) || 0,
-      };
-    });
-  }
-
   private async buildPricingPreview(address: Address, rules: PricingRuleConfigItem[]) {
     const range = this.resolveRange(undefined, undefined, 14, 14);
     const base = this.resolveBasePrice(address.list);
@@ -1339,15 +1338,6 @@ export class HostPanelsService {
       .where('list.id IN (:...listIds)', { listIds })
       .andWhere('occupancy.date BETWEEN :from AND :to', { from, to })
       .getMany();
-  }
-
-  private async medianAdrForList(listId: string | undefined, from: string, to: string, fallback: number) {
-    if (!listId) return fallback;
-    const snapshots = await this.snapshotRepo.find({
-      where: { list: { id: listId } as any, snapshotDate: Between(from, to) },
-      take: 120,
-    });
-    return this.median(snapshots.map((snapshot) => Math.round(Number(snapshot.priceCents) / 100))) || fallback;
   }
 
   private async occupancyRate(listIds: string[], from: string, to: string) {

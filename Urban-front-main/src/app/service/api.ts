@@ -11,6 +11,7 @@ export * from "./api/pricing";
 export * from "./api/admin";
 export * from "./api/event-coverage";
 export * from "./api/event-reference";
+export * from "./api/market-admin";
 export * from "./api/portfolio";
 export * from "./api/ask";
 export * from "./api/owners";

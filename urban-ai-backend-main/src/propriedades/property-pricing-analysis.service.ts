@@ -1,3 +1,4 @@
+import { MarketSignalService } from '../market-data/market-signal.service';
 import { forwardRef, HttpException, HttpStatus, Inject, Injectable, Logger, Optional } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import axios from 'axios';
@@ -85,6 +86,8 @@ export class PropertyPricingAnalysisService {
         @Optional()
         @InjectRepository(PricingRuleConfig)
         private readonly pricingRuleConfigRepository?: Repository<PricingRuleConfig>,
+        @Optional()
+        private readonly marketSignals?: MarketSignalService,
     ) {}
 
     async criarAlertaAirbnb(data: {
@@ -884,6 +887,11 @@ export class PropertyPricingAnalysisService {
             if (Array.isArray(config?.rules)) context.rules = config.rules;
         } catch (err) {
             this.logger.warn(`Regras de pricing indisponíveis para address=${address.id}: ${(err as Error).message}`);
+        }
+        // Insumo de mercado por bairro (ADR 0028) — só em sombra e só com a flag ligada; falha = sem sinal.
+        if (this.marketSignals) {
+            const market = await this.marketSignals.forAddress(address);
+            if (market) context.market = market;
         }
         const dateKey = toDayKey(targetDate as any);
         const listId = address.list?.id;

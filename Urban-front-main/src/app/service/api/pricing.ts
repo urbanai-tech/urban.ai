@@ -355,6 +355,57 @@ export type MarketIntelPercentiles = {
   p75: number;
 };
 
+/** Fontes de dados de mercado (ADR 0028). */
+export type MarketSourceId = "customers" | "licensed_dataset" | "inside_airbnb" | "own_scraping";
+export type MarketLicense =
+  | "first_party"
+  | "cc_by_4"
+  | "licensed_display_aggregate"
+  | "licensed_internal_only"
+  | "unknown";
+export type MarketListingType = "entire_home" | "private_room" | "shared_room" | "hotel_room" | "other";
+export type MarketCapacityBand = "1-2" | "3-4" | "5-6" | "7+";
+
+/** Origem de parte do comp set: quantos anúncios, coletados quando e sob qual licença. */
+export type MarketDataSourceInfo = {
+  id: MarketSourceId;
+  label: string;
+  listings: number;
+  /** YYYY-MM-DD; null para clientes (dado atual). */
+  latestCollectedAt: string | null;
+  licenses: MarketLicense[];
+};
+
+export type MarketTypologySelection = {
+  rooms: number | null;
+  listingType: MarketListingType | null;
+  capacity: MarketCapacityBand | null;
+};
+
+export type MarketTrend30d = {
+  available: boolean;
+  percentilePoints: number | null;
+  medianAdrChangePct: number | null;
+  currentMedianAdr: number | null;
+  previousMedianAdr: number | null;
+  pairedListings: number;
+  ownBasis: "observed" | "current" | null;
+  reason?: string;
+};
+
+export type MarketSeasonalityPoint = { month: number; index: number; sample: number };
+export type MarketNeighborhoodEventEffect = { upliftPct: number; eventDays: number; baselineDays: number };
+
+export type MarketPrivacyGroup = { distinct: number; required: number; qualified: boolean };
+
+/** O que falta para a amostra ser suficiente (só quando `insufficientData`). */
+export type MarketInsufficiency = {
+  reasons: string[];
+  hints: string[];
+  customers: MarketPrivacyGroup;
+  external: MarketPrivacyGroup;
+};
+
 export type MarketIntelResponse = {
   propertyId: string;
   neighborhood: string;
@@ -378,12 +429,39 @@ export type MarketIntelResponse = {
   occupancyPercentiles?: MarketIntelPercentiles | null;
   message?: string;
   updatedAt: string;
+
+  // ---- Campos novos (ADR 0028), todos opcionais: backend antigo continua compatível ----
+  schemaVersion?: number;
+  /** Mínimo de anúncios distintos para fontes externas. */
+  minExternalListings?: number;
+  radius?: { km: number; min: number; max: number };
+  typology?: { applied: MarketTypologySelection; target: MarketTypologySelection };
+  /** Origem, data de coleta e licença de cada fonte que entrou na comparação. */
+  dataSources?: MarketDataSourceInfo[];
+  /** Atribuições obrigatórias (ex.: Inside Airbnb, CC BY 4.0). */
+  attribution?: string[];
+  yourOccupancyAvailable?: boolean;
+  /** false: nenhuma fonte desta região informa ocupação (não é 0%). */
+  occupancyAvailable?: boolean;
+  /** true: a ocupação é uma estimativa (dias disponíveis no ano), não observada. */
+  occupancyIsProxy?: boolean;
+  occupancySample?: number;
+  seasonality?: MarketSeasonalityPoint[] | null;
+  neighborhoodEventEffect?: MarketNeighborhoodEventEffect | null;
+  trend30d?: MarketTrend30d;
+  insufficiency?: MarketInsufficiency | null;
 };
 
 export type MarketIntelInput = {
   propertyId: string;
   from?: string;
   to?: string;
+  /** 1 a 5 km (padrão 3). */
+  radiusKm?: number;
+  /** Nº de quartos (4 = "4 ou mais"); ausente = qualquer. */
+  rooms?: number | null;
+  listingType?: MarketListingType | null;
+  capacity?: MarketCapacityBand | null;
 };
 
 /**
@@ -401,6 +479,10 @@ export async function fetchMarketIntel(
         params: {
           from: input.from,
           to: input.to,
+          radiusKm: input.radiusKm,
+          rooms: input.rooms ?? undefined,
+          listingType: input.listingType ?? undefined,
+          capacity: input.capacity ?? undefined,
         },
       },
     );

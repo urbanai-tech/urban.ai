@@ -1,0 +1,132 @@
+.pageContainer.pageContainer {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 40px 32px;
+}
+
+.section.section {
+  margin-top: 32px;
+}
+
+.sectionTitle.sectionTitle {
+  margin-bottom: 12px;
+}
+
+.headline.headline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 32px;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.headlineMain.headlineMain {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1 1 320px;
+  min-width: 0;
+}
+
+.headlineValue.headlineValue {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.headlineNumber.headlineNumber {
+  font-size: var(--text-display-lg);
+  line-height: 1;
+  color: var(--admin-text);
+}
+
+.kpis.kpis {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(120px, 1fr));
+  gap: 24px;
+  flex: 1 1 360px;
+}
+
+.muted.muted {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--admin-text-muted);
+  line-height: 1.55;
+}
+
+.strong.strong {
+  color: var(--admin-text);
+  font-weight: 600;
+}
+
+.num.num {
+  font-variant-numeric: tabular-nums;
+  color: var(--admin-text);
+}
+
+.hints.hints {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.uploadForm.uploadForm {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.uploadGrid.uploadGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.uploadActions.uploadActions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.errorText.errorText {
+  font-size: var(--text-sm);
+  color: var(--admin-danger, var(--admin-text));
+}
+
+.result.result {
+  margin-top: 20px;
+}
+
+.resultGrid.resultGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 24px;
+  margin-bottom: 16px;
+}
+
+.reasons.reasons {
+  margin: 0 0 12px;
+  padding-left: 20px;
+  font-size: var(--text-sm);
+  color: var(--admin-text-muted);
+}
+
+.footnote.footnote {
+  margin-top: 16px;
+}
+
+@media (max-width: 767px) {
+  .pageContainer.pageContainer {
+    padding: 24px 16px;
+  }
+
+  .kpis.kpis,
+  .uploadGrid.uploadGrid,
+  .resultGrid.resultGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

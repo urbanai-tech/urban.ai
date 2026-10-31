@@ -1,7 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ExternalListing } from '../entities/external-listing.entity';
+import { MarketIngestLog } from '../entities/market-ingest-log.entity';
+import { normalizeListingType } from '../market-data/market-math';
 import { deriveCategory } from './feature-engineering.service';
 
 // ============================================================================
@@ -13,7 +15,15 @@ import { deriveCategory } from './feature-engineering.service';
  * aspas duplas escapadas). Necessário porque o listings.csv do Inside Airbnb
  * tem descrições/amenities com vírgulas e newlines dentro de aspas.
  */
-export function parseCsv(text: string): string[][] {
+/** Teto do texto aceito pelo parser (o upload já limita a 25 MB; o listings.csv completo de SP cabe). */
+export const CSV_PARSE_MAX_CHARS = 200 * 1024 * 1024;
+
+export function parseCsv(input: string): string[][] {
+  // Entrada vem de upload/arquivo externo: garante string real e tamanho limitado
+  // antes de usar o comprimento como limite do laço.
+  if (typeof input !== 'string') throw new TypeError('parseCsv: entrada precisa ser texto');
+  if (input.length > CSV_PARSE_MAX_CHARS) throw new RangeError('parseCsv: arquivo grande demais');
+  const text: string = input;
   const rows: string[][] = [];
   let row: string[] = [];
   let cell = '';
@@ -150,6 +160,13 @@ export function mapInsideAirbnbRow(
     reviewScore: toFloat(rec.review_scores_rating),
     amenitiesCount,
     category,
+    // Camada de fontes de mercado (ADR 0028): bairro, tipo normalizado, id do Airbnb (dedup),
+    // data de coleta e licença. O Inside Airbnb é CC BY 4.0 (exibição com atribuição).
+    neighborhood: rec.neighbourhood_cleansed?.trim().slice(0, 96) || null,
+    listingType: normalizeListingType(rec.room_type),
+    airbnbListingId: /^\d{1,32}$/.test(externalId) ? externalId : null,
+    collectedAt: snapshotDate,
+    license: source === 'inside-airbnb' ? 'cc_by_4' : 'unknown',
   };
 }
 
@@ -168,6 +185,7 @@ export class InsideAirbnbImportService {
 
   constructor(
     @InjectRepository(ExternalListing) private readonly repo: Repository<ExternalListing>,
+    @Optional() @InjectRepository(MarketIngestLog) private readonly logRepo?: Repository<MarketIngestLog>,
   ) {}
 
   async importFromCsv(
@@ -183,7 +201,7 @@ export class InsideAirbnbImportService {
     const cols = [
       'id', 'latitude', 'longitude', 'price', 'room_type', 'bedrooms', 'bathrooms',
       'bathrooms_text', 'accommodates', 'minimum_nights', 'availability_365',
-      'number_of_reviews', 'review_scores_rating', 'amenities',
+      'number_of_reviews', 'review_scores_rating', 'amenities', 'neighbourhood_cleansed',
     ];
     const colIdx: Record<string, number> = {};
     for (const c of cols) colIdx[c] = idx(c);
@@ -204,7 +222,8 @@ export class InsideAirbnbImportService {
         .orUpdate(
           ['latitude', 'longitude', 'priceCents', 'roomType', 'bedrooms', 'bathrooms',
             'accommodates', 'minNights', 'availability365', 'numReviews', 'reviewScore',
-            'amenitiesCount', 'category', 'snapshotDate'],
+            'amenitiesCount', 'category', 'snapshotDate', 'neighborhood', 'listingType',
+            'airbnbListingId', 'collectedAt', 'license'],
           ['source', 'externalId'],
         )
         .execute();
@@ -229,6 +248,27 @@ export class InsideAirbnbImportService {
       if (batch.length >= batchSize) await flush();
     }
     await flush();
+
+    if (this.logRepo) {
+      try {
+        await this.logRepo.save(
+          this.logRepo.create({
+            source,
+            city: opts.city,
+            license: source === 'inside-airbnb' ? 'cc_by_4' : 'unknown',
+            collectedAt: opts.snapshotDate ?? null,
+            fileName: null,
+            rowsParsed: rows.length - 1,
+            rowsImported: imported,
+            rowsSkipped: skipped,
+            observationsImported: 0,
+            importedByUserId: null,
+          }),
+        );
+      } catch (err) {
+        this.logger.warn(`Registro da importação não gravado: ${(err as Error).message}`);
+      }
+    }
 
     this.logger.log(
       `Inside Airbnb import (${opts.city}): ${imported} importados, ${skipped} pulados de ${rows.length - 1} linhas.`,

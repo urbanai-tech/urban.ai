@@ -49,6 +49,7 @@ import { HealthModule } from './health/health.module';
 import { PushModule } from './push/push.module';
 import { HostPanelsModule } from './host-panels/host-panels.module';
 import { OwnerReportModule } from './owner-report/owner-report.module';
+import { MarketDataModule } from './market-data/market-data.module';
 import { AdminJobRunsModule } from './admin-job-runs/admin-job-runs.module';
 import { RedisLockModule } from './common/redis-lock';
 import { SubscriptionModule } from './subscription/subscription.module';
@@ -193,6 +194,7 @@ const dbTimezoneOption = process.env.DB_TIMEZONE?.trim() ? { timezone: process.e
     HealthModule,
     HostPanelsModule,
     OwnerReportModule,
+    MarketDataModule,
   ],
   controllers: [
     ProcessoController, AppController],

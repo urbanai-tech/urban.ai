@@ -89,6 +89,8 @@ export class UrbanAIPricingEngine {
                     multiplier: v2.multiplier,
                     drivers: v2.drivers,
                     guardrail: v2.guardrail,
+                    // Insumo de mercado (ADR 0028), só quando MARKET_ENGINE_SIGNAL_ENABLED=true.
+                    ...(options.market ? { market: options.market } : {}),
                 };
                 this.logger.debug(
                     `[shadow-v2] property=${property?.id} v1=${v1.suggestedPrice} v2=${v2.suggestedPrice} ` +

@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Param, Post, Put, Query, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { parseMarketTypologyQuery } from '../market-data/market-typology';
 import { HostPanelsService } from './host-panels.service';
 import { PricingRulesBodyDto } from './host-panel.dto';
 
@@ -62,14 +63,23 @@ export class PropertiesPanelController {
     return this.hostPanels.copyPricingRules(req.user.userId, propertyId, sourceId);
   }
 
-  @ApiOperation({ summary: 'Inteligência de mercado para um imóvel' })
+  @ApiOperation({ summary: 'Inteligência de mercado para um imóvel (raio 1–5 km e tipologia opcionais)' })
   @Get(':id/market-intel')
   async marketIntel(
     @Req() req: any,
     @Param('id') propertyId: string,
     @Query('from') from?: string,
     @Query('to') to?: string,
+    @Query('radiusKm') radiusKm?: string,
+    @Query('rooms') rooms?: string,
+    @Query('listingType') listingType?: string,
+    @Query('capacity') capacity?: string,
   ) {
-    return this.hostPanels.marketIntel(req.user.userId, propertyId, { from, to });
+    return this.hostPanels.marketIntel(req.user.userId, propertyId, {
+      from,
+      to,
+      radiusKm,
+      typology: parseMarketTypologyQuery({ rooms, listingType, capacity }),
+    });
   }
 }

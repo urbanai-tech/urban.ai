@@ -58,6 +58,7 @@ describe('HostPanelsService AskUrban entitlement', () => {
       {} as any,
       dataSource as any,
       new PortfolioActionTargetResolverService(),
+      {} as any,
     );
 
     return { service, askRepo, paymentRepo, userRepo };

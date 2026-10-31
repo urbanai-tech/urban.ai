@@ -48,6 +48,7 @@ Estrutura sugerida:
 | 0025 | [Senha em claro sob TLS, hash só no servidor](./0025-senha-em-claro-sob-tls-hash-no-servidor.md) | Aceito | 28/10/2026 |
 | 0026 | [Cobertura de eventos auditada: referência, consenso, recall e precisão](./0026-cobertura-de-eventos-auditada.md) | Aceito | 31/10/2026 |
 | 0027 | [Relatório mensal para o proprietário: base legal, link seguro, envio e retenção](./0027-relatorio-mensal-proprietario.md) | Aceito (arquitetura); texto jurídico em aberto | 31/10/2026 |
+| 0028 | [Mercado por bairro com várias fontes](./0028-mercado-por-bairro-multifonte.md) | Aceito (coleta própria desligada) | 31/10/2026 |
 
 > Os 5 primeiros ADRs foram escritos **retroativamente** em 24/04/2026, em resposta à F5C.4 item #3 da auditoria. Refletem o raciocínio que motivou as decisões originais tomadas por Gustavo + Lumina Lab entre fev–mar/2026.
 

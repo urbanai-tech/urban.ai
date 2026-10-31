@@ -14,6 +14,7 @@ import { PriceSnapshot } from '../entities/price-snapshot.entity';
 import { PricingRuleConfig } from '../entities/pricing-rule-config.entity';
 import { User } from '../entities/user.entity';
 import { EventIntelligenceModule } from '../event-intelligence/event-intelligence.module';
+import { MarketDataModule } from '../market-data/market-data.module';
 import { AskController } from './ask.controller';
 import { HostEventsController } from './host-events.controller';
 import { HostPanelsService } from './host-panels.service';
@@ -25,6 +26,7 @@ import { PortfolioActionTargetResolverService } from './portfolio-action-target-
 @Module({
   imports: [
     EventIntelligenceModule,
+    MarketDataModule,
     TypeOrmModule.forFeature([
       Address,
       AnalisePreco,

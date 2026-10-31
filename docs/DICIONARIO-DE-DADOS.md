@@ -19,7 +19,7 @@
 
 **Imóveis, anúncios e Stays** (`list`, `addresses`, `stays_accounts`, `stays_listings`, `pricing_input_history`, `portfolio_property_settings`, `portfolio_action_runs`, `portfolio_action_items`, `portfolio_daily_price_overrides`, `airbnb_pricing_attempt_logs`). `list` é o anúncio (Airbnb) do anfitrião e `addresses` o endereço/geolocalização do imóvel, base de toda análise. `stays_accounts`/`stays_listings` ligam a conta do anfitrião ao gerenciador de canais Stays (token criptografado, consentimento registrado). As tabelas `portfolio_*` guardam estratégia por imóvel, execuções de ações em lote e preços diários definidos manualmente; `pricing_input_history` audita mudanças nos insumos de preço; `airbnb_pricing_attempt_logs` registra as tentativas de leitura de preço no Airbnb.
 
-**Eventos, ingestão e deduplicação** (`events`, `event_sources`, `event_dedup_candidates`, `event_historical_multiplier`, `coverage_regions`, `external_listing`, `process_status`). `events` é o evento canônico (com hash e chaves normalizadas de deduplicação); `event_sources` guarda cada observação bruta por fonte que sustenta o evento; `event_dedup_candidates` é a fila de pares suspeitos de duplicidade para revisão. `event_historical_multiplier` guarda multiplicadores históricos reais por evento; `coverage_regions` define as regiões atendidas; `external_listing` é a base de comparáveis públicos (Inside Airbnb) para o classificador; `process_status` é o estado do processo de ingestão.
+**Eventos, ingestão e deduplicação** (`events`, `event_sources`, `event_dedup_candidates`, `event_historical_multiplier`, `coverage_regions`, `external_listing`, `market_listing_observation`, `market_ingest_log`, `process_status`). `events` é o evento canônico (com hash e chaves normalizadas de deduplicação); `event_sources` guarda cada observação bruta por fonte que sustenta o evento; `event_dedup_candidates` é a fila de pares suspeitos de duplicidade para revisão. `event_historical_multiplier` guarda multiplicadores históricos reais por evento; `coverage_regions` define as regiões atendidas; `external_listing` é a base de comparáveis externos (Inside Airbnb e datasets licenciados) que alimenta o classificador e o mercado por bairro, com origem, data de coleta e licença por linha (ADR 0028); `market_listing_observation` guarda o histórico de preço/ocupação desses anúncios e `market_ingest_log` registra cada importação (quem, quando, licença); `process_status` é o estado do processo de ingestão.
 
 **Precificação e análises** (`analise_preco`, `analise_endereco_evento`, `pricing_rule_configs`, `pricing_decision_snapshots`, `price_updates`, `price_snapshots`, `occupancy_history`, `event_intelligence_snapshots`, `event_property_impacts`, `event_proximity_features`, `ask_urban_messages`). `analise_preco` é a recomendação de preço por imóvel x evento (aceite, aplicação, verificação e resultado). `event_intelligence_snapshots`, `event_property_impacts`, `event_proximity_features` e `pricing_decision_snapshots` são snapshots versionados do motor de demanda e de decisão; `price_updates` é a trilha de preços aplicados (com idempotência e rollback); `price_snapshots` e `occupancy_history` formam o histórico para treino/backtest; `pricing_rule_configs` são as regras por imóvel; `analise_endereco_evento` guarda distância/tempo imóvel-evento; `ask_urban_messages` é o histórico do chat com a IA.
 
@@ -51,8 +51,8 @@ Categorias presentes no schema (detalhe coluna a coluna na seção gerada "Colun
 
 ## Resumo
 
-- Tabelas (entidades TypeORM): **54**
-- Colunas: **856**
+- Tabelas (entidades TypeORM): **56**
+- Colunas: **880**
 - Chaves estrangeiras: **78**
 - Tabela de controle de migrations (`migrations`) não é entidade e não consta aqui.
 
@@ -63,7 +63,7 @@ Categorias presentes no schema (detalhe coluna a coluna na seção gerada "Colun
 | Usuários e autenticação | `user`, `refresh_tokens`, `password_reset_tokens`, `email_confirmations` |
 | Assinatura e Stripe | `plans`, `payment` |
 | Imóveis, anúncios e Stays | `list`, `addresses`, `stays_accounts`, `stays_listings`, `pricing_input_history`, `portfolio_property_settings`, `portfolio_action_runs`, `portfolio_action_items`, `portfolio_daily_price_overrides`, `airbnb_pricing_attempt_logs` |
-| Eventos, ingestão e deduplicação | `events`, `event_sources`, `event_dedup_candidates`, `event_historical_multiplier`, `coverage_regions`, `external_listing`, `process_status`, `event_reference`, `event_reference_votes`, `event_coverage_snapshots`, `event_reference_fetch_cache` |
+| Eventos, ingestão e deduplicação | `events`, `event_sources`, `event_dedup_candidates`, `event_historical_multiplier`, `coverage_regions`, `external_listing`, `market_listing_observation`, `market_ingest_log`, `process_status`, `event_reference`, `event_reference_votes`, `event_coverage_snapshots`, `event_reference_fetch_cache` |
 | Precificação e análises | `analise_preco`, `analise_endereco_evento`, `pricing_rule_configs`, `pricing_decision_snapshots`, `price_updates`, `price_snapshots`, `occupancy_history`, `event_intelligence_snapshots`, `event_property_impacts`, `event_proximity_features`, `ask_urban_messages` |
 | Notificações e comunicação | `notifications`, `push_subscriptions`, `push_deliveries`, `event_alert_dispatches`, `communication_events`, `user_communication_preferences`, `pricing_recommendation_digests` |
 | Proprietários e relatório mensal | `property_owners`, `property_owner_properties`, `owner_reports`, `owner_report_links` |
@@ -974,7 +974,7 @@ Relações:
 | --- | --- | --- | --- | --- | --- | --- |
 | `id` | `id` | varchar(36) | não |  | PK, uuid auto |  |
 | `externalId` | `externalId` | varchar(32) | não |  | UNIQUE (composto) | ID do anúncio na fonte (para dedup/upsert em reimportações). |
-| `source` | `source` | varchar(32) | não | inside-airbnb | UNIQUE (composto) | 'inside-airbnb' etc. |
+| `source` | `source` | varchar(32) | não | inside-airbnb | UNIQUE (composto), IDX | 'inside-airbnb' etc. |
 | `city` | `city` | varchar(48) | não |  | IDX | Cidade/mercado (ex.: 'sao-paulo', 'rio-de-janeiro'). |
 | `snapshotDate` | `snapshotDate` | date | sim |  |  |  |
 | `latitude` | `latitude` | float | não |  | IDX |  |
@@ -990,10 +990,18 @@ Relações:
 | `reviewScore` | `reviewScore` | float | sim |  |  |  |
 | `amenitiesCount` | `amenitiesCount` | int | sim |  |  |  |
 | `category` | `category` | varchar(16) | sim |  |  | Categoria derivada (Economico/Standard/Premium) — label do KNN. |
+| `neighborhood` | `neighborhood` | varchar(96) | sim |  |  | ===== Camada de fontes de mercado (ADR 0028) — todas opcionais ===== Bairro conforme a fonte (para métricas e saúde por bairro). |
+| `listingType` | `listingType` | varchar(24) | sim |  |  | Tipo de anúncio normalizado: entire_home \| private_room \| shared_room \| hotel_room \| other. |
+| `occupancyRate` | `occupancyRate` | float | sim |  |  | Ocupação observada no período (0 a 1), quando a fonte informa; null = só o proxy de availability365. |
+| `airbnbListingId` | `airbnbListingId` | varchar(32) | sim |  |  | Id do anúncio no Airbnb, quando a fonte informa — chave de deduplicação entre fontes. |
+| `collectedAt` | `collectedAt` | date | sim |  | IDX | Data em que a fonte coletou o dado (YYYY-MM-DD). |
+| `license` | `license` | varchar(32) | sim |  |  | Licença do dado: cc_by_4 \| licensed_display_aggregate \| licensed_internal_only \| unknown. Define se pode ser exibido ao cliente (agregado) ou só usado internamente. |
+| `ingestBatchId` | `ingestBatchId` | varchar(36) | sim |  |  | Lote de importação que gravou/atualizou a linha (auditoria). |
 
 Índices e unicidades:
 
 - `IDX_external_listing_city_geo`: `city`, `latitude`, `longitude`
+- `IDX_external_listing_source_collected`: `source`, `collectedAt`
 - `UQ_external_listing_source_ext` (UNIQUE): `source`, `externalId`
 
 ### `list`
@@ -1044,6 +1052,50 @@ Relações:
 | Tipo | Propriedade | Alvo | Coluna(s) FK | onDelete | onUpdate |
 | --- | --- | --- | --- | --- | --- |
 | many-to-one | `user` | `user` | user_id | CASCADE | NO ACTION |
+
+### `market_ingest_log`
+
+- Entidade: `MarketIngestLog` (`src/entities/market-ingest-log.entity.ts`)
+- Domínio: Eventos, ingestão e deduplicação
+- Descrição: Registro de cada importação de dataset de mercado (licenciado ou Inside Airbnb): quem, quando, de qual arquivo, com qual licença e o resultado. Sustenta a tela de saúde das fontes e a trilha de auditoria de licença (ADR 0028). Não guarda o conteúdo do arquivo.
+
+| Coluna | Propriedade | Tipo | Nulo | Padrão | Chaves | Observação |
+| --- | --- | --- | --- | --- | --- | --- |
+| `id` | `id` | varchar(36) | não |  | PK, uuid auto |  |
+| `source` | `source` | varchar(32) | não |  | IDX | Valor de `external_listing.source` gravado (ex.: licensed:airroi, inside-airbnb). |
+| `city` | `city` | varchar(48) | não |  |  | Mercado/cidade do lote (slug). |
+| `license` | `license` | varchar(32) | não |  |  | Licença atribuída ao lote. |
+| `collectedAt` | `collectedAt` | date | sim |  |  | Data de coleta declarada do dataset (YYYY-MM-DD). |
+| `fileName` | `fileName` | varchar(255) | sim |  |  | Nome do arquivo enviado (só o nome, sem caminho). |
+| `rowsParsed` | `rowsParsed` | int | não | 0 |  |  |
+| `rowsImported` | `rowsImported` | int | não | 0 |  |  |
+| `rowsSkipped` | `rowsSkipped` | int | não | 0 |  |  |
+| `observationsImported` | `observationsImported` | int | não | 0 |  |  |
+| `importedByUserId` | `importedByUserId` | varchar(36) | sim |  |  | Usuário admin que importou (null para importação por script). |
+| `createdAt` | `createdAt` | datetime | não | CURRENT_TIMESTAMP(6) | IDX |  |
+
+Índices e unicidades:
+
+- `IDX_market_ingest_source_created`: `source`, `createdAt`
+
+### `market_listing_observation`
+
+- Entidade: `MarketListingObservation` (`src/entities/market-listing-observation.entity.ts`)
+- Domínio: Eventos, ingestão e deduplicação
+- Descrição: Histórico de preço/ocupação de um anúncio externo (`external_listing`) — uma linha por anúncio e data de observação. Alimenta sazonalidade, efeito de eventos e a tendência de 30 dias do mercado por bairro (ADR 0028). Datasets sem série temporal não geram linhas aqui.
+
+| Coluna | Propriedade | Tipo | Nulo | Padrão | Chaves | Observação |
+| --- | --- | --- | --- | --- | --- | --- |
+| `id` | `id` | varchar(36) | não |  | PK, uuid auto |  |
+| `externalListingId` | `externalListingId` | varchar(36) | não |  | UNIQUE (composto) | `external_listing.id` (sem FK: a limpeza de anúncios apaga as observações pelo job, não em cascata). |
+| `observedOn` | `observedOn` | date | não |  | UNIQUE (composto), IDX | Data da observação (YYYY-MM-DD). |
+| `priceCents` | `priceCents` | int | sim |  |  | Diária em centavos. |
+| `occupancyRate` | `occupancyRate` | float | sim |  |  | Ocupação no dia/período (0 a 1). |
+
+Índices e unicidades:
+
+- `IDX_market_obs_date`: `observedOn`
+- `UQ_market_obs_listing_date` (UNIQUE): `externalListingId`, `observedOn`
 
 ### `notifications`
 
