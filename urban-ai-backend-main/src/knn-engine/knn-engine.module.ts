@@ -26,6 +26,7 @@ import { VenueCapacityService } from './venue-capacity.service';
 import { EventHistoricalService } from './event-historical.service';
 import { EventHistoricalMultiplier } from '../entities/event-historical-multiplier.entity';
 import { ExternalListing } from '../entities/external-listing.entity';
+import { MarketIngestLog } from '../entities/market-ingest-log.entity';
 import { InsideAirbnbImportService } from './inside-airbnb-import.service';
 import { EventIdentityService } from '../evento/event-identity.service';
 import { AnalisePreco } from '../entities/AnalisePreco';
@@ -59,6 +60,7 @@ import { AnalisePreco } from '../entities/AnalisePreco';
       AnalisePreco,
       EventHistoricalMultiplier,
       ExternalListing,
+      MarketIngestLog,
     ]),
   ],
   providers: [
