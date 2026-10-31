@@ -367,7 +367,7 @@ export class WaitlistService {
     const firstName = escapeHtml(input.name?.split(' ')[0] || 'pessoal');
     return `<!DOCTYPE html><html><body style="font-family:Arial,sans-serif;color:#374151;max-width:600px;margin:0 auto;padding:32px;">
       <div style="text-align:center;margin-bottom:32px;">
-        <img src="https://app.myurbanai.com/urban-logo.png" alt="My Urban" style="height:40px;" />
+        <img src="https://app.myurbanai.com/brand/logo-wordmark-deep-email.png" alt="My Urban" style="height:40px;width:auto;" />
       </div>
       <h2 style="color:#0ea5e9;text-align:center;">Seu acesso antecipado chegou, ${firstName}! 🎉</h2>
       <p>Você estava na posição <strong>#${Number(input.position)}</strong> da nossa lista de espera, e agora liberamos seu acesso à plataforma.</p>

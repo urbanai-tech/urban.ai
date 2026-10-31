@@ -3,7 +3,7 @@ import { escapeHtml } from "../common/escape-html";
 
 import type { WeeklyPropertyPerformance } from "./weekly-host-report";
 
-const LOGO_URL = "https://app.myurbanai.com/urban-logo.png";
+const LOGO_URL = "https://app.myurbanai.com/brand/logo-wordmark-deep-email.png";
 const PRIMARY_COLOR = "#0ea5e9"; // Cyan for codes
 const TEXT_COLOR = "#374151"; // Dark grey
 const TITLE_COLOR = "#9ca3af"; // Gray for centered titles
@@ -19,7 +19,7 @@ const baseLayout = (content: string) => `
         body { margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #ffffff; color: ${TEXT_COLOR}; }
         .container { max-width: 600px; margin: 0 auto; padding: 40px 20px; }
         .logo-container { text-align: center; margin-bottom: 50px; }
-        .logo { height: 40px; }
+        .logo { height: 40px; width: auto; }
         .title { text-align: center; color: ${TITLE_COLOR}; font-size: 24px; font-weight: bold; margin-bottom: 40px; }
         .content { font-size: 16px; line-height: 1.6; color: ${TEXT_COLOR}; }
         .footer { margin-top: 60px; font-size: 12px; color: #9ca3af; text-align: center; }
