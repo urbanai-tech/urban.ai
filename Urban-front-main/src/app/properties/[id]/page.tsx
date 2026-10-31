@@ -52,6 +52,7 @@ import {
   type RoiSummary,
 } from "../../service/api";
 import { dateAtLocalOffset, formatLocalDate } from "../../lib/date";
+import { asArray, asList, normalizeRoiSummary, isRecord } from "../../lib/api-normalize";
 import {
   EMPTY_HOST_BASELINE_DRAFT,
   describeBaselineSource,
@@ -274,7 +275,7 @@ function PropertyDetailContent() {
 
     setBaseline(baselineResult.status === "fulfilled" ? baselineResult.value : null);
 
-    if (propertyResult.status === "fulfilled") {
+    if (propertyResult.status === "fulfilled" && isRecord(propertyResult.value)) {
       setProperty(propertyResult.value);
       setBaselineDraft(draftFromBaseline(propertyResult.value.list));
       // Sem diária confirmada, o formulário manual já abre: é o caminho para destravar as sugestões.
@@ -291,12 +292,12 @@ function PropertyDetailContent() {
       toast("Não foi possível carregar o imóvel.", { type: "error" });
     }
 
-    setPricingHistory(historyResult.status === "fulfilled" ? historyResult.value : []);
-    setSuggestions(suggestionsResult.status === "fulfilled" ? suggestionsResult.value.data ?? [] : []);
-    setAcceptedSuggestions(acceptedResult.status === "fulfilled" ? acceptedResult.value.data ?? [] : []);
-    setRoi(roiResult.status === "fulfilled" ? roiResult.value : null);
-    setPace(paceResult.status === "fulfilled" ? paceResult.value : []);
-    setOccupancy(occupancyResult.status === "fulfilled" ? occupancyResult.value : []);
+    setPricingHistory(historyResult.status === "fulfilled" ? asList<PricingInputHistory>(historyResult.value) : []);
+    setSuggestions(suggestionsResult.status === "fulfilled" ? asList<SuggestionItem>(suggestionsResult.value) : []);
+    setAcceptedSuggestions(acceptedResult.status === "fulfilled" ? asList<SuggestionItem>(acceptedResult.value) : []);
+    setRoi(roiResult.status === "fulfilled" ? normalizeRoiSummary(roiResult.value) : null);
+    setPace(paceResult.status === "fulfilled" ? asArray<PaceApiPoint>(paceResult.value) : []);
+    setOccupancy(occupancyResult.status === "fulfilled" ? asArray<PropertyOccupancyRecord>(occupancyResult.value) : []);
     setLoading(false);
   }, [propertyId, toast]);
 

@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { asArray } from "../../lib/api-normalize";
 import styles from "./AdminTable.module.css";
 
 /**
@@ -44,7 +45,7 @@ function alignClass(align: Column<unknown>["align"]) {
 
 export function AdminTable<T>({
   columns,
-  rows,
+  rows: rowsProp,
   rowKey,
   onRowClick,
   empty,
@@ -54,6 +55,8 @@ export function AdminTable<T>({
   minWidth,
   style,
 }: Props<T>) {
+  // E2E-09: resposta sem lista não derruba a tabela; cai no estado vazio.
+  const rows = asArray<T>(rowsProp);
   const tableMinWidth = minWidth ?? Math.max(560, columns.length * 140);
 
   return (

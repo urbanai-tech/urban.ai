@@ -1,4 +1,5 @@
 import { api } from "./client";
+import { normalizeRoiSummary, normalizeMarketIntel, normalizePricingPreview, normalizePricingRules } from "../../lib/api-normalize";
 import type { BillingCycle } from "./billing";
 
 
@@ -202,7 +203,12 @@ export const fetchMyRoi = (params?: { windowDays?: number; propertyId?: string }
         propertyId: params?.propertyId || undefined,
       },
     })
-    .then((r) => r.data);
+    .then((r) => {
+      // E2E-09: resposta sem money/activity/dataQuality vira erro tratado pela tela, não exceção.
+      const summary = normalizeRoiSummary(r.data);
+      if (!summary) throw new Error('invalid roi response');
+      return summary;
+    });
 
 export const fetchAdminRoi = (params?: { windowDays?: number; limit?: number }) =>
   api
@@ -260,8 +266,7 @@ export async function fetchPricingRules(propertyId: string): Promise<PricingRule
     const { data } = await api.get<PricingRulesResponse>(
       `/properties/${propertyId}/pricing-rules`,
     );
-    if (!data) throw new Error('empty response');
-    return data;
+    return normalizePricingRules(data, propertyId);
   } catch (err) {
     console.warn('[fetchPricingRules] endpoint indisponível:', err);
     throw err;
@@ -277,7 +282,7 @@ export async function savePricingRules(
       `/properties/${propertyId}/pricing-rules`,
       { rules },
     );
-    return data;
+    return normalizePricingRules(data, propertyId);
   } catch (err) {
     console.error('[savePricingRules] falha ao salvar:', err);
     throw err;
@@ -293,7 +298,7 @@ export async function previewPricingRules(
       `/properties/${propertyId}/pricing-rules/preview`,
       { rules },
     );
-    return data ?? { days: [] };
+    return normalizePricingPreview(data);
   } catch (err) {
     console.warn('[previewPricingRules] endpoint indisponível:', err);
     throw err;
@@ -399,8 +404,7 @@ export async function fetchMarketIntel(
         },
       },
     );
-    if (!data) throw new Error('empty response');
-    return data;
+    return normalizeMarketIntel(data, input.propertyId);
   } catch (err) {
     console.warn('[fetchMarketIntel] endpoint indisponível:', err);
     throw err;

@@ -1,5 +1,6 @@
 import { api } from "./client";
 import { dateAtLocalOffset, formatLocalDate } from "../../lib/date";
+import { asArray, asList, asRecord } from "../../lib/api-normalize";
 
 
 // =================== Dashboard summary ===================
@@ -115,7 +116,9 @@ export interface DashboardSummary {
 }
 
 export const fetchDashboardSummary = () =>
-  api.get<DashboardSummary>('/admin/dashboard-summary').then((r) => r.data);
+  api
+    .get<DashboardSummary>('/admin/dashboard-summary')
+    .then((r) => (r.data ? { ...r.data, alerts: asArray<DashboardSummary['alerts'][number]>(r.data.alerts) } : r.data));
 
 // =================== Pace (booked vs expected) ===================
 
@@ -166,7 +169,7 @@ export async function fetchPace(
     const { data } = await api.get<PaceApiResponse>(endpoint, {
       params: { targetDateFrom, targetDateTo },
     });
-    return data?.points ?? [];
+    return asArray<PaceApiPoint>(data?.points);
   } catch (err) {
     console.warn('[fetchPace] endpoint indisponível:', err);
     throw err;
@@ -274,7 +277,13 @@ export async function fetchPortfolioCalendar(
         strategy: input.strategy && input.strategy !== 'todas' ? input.strategy : undefined,
       },
     });
-    return data ?? { properties: [] };
+    // E2E-09: envelope inesperado vira calendário vazio, não exceção na tela.
+    return {
+      ...asRecord(data),
+      properties: asArray<PortfolioProperty>(data?.properties),
+      opportunities: asArray<PortfolioOpportunity>(data?.opportunities),
+      actionRuns: asArray<PortfolioActionRun>(data?.actionRuns),
+    } as PortfolioCalendarResponse;
   } catch (err) {
     console.warn('[fetchPortfolioCalendar] endpoint indisponível:', err);
     throw err;
@@ -434,7 +443,7 @@ export async function fetchPortfolioOpportunities(
         strategy: input.strategy && input.strategy !== 'todas' ? input.strategy : undefined,
       },
     });
-    return data ?? { opportunities: [] };
+    return { ...asRecord(data), opportunities: asArray<PortfolioOpportunity>(data?.opportunities) } as PortfolioOpportunitiesResponse;
   } catch (err) {
     console.warn('[fetchPortfolioOpportunities] endpoint indisponível:', err);
     throw err;
@@ -477,8 +486,7 @@ export async function fetchPortfolioActionRuns(limit = 8): Promise<PortfolioActi
     >('/portfolio/action-runs', {
       params: { limit },
     });
-    if (Array.isArray(data)) return data;
-    return data?.runs ?? data?.items ?? [];
+    return asList<PortfolioActionRun>(data, ["runs", "items", "data"]);
   } catch (err) {
     const status = (err as any)?.response?.status;
     if (status === 404 || status === 405 || status === 501) {
