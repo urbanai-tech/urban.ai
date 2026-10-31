@@ -11,12 +11,15 @@ export function AdminEmptyState({
   body,
   action,
   icon,
+  headingAs: Heading = "h2",
 }: {
   eyebrow?: string;
   title: string;
   body?: React.ReactNode;
   action?: React.ReactNode;
   icon?: React.ReactNode;
+  /** Nivel do titulo: h1 quando o estado vazio e o unico conteudo da pagina; padrao h2. */
+  headingAs?: "h1" | "h2" | "h3";
 }) {
   return (
     <div
@@ -30,9 +33,9 @@ export function AdminEmptyState({
         </div>
       )}
       {eyebrow && <p className="urban-admin-eyebrow">{eyebrow}</p>}
-      <h3 className={`urban-admin-display-sm ${styles.title}`}>
+      <Heading className={`urban-admin-display-sm ${styles.title}`}>
         {title}
-      </h3>
+      </Heading>
       {body && (
         <p
           className={styles.body}
