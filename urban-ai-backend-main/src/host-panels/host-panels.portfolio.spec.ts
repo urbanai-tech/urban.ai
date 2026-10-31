@@ -72,6 +72,7 @@ function makeService(input: {
     portfolioItemRepo as any,
     {} as any,
     new PortfolioActionTargetResolverService(),
+    {} as any,
   );
 
   return {
