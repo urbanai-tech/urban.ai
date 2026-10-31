@@ -6,6 +6,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import "../../../i18n";
 import { useToastCompat } from "../componentes/ui";
+import { BrandLogo } from "../componentes/ui/BrandLogo";
 import { api, verificarUsuarioState } from "../service/api";
 import { trackEvent } from "../service/tracking";
 import { stashPendingEmail } from "@/app/lib/auth-links";
@@ -96,7 +97,7 @@ export default function Login() {
   }
 
   return (
-    <div className={`urban-app ${styles.loginRoot}`}>
+    <main className={`urban-app ${styles.loginRoot}`}>
       {/* ============== ESQUERDA — manifesto editorial dark ============== */}
       <div
         className={`urban-manifesto urban-grain ${styles.manifestoPanel}`}
@@ -105,14 +106,9 @@ export default function Login() {
         <div className={`urban-glow ${styles.glowTopLeft}`} />
         <div className={`urban-glow ${styles.glowBottomRight}`} />
 
-        {/* Wordmark URBAN AI no topo */}
+        {/* Logo oficial My Urban no topo */}
         <div className={styles.wordmark}>
-          <span className={`urban-display ${styles.wordmarkPart} ${styles.wordmarkBrand}`}>
-            URBAN
-          </span>
-          <span className={`urban-display ${styles.wordmarkPart} ${styles.wordmarkAccent}`}>
-            AI
-          </span>
+          <BrandLogo variant="wordmark" priority />
         </div>
 
         {/* Hero text vertical center */}
@@ -152,12 +148,7 @@ export default function Login() {
           {/* Mobile-only logo */}
           <div className={styles.mobileLogo} data-mobile-only-logo>
             <div className={styles.mobileWordmark}>
-              <span className={`urban-app-display ${styles.mobileWordmarkPart} ${styles.mobileWordmarkBrand}`}>
-                URBAN
-              </span>
-              <span className={`urban-app-display ${styles.mobileWordmarkPart} ${styles.mobileWordmarkAccent}`}>
-                AI
-              </span>
+              <BrandLogo variant="wordmark" priority />
             </div>
           </div>
 
@@ -311,19 +302,7 @@ export default function Login() {
           </p>
         </div>
       </div>
-
-      {/* Responsive — só mostra split em desktop */}
-      <style jsx global>{`
-        @media (min-width: 900px) {
-          [data-login-side] {
-            display: block !important;
-          }
-          [data-mobile-only-logo] {
-            display: none !important;
-          }
-        }
-      `}</style>
-    </div>
+    </main>
   );
 }
 

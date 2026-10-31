@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 10,
+  "revision": 11,
   "createdAt": "2026-07-15T00:00:00.000Z",
   "policy": {
     "scope": "src/**/*.{css,js,jsx,ts,tsx}",
@@ -101,9 +101,8 @@
       }
     },
     "nonCanonicalBreakpoints": {
-      "total": 29,
+      "total": 28,
       "files": {
-        "src/app/(home)/page.tsx": 1,
         "src/app/admin/_components/AdminShell.tsx": 1,
         "src/app/componentes/CasaCard.tsx": 1,
         "src/app/componentes/GlobalPaywallModal.tsx": 1,
@@ -261,7 +260,21 @@
         "inlineStyles": 117,
         "nonCanonicalBreakpoints": 29
       }
+    },
+    {
+      "at": "2026-10-31T09:30:01.537Z",
+      "reason": "Split do login movido de <style jsx> para CSS Module com breakpoint canonico 1181px (DS-01, CLS 0,5)",
+      "from": {
+        "rawColors": 89,
+        "inlineStyles": 117,
+        "nonCanonicalBreakpoints": 29
+      },
+      "to": {
+        "rawColors": 89,
+        "inlineStyles": 117,
+        "nonCanonicalBreakpoints": 28
+      }
     }
   ],
-  "updatedAt": "2026-10-30T16:36:06.409Z"
+  "updatedAt": "2026-10-31T09:30:01.535Z"
 }

@@ -35,29 +35,13 @@
 }
 
 .wordmark {
+  --brand-logo-height: 24px;
   position: absolute;
   top: 32px;
   left: 48px;
   z-index: 2;
   display: flex;
-  align-items: baseline;
-  gap: 6px;
-}
-
-.wordmarkPart {
-  font-size: 24px;
-  font-weight: 400;
-  letter-spacing: 0;
-  text-transform: uppercase;
-  line-height: 1;
-}
-
-.wordmarkBrand {
-  color: var(--theme-public-text);
-}
-
-.wordmarkAccent {
-  color: var(--theme-public-accent);
+  align-items: center;
 }
 
 .hero {
@@ -86,7 +70,9 @@
 }
 
 .heroTitle {
-  font-size: clamp(64px, min(8vw, 15.5vh), 140px);
+  /* Archivo é larga: "QUE A CIDADE" (~9em) precisa caber numa linha no painel
+     (50vw - 128px de padding); o teto em vh evita estourar a altura (DS-01). */
+  font-size: clamp(32px, min(calc((50vw - 128px) / 9), 15.5vh), 140px);
   line-height: 0.88;
   letter-spacing: 0;
   font-weight: 400;
@@ -155,24 +141,9 @@
 }
 
 .mobileWordmark {
+  --brand-logo-height: 26px;
   display: flex;
-  align-items: baseline;
-  gap: 6px;
-}
-
-.mobileWordmarkPart {
-  font-size: 28px;
-  font-weight: 400;
-  text-transform: uppercase;
-  line-height: 1;
-}
-
-.mobileWordmarkBrand {
-  color: var(--app-text);
-}
-
-.mobileWordmarkAccent {
-  color: var(--app-accent);
+  align-items: center;
 }
 
 /* .urban-app .urban-app-eyebrow define margin: 0 (0,2,0); precisa de mais especificidade. */
@@ -337,5 +308,18 @@
 @keyframes spinnerRotate {
   to {
     transform: rotate(360deg);
+  }
+}
+
+/* Split só em desktop (1181px, breakpoint canônico; antes 900px). Fica no CSS Module
+   e não em <style jsx> para valer já no primeiro paint: a regra injetada na
+   hidratação empurrava o formulário (CLS 0,5). */
+@media (min-width: 1181px) {
+  .manifestoPanel {
+    display: block;
+  }
+
+  .mobileLogo {
+    display: none;
   }
 }
