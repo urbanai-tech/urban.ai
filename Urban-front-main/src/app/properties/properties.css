@@ -1,6 +1,11 @@
 /* Lista de imóveis do anfitrião. Só tokens; breakpoints canônicos
    (1180px tablet, 767px mobile). Migrado do <style jsx> da página. */
 
+.properties-summary-grid:focus-visible {
+  outline: 2px solid var(--app-accent);
+  outline-offset: 2px;
+}
+
 .properties-summary-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
