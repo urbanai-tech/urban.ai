@@ -110,7 +110,7 @@ test.describe('Plans checkout readiness', () => {
 
     await page.goto('/plans');
 
-    await expect(page.getByText(/atendimento comercial/i)).toBeVisible();
+    await expect(page.getByText(/fale com a gente para montar o plano Escala/i)).toBeVisible();
     await expect(page.getByRole('button', { name: /Falar com comercial/i })).toBeVisible();
     await expect(page.getByRole('button', { name: /Continuar para pagamento/i })).toHaveCount(0);
   });
