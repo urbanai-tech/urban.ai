@@ -60,6 +60,7 @@ const EXPLORE_NAV = [
 // Desktop: grupo "Conta".
 const ACCOUNT_NAV = [
   { path: '/my-roi', label: 'Ganhos', icon: 'earnings' as const },
+  { path: '/proprietarios', label: 'Proprietários', icon: 'owners' as const },
   { path: '/my-plan', label: 'Meu plano', icon: 'plan' as const },
   { path: '/profile', label: 'Perfil', icon: 'profile' as const },
   { path: '/settings/integrations', label: 'Integrações', icon: 'integrations' as const },

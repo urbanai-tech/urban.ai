@@ -6,7 +6,7 @@ import { createHmac, timingSafeEqual } from 'crypto';
  * não expira (o link de descadastro precisa funcionar em e-mails antigos) e a
  * operação que ele autoriza é idempotente (só desliga uma preferência).
  */
-export const UNSUBSCRIBE_CATEGORIES = ['onboarding', 'weekly_report', 'pricing', 'marketing'] as const;
+export const UNSUBSCRIBE_CATEGORIES = ['onboarding', 'weekly_report', 'pricing', 'marketing', 'owner_reports'] as const;
 export type UnsubscribeCategory = (typeof UNSUBSCRIBE_CATEGORIES)[number];
 
 const TOKEN_VERSION = 'v1';

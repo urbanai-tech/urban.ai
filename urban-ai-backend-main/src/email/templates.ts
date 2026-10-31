@@ -857,6 +857,76 @@ export class EmailTemplates {
     return `${value > 0 ? '+' : ''}${Number(value.toFixed(1)).toLocaleString('pt-BR')}%`;
   }
 
+  /**
+   * E-mail mensal ao PROPRIETÁRIO (ADR 0027). Só resumo + botão para o relatório; os números
+   * completos ficam na página (link com expiração). `summaryLines` já vem sem fabricar nada.
+   * O texto do aviso (`notice`) está sob revisão jurídica.
+   */
+  static getOwnerMonthlyReportTemplate(input: {
+    ownerName: string;
+    preparedBy: string | null;
+    periodLabel: string;
+    reportUrl: string;
+    expiresLabel: string;
+    summaryLines: string[];
+    unsubscribeUrl: string;
+    notice: string;
+  }): string {
+    const firstName = escapeHtml((input.ownerName || 'Proprietário').split(' ')[0]);
+    const by = input.preparedBy
+      ? `<b>${escapeHtml(input.preparedBy)}</b>, responsável pela administração dos seus imóveis, compartilhou`
+      : 'O responsável pela administração dos seus imóveis compartilhou';
+    const summary = input.summaryLines.map((line) => `<li>${escapeHtml(line)}</li>`).join('');
+    const content = `
+        <div class="title">Relatório de ${escapeHtml(input.periodLabel)}</div>
+        <div class="content">
+            <p>Olá, <b>${firstName}</b>.</p>
+            <p>${by} o relatório mensal do desempenho dos seus imóveis no My Urban.</p>
+            <ul style="padding-left:20px; margin:0 0 16px 0;">${summary}</ul>
+            <p style="color:#6b7280;">Só mostramos o que está registrado: onde não há informação, o relatório escreve &ldquo;sem dado&rdquo; e não estima receita.</p>
+            <div style="text-align:center; margin:32px 0 8px;">
+              <a href="${escapeHtml(input.reportUrl)}" class="link" style="display:inline-block; padding:12px 28px; background:${PRIMARY_COLOR}; color:white; border-radius:8px; font-weight:bold;">
+                Abrir o relatório
+              </a>
+            </div>
+            <p style="font-size:13px; color:#6b7280; text-align:center;">O link vale até ${escapeHtml(input.expiresLabel)} e dá acesso somente ao relatório, sem login.</p>
+            <hr />
+            <p style="font-size:12px; color:#6b7280;">${escapeHtml(input.notice)}</p>
+            <p style="font-size:12px; color:#6b7280;"><a href="${escapeHtml(input.unsubscribeUrl)}" class="link">Deixar de receber estes relatórios</a></p>
+        </div>
+    `;
+    return baseLayout(content);
+  }
+
+  /** Lembrete de fim de mês ao anfitrião: registrar resultados antes do relatório do proprietário. */
+  static getOwnerReportReminderTemplate(input: {
+    nome: string;
+    pendingTotal: number;
+    ownerCount: number;
+    resultsUrl: string;
+    ownersUrl: string;
+    settingsUrl: string;
+  }): string {
+    const firstName = escapeHtml((input.nome || 'Usuário').split(' ')[0]);
+    const pending = `${input.pendingTotal} ${input.pendingTotal === 1 ? 'preço aplicado ainda sem resultado registrado' : 'preços aplicados ainda sem resultado registrado'}`;
+    const owners = `${input.ownerCount} ${input.ownerCount === 1 ? 'proprietário recebe' : 'proprietários recebem'} o relatório do mês no primeiro dia útil.`;
+    const content = `
+        <div class="title">Falta pouco para fechar o mês</div>
+        <div class="content">
+            <p>Olá, <b>${firstName}</b>.</p>
+            <p>${escapeHtml(owners)} Hoje há <b>${escapeHtml(pending)}</b>.</p>
+            <p>O relatório só mostra receita que foi registrada: sem o resultado (reservou? quanto entrou? quantas noites?), aquele imóvel aparece como &ldquo;sem dado&rdquo;.</p>
+            <div style="text-align:center; margin:32px 0 8px;">
+              <a href="${escapeHtml(input.resultsUrl)}" class="link" style="display:inline-block; padding:12px 28px; background:${PRIMARY_COLOR}; color:white; border-radius:8px; font-weight:bold;">
+                Registrar resultados
+              </a>
+            </div>
+            <p style="font-size:13px; color:#6b7280; text-align:center;"><a href="${escapeHtml(input.ownersUrl)}" class="link">Ver proprietários</a> &middot; <a href="${escapeHtml(input.settingsUrl)}" class="link">Ajustar avisos</a></p>
+        </div>
+    `;
+    return baseLayout(content);
+  }
+
   // ================== legacy ==================
 
   static getSystemNotificationTemplate(nome: string, title: string, description: string, url: string): string {

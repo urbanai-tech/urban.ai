@@ -37,6 +37,7 @@ import { PortfolioToolbar, type PortfolioToolbarAction } from "./components/Port
 import { usePortfolioKeyboard } from "./usePortfolioKeyboard";
 import styles from "./page.module.css";
 import { brlWhole } from "../lib/format";
+import { buildPortfolioCsv, portfolioCsvFileName } from "../lib/portfolio-csv";
 
 const STRATEGY_OPTIONS: ReadonlyArray<{ id: string; label: string }> = [
   { id: "todas", label: "Todos os modos" },
@@ -688,6 +689,24 @@ function PortfolioPageContent() {
     }
   }, [buildBulkInput, handleClearSelection, handleRefreshRuns, pendingAction, toast]);
 
+  // Export CSV do que está na tela (imóvel x dia). `csvCell` neutraliza fórmulas de planilha.
+  const handleExportCsv = useCallback(() => {
+    const { csv, rows } = buildPortfolioCsv(response.properties);
+    if (!rows) {
+      toast.info("Nada para exportar", "Não há dias no período selecionado.");
+      return;
+    }
+    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = portfolioCsvFileName(from, to);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    toast.success("CSV gerado", `${rows} linhas (imóvel e dia) de ${from} a ${to}.`);
+  }, [response.properties, from, to, toast]);
+
   return (
     <AppPageShell maxWidth={1400}>
       <AppSectionHeader
@@ -711,6 +730,15 @@ function PortfolioPageContent() {
                 ))}
               </AppSelect>
             </div>
+            <AppButton
+              variant="secondary"
+              size="md"
+              leftIcon={<Icons.Download size={14} />}
+              onClick={handleExportCsv}
+              disabled={loading || response.properties.length === 0}
+            >
+              Exportar CSV
+            </AppButton>
             <div className={styles.strategySelectWrap}>
               <AppSelect
                 label="Modo de preço"

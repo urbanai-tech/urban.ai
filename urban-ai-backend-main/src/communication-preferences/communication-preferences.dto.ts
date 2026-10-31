@@ -32,4 +32,8 @@ export class UpdateCommunicationPreferencesDto {
   @IsOptional()
   @IsBoolean()
   billingAlerts?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  ownerReports?: boolean;
 }

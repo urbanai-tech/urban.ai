@@ -1,0 +1,283 @@
+/*
+ * Relatório mensal do proprietário (ADR 0027). Só tokens do app; nenhuma cor crua.
+ * A folha de impressão força esquema claro (system colors) para o PDF sair legível
+ * mesmo quando o tema do navegador é escuro.
+ */
+.report {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  color: var(--app-text);
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--app-divider);
+}
+
+.logo {
+  height: 28px;
+  width: auto;
+  align-self: flex-start;
+  margin-bottom: 8px;
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--app-text-muted);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--text-2xl);
+  font-weight: var(--font-weight-title);
+  letter-spacing: -0.4px;
+  color: var(--app-text);
+}
+
+.lead {
+  margin: 0;
+  font-size: var(--text-md);
+  color: var(--app-text);
+}
+
+.muted {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--app-text-muted);
+  line-height: 1.5;
+}
+
+.summary,
+.property,
+.footer {
+  background: var(--app-surface);
+  border: 1px solid var(--app-divider);
+  border-radius: var(--app-radius-card);
+  padding: 24px;
+  box-shadow: var(--app-shadow-card);
+}
+
+.sectionTitle {
+  margin: 0 0 12px;
+  font-size: var(--text-lg);
+  font-weight: var(--font-weight-title);
+  color: var(--app-text);
+}
+
+.headline {
+  margin: 0 0 16px;
+  font-size: var(--text-md);
+  line-height: 1.5;
+  color: var(--app-text);
+}
+
+.headlineNone {
+  padding: 12px 14px;
+  border-radius: var(--app-radius-control);
+  border: 1px solid var(--app-warning-border);
+  background: var(--app-warning-soft);
+  color: var(--app-warning-text);
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 16px;
+  margin: 0 0 20px;
+}
+
+.metric {
+  min-width: 0;
+}
+
+.metricLabel {
+  margin: 0;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--app-text-muted);
+}
+
+.metricValue {
+  margin: 4px 0 0;
+  font-size: var(--text-xl);
+  font-weight: var(--font-weight-title);
+  letter-spacing: -0.3px;
+  color: var(--app-text);
+}
+
+.metricHint {
+  margin: 2px 0 0;
+  font-size: var(--text-xs);
+  color: var(--app-text-muted);
+  line-height: 1.4;
+}
+
+.noData {
+  font-size: var(--text-md);
+  font-weight: 600;
+  color: var(--app-text-muted);
+}
+
+.subheading {
+  margin: 20px 0 8px;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--app-text);
+}
+
+.comparison,
+.list,
+.notes {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.notes {
+  list-style: disc;
+  padding-left: 18px;
+  font-size: var(--text-sm);
+  color: var(--app-text-muted);
+  line-height: 1.5;
+}
+
+.comparisonItem {
+  font-size: var(--text-sm);
+  color: var(--app-text);
+  line-height: 1.5;
+}
+
+.comparisonLabel {
+  font-weight: 700;
+}
+
+.propertyHeader {
+  margin-bottom: 12px;
+}
+
+.propertyTitle {
+  margin: 0;
+  font-size: var(--text-lg);
+  font-weight: var(--font-weight-title);
+  color: var(--app-text);
+}
+
+.propertyLocation {
+  margin: 2px 0 0;
+  font-size: var(--text-sm);
+  color: var(--app-text-muted);
+}
+
+.dataMessage {
+  margin: 0 0 16px;
+  padding: 10px 12px;
+  border-radius: var(--app-radius-control);
+  border: 1px solid var(--app-divider-strong);
+  background: var(--app-surface-muted);
+  font-size: var(--text-sm);
+  color: var(--app-text);
+  line-height: 1.5;
+}
+
+.pending {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border-radius: var(--app-radius-control);
+  border: 1px solid var(--app-warning-border);
+  background: var(--app-warning-soft);
+  color: var(--app-warning-text);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+
+.listItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: 8px;
+  border-top: 1px solid var(--app-divider);
+  break-inside: avoid;
+}
+
+.listMain {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--app-text);
+}
+
+.listMeta,
+.listOutcome {
+  font-size: var(--text-sm);
+  color: var(--app-text-muted);
+  line-height: 1.5;
+}
+
+.notice {
+  margin: 16px 0 0;
+  font-size: var(--text-xs);
+  color: var(--app-text-muted);
+  line-height: 1.5;
+}
+
+@media (max-width: 767px) {
+  .summary,
+  .property,
+  .footer {
+    padding: 18px;
+  }
+
+  .title {
+    font-size: var(--text-xl);
+  }
+}
+
+@media print {
+  .report {
+    color-scheme: light;
+    --app-text: CanvasText;
+    --app-text-muted: GrayText;
+    --app-surface: Canvas;
+    --app-surface-muted: Canvas;
+    --app-divider: GrayText;
+    --app-divider-strong: GrayText;
+    --app-warning-soft: Canvas;
+    --app-warning-border: GrayText;
+    --app-warning-text: CanvasText;
+    gap: 14px;
+  }
+
+  .summary,
+  .property,
+  .footer {
+    box-shadow: none;
+    border-radius: 0;
+    padding: 12px 0;
+    border-width: 0 0 1px;
+    break-inside: avoid-page;
+  }
+
+  .property {
+    break-before: auto;
+  }
+
+  .report :global(.urban-brand-logo--on-dark) {
+    display: none;
+  }
+
+  .report :global(.urban-brand-logo--on-light) {
+    display: block;
+  }
+}

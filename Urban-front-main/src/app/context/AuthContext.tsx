@@ -57,6 +57,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       '/lancamento',
       '/precos',
       '/landing',
+      '/relatorio',
     ]
 
     const checkSession = async () => {
