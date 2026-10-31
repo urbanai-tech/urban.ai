@@ -276,7 +276,7 @@ const Register = () => {
                 placeholder="Seu usuário"
                 autoComplete="username"
                 error={attempted && !username.trim() ? "Informe um nome de usuário." : undefined}
-                leftAddon={<Icons.Sparkles size={13} />}
+                leftAddon={<Icons.User size={13} />}
               />
               <AppInput
                 label="E-mail"
