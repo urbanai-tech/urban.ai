@@ -30,9 +30,8 @@
 }
 
 .logo {
-  display: block;
-  width: 100%;
-  height: auto;
+  --brand-logo-height: 40px;
+  margin-inline: auto;
 }
 
 .orbit {
@@ -87,11 +86,9 @@
   0%,
   100% {
     transform: scale(1);
-    filter: drop-shadow(0 8px 20px var(--loader-shadow-rest));
   }
   50% {
     transform: scale(1.018) translateY(-2px);
-    filter: drop-shadow(0 12px 32px var(--loader-shadow-lift));
   }
 }
 

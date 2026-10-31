@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -11,6 +10,7 @@ import { TERMS_VERSION } from "../lib/terms";
 import { usePrelaunch } from "../componentes/usePrelaunch";
 import { WaitlistSignup } from "../componentes/WaitlistSignup";
 import { AuthFlowShell } from "../componentes/AuthFlowShell";
+import { BrandLogo } from "../componentes/ui/BrandLogo";
 import {
   attributionEventParams,
   captureAttribution,
@@ -190,18 +190,11 @@ const Register = () => {
     <div
       className={`urban-app ${styles.appBg}`}
     >
-      {/* Painel esquerdo: imagem + overlay editorial discreto */}
+      {/* Painel esquerdo: fundo oficial da marca + lockup (mesmo split do login) */}
       <div
         className={`urban-create-side ${styles.createSide}`}
       >
-        <Image
-          src="/urbanai_only.png"
-          alt="My Urban"
-          fill
-          priority
-          className={styles.sideImage}
-          sizes="50vw"
-        />
+        <BrandLogo variant="lockup" className={`${styles.sideLogo} urban-brand-logo--force-dark`} />
         <div
           className={styles.sideScrim}
         />
@@ -232,14 +225,7 @@ const Register = () => {
           <div
             className={styles.logoRow}
           >
-            <Image
-              alt="My Urban"
-              src="/urban-logo-transparent-soft.png"
-              width={180}
-              height={56}
-              priority
-              className={styles.logoImage}
-            />
+            <BrandLogo variant="wordmark" className={styles.logoImage} priority />
           </div>
 
           <AppSectionHeader
@@ -395,14 +381,6 @@ const Register = () => {
           </form>
         </div>
       </div>
-
-      {/* Responsividade do painel esquerdo via CSS escopado */}
-      <style>{`
-        @media (min-width: 768px) {
-          .urban-create-side { display: block !important; }
-          .urban-create-form { width: 50% !important; }
-        }
-      `}</style>
     </div>
   );
 };
