@@ -16,7 +16,7 @@ permissions:
 jobs:
   build:
     name: Frontend - tsc + next build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     defaults:
       run:
@@ -50,7 +50,7 @@ jobs:
 
   e2e-public:
     name: Playwright - public smoke
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     needs: build
     defaults:
@@ -121,7 +121,7 @@ jobs:
 
   e2e-authenticated:
     name: Playwright - authenticated smoke
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 25
     needs: build
     if: >-
@@ -213,7 +213,7 @@ jobs:
 
   enterprise-live-gate:
     name: Enterprise live gate - staging evidence
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     needs: build
     if: >-

@@ -16,7 +16,7 @@ jobs:
   analyze:
     name: CodeQL - ${{ matrix.language }}
     if: ${{ github.repository == 'urbanai-tech/urban.ai' }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     permissions:
       contents: read

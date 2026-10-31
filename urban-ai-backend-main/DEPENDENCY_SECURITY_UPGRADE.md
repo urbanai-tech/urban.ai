@@ -26,7 +26,9 @@ Os números são um retrato do banco de advisories do npm na data acima e devem 
 | `bcrypt` | 6.0.0 |
 | `uuid` | 11.1.1 |
 
-`uuid` foi deduplicado por override para 11.1.1 porque Bull 4.16.5 e ExcelJS 4.4.0 ainda declaram a linha 8.x. Os dois consumidores usam a API `v4`, preservada na versão 11. A compatibilidade foi verificada com geração real de UUID, serialização de workbook e a suíte completa.
+`uuid` foi deduplicado por override para 11.1.1 porque Bull 4.16.5 ainda declara a linha 8.x. O consumidor usa a API `v4`, preservada na versão 11. A compatibilidade foi verificada com geração real de UUID e a suíte completa.
+
+Em 31/10/2026 o `exceljs` saiu das dependências: nenhum código o importava, e ele trazia `archiver`, `glob` 7 e `minimatch` 3/5, com avisos novos de `glob` (GHSA-3g3m-2fjr-6pw4) e `minimatch` (GHSA-g3hv-75wg-m249). O `glob` do TypeORM foi para 14.0.3 por override e `follow-redirects` para 1.16.2 (GHSA-mrwp-f3q8-3g9p).
 
 ## Compatibilidade e contratos
 

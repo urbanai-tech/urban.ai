@@ -90,7 +90,6 @@
     "cookie-parser": "^1.4.7",
     "date-fns": "^4.1.0",
     "dayjs": "^1.11.13",
-    "exceljs": "^4.4.0",
     "generate-password": "^1.7.1",
     "generate-password-ts": "^1.6.5",
     "helmet": "^8.1.0",
@@ -136,7 +135,10 @@
     "lodash": "4.18.1",
     "qs": "6.16.1",
     "uuid": "$uuid",
-    "multer": "$multer"
+    "multer": "$multer",
+    "typeorm": {
+      "glob": "^14.0.3"
+    }
   },
   "jest": {
     "moduleFileExtensions": [
