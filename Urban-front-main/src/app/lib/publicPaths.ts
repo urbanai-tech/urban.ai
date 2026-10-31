@@ -17,6 +17,7 @@ const LIGHT_PATHS = new Set([
   "/integracao-stays-precificacao-automatica",
   "/urban-ai-vs-planilha-de-precificacao",
   "/seguranca-lgpd-ia-precificacao",
+  "/cobertura-de-eventos",
 ]);
 
 export function isLightPath(pathname: string | null | undefined): boolean {

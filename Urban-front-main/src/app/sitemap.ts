@@ -27,6 +27,7 @@ const publicRoutes: Array<{
   { path: "/integracao-stays-precificacao-automatica", lastModified: "2026-07-21", changeFrequency: "monthly", priority: 0.7 },
   { path: "/urban-ai-vs-planilha-de-precificacao", lastModified: "2026-07-21", changeFrequency: "monthly", priority: 0.65 },
   { path: "/seguranca-lgpd-ia-precificacao", lastModified: "2026-07-21", changeFrequency: "monthly", priority: 0.65 },
+  { path: "/cobertura-de-eventos", lastModified: "2026-10-31", changeFrequency: "daily", priority: 0.6 },
   { path: "/termos", lastModified: "2026-07-21", changeFrequency: "yearly", priority: 0.3 },
   { path: "/privacidade", lastModified: "2026-07-21", changeFrequency: "yearly", priority: 0.3 },
 ];

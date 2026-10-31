@@ -20,6 +20,7 @@ const groups = [
       ["Preços em dias de eventos", "/como-precificar-airbnb-em-dias-de-eventos"],
       ["My Urban vs. planilha", "/urban-ai-vs-planilha-de-precificacao"],
       ["Segurança e LGPD", "/seguranca-lgpd-ia-precificacao"],
+      ["Cobertura de eventos", "/cobertura-de-eventos"],
     ],
   },
   {

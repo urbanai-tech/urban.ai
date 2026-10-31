@@ -217,6 +217,7 @@ export const ANALYTICS_PUBLIC_PATHS: readonly string[] = [
   "/integracao-stays-precificacao-automatica",
   "/urban-ai-vs-planilha-de-precificacao",
   "/seguranca-lgpd-ia-precificacao",
+  "/cobertura-de-eventos",
 ];
 
 /**
