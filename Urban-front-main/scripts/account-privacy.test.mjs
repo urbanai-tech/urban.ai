@@ -74,6 +74,8 @@ test("API da exclusão envia a senha no corpo do DELETE e a exportação usa GET
 });
 
 test("página de privacidade não usa o guard de assinatura (direitos LGPD independem de plano)", () => {
-  const layout = readFileSync(resolve(process.cwd(), "src/app/settings/privacy/layout.tsx"), "utf8");
-  assert.match(layout, /<HostShell guard=\{false\}>/);
+  // O HostShell único mora em settings/layout.tsx; /settings/privacy fica fora do guard por prefixo.
+  const layout = readFileSync(resolve(process.cwd(), "src/app/settings/layout.tsx"), "utf8");
+  assert.match(layout, /UNGUARDED_PREFIXES = \[[^\]]*"\/settings\/privacy"/);
+  assert.match(layout, /<HostShell guard=\{guard\}>/);
 });

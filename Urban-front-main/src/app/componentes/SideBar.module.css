@@ -102,6 +102,12 @@
   padding: 8px 0 12px;
 }
 
+/* Trilho de 76px: os 3 botões lado a lado (~96px) eram cortados; empilha (DS-05). */
+.sidebarThemeRowCollapsed > [role="group"] {
+  flex-direction: column;
+  border-radius: 18px;
+}
+
 .accountBlock {
   padding: 14px;
   border-top: 1px solid var(--app-nav-border);

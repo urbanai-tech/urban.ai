@@ -6,26 +6,8 @@
 
 /* Folga para o FAB do Ask Urban + tab bar: o último item da lista rola para   */
 /* cima do botão flutuante em vez de ficar escondido atrás dele.              */
-.urban-host-page {
-  --urban-fab-clearance: 0px;
-  padding-bottom: var(--urban-fab-clearance);
-}
-
-@media (max-width: 767px) {
-  .urban-host-page {
-    /* tab bar + home indicator + FAB (52px) + respiro do FAB (18px) + 16px */
-    --urban-fab-clearance: calc(var(--app-tabbar-height) + var(--app-safe-bottom) + 52px + 18px + 16px);
-  }
-
-  /* Com o sheet "Mais" aberto o FAB some; a folga não muda o layout. */
-}
-
-@media not all and (max-width: 767px) {
-  .urban-host-page {
-    /* FAB 56px a 28px da borda */
-    --urban-fab-clearance: calc(56px + 28px + 16px);
-  }
-}
+/* A folga do FAB do Ask Urban vem do padding-bottom de `.urban-host-shell__main`
+   (host-mobile.css), valendo para todas as telas do anfitrião (DS-13). */
 
 /* -------------------------------------------------------------------------- */
 /* Cabeçalho curto (uma linha no celular)                                     */

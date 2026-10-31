@@ -1,6 +1,7 @@
 import NextLink from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { PUBLIC_SIGNUP_URL } from "./PublicMarketing";
+import { BrandLogo } from "./ui/BrandLogo";
 
 const groups = [
   {
@@ -46,8 +47,8 @@ export default function FooterPublic() {
 
         <div className="public-footer__grid">
           <div className="public-footer__brand">
-            <NextLink href="/" className="public-wordmark" aria-label="My Urban — página inicial">
-              <span>URBAN</span><i>AI</i>
+            <NextLink href="/" className="public-wordmark">
+              <BrandLogo variant="wordmark" />
             </NextLink>
             <p>Inteligência de preço para anfitriões e gestoras de aluguel por temporada.</p>
             <a href="mailto:contato@myurbanai.com">contato@myurbanai.com</a>
