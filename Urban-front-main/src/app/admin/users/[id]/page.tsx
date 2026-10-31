@@ -19,6 +19,7 @@ import {
   Icons,
 } from "../../_components";
 import type { AdminBadgeKind } from "../../_components";
+import { cycleLabel, statusLabel } from "../../_lib/status-labels";
 import styles from "./page.module.css";
 
 /**
@@ -235,7 +236,7 @@ export default function AdminUserDetailPage() {
                   {user.ativo ? "Ativo" : "Inativo"}
                 </AdminBadge>
                 {user.pricingStrategy && (
-                  <AdminBadge kind="neutral">{user.pricingStrategy}</AdminBadge>
+                  <AdminBadge kind="neutral">{statusLabel(user.pricingStrategy)}</AdminBadge>
                 )}
                 {user.operationMode === "auto" && (
                   <AdminBadge kind="accent">Modo auto</AdminBadge>
@@ -334,7 +335,7 @@ export default function AdminUserDetailPage() {
             actions={
               subscription?.status ? (
                 <AdminBadge kind={subscription.status === "active" ? "success" : "warn"}>
-                  {subscription.status}
+                  {statusLabel(subscription.status)}
                 </AdminBadge>
               ) : null
             }
@@ -344,7 +345,7 @@ export default function AdminUserDetailPage() {
               className={styles.subscriptionFields}
             >
               <Field label="Plano" value={subscription.planName ?? "—"} />
-              <Field label="Ciclo" value={subscription.billingCycle ?? "—"} />
+              <Field label="Ciclo" value={cycleLabel(subscription.billingCycle)} />
               <Field
                 label="Quota"
                 value={

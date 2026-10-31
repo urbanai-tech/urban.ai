@@ -164,11 +164,11 @@ export default function AdminPage() {
             <p
               className={styles.engineEnvNote}
             >
-              Default por env (PRICING_STRATEGY):{" "}
+              Estratégia padrão do ambiente:{" "}
               <code className={styles.inlineCode}>
                 {pricing.strategyEnvDefault}
               </code>{" "}
-              · Bootstrap on boot:{" "}
+              · Iniciar com a estratégia ao subir:{" "}
               <strong className={styles.inlineCode}>
                 {pricing.bootstrapOnBoot ? "sim" : "não"}
               </strong>
@@ -210,12 +210,12 @@ export default function AdminPage() {
               className={styles.tierTipGrid}
             >
               <TierTip
-                tier="Tier 0"
+                tier="Nível 0"
                 desc="regras + multiplicadores (default sem dataset)"
                 active={overview.ai.currentTier === "TIER_0"}
               />
               <TierTip
-                tier="Tier 1-2"
+                tier="Nível 1-2"
                 desc="≥500 listings × 30 dias + XGBoost ready → switch automático"
                 active={
                   overview.ai.currentTier === "TIER_1" ||
@@ -223,12 +223,12 @@ export default function AdminPage() {
                 }
               />
               <TierTip
-                tier="Tier 3"
+                tier="Nível 3"
                 desc="≥5000 × 90 dias com MAPE ≤15%"
                 active={overview.ai.currentTier === "TIER_3"}
               />
               <TierTip
-                tier="Tier 4 (moat)"
+                tier="Nível 4 (diferencial)"
                 desc="≥10k × 365 dias + modelo neural híbrido"
                 active={overview.ai.currentTier === "TIER_4"}
               />

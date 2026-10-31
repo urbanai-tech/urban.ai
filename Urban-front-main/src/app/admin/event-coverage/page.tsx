@@ -15,6 +15,7 @@ import {
   Icons,
   type AdminTableColumn,
 } from "../_components";
+import { statusLabel } from "../_lib/status-labels";
 import {
   buildHints,
   formatPct,
@@ -291,7 +292,7 @@ export default function EventCoveragePage() {
           <p className="ec-muted">
             Escopo: {data.scope.description} Regiões ativas:{" "}
             {data.scope.regions.length > 0
-              ? data.scope.regions.map((r) => `${r.name} (${r.status})`).join(", ")
+              ? data.scope.regions.map((r) => `${r.name} (${statusLabel(r.status)})`).join(", ")
               : "nenhuma"}
             . Sem eventos suficientes de forma automática, use o{" "}
             <Link className="ec-link" href="/admin/events/import">

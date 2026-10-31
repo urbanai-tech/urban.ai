@@ -19,6 +19,7 @@ import {
   useAdminToast,
   Icons,
 } from "../../_components";
+import { statusLabel } from "../../_lib/status-labels";
 import styles from "./page.module.css";
 
 /**
@@ -189,7 +190,7 @@ export default function NovoEventoManual() {
             className={styles.resultHeader}
           >
             <AdminBadge kind={resultBadgeKind[lastResult.status]}>
-              {lastResult.status}
+              {statusLabel(lastResult.status)}
             </AdminBadge>
             {lastResult.id && (
               <span

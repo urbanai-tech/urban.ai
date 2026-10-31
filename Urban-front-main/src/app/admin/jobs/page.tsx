@@ -26,6 +26,7 @@ import {
   AdminPageLoading,
   Icons,
 } from "../_components";
+import { statusLabel } from "../_lib/status-labels";
 import styles from "./page.module.css";
 
 /**
@@ -141,7 +142,7 @@ export default function AdminJobsPage() {
                 : "warn"
           }
         >
-          {r.status}
+          {statusLabel(r.status)}
         </AdminBadge>
       ),
     },
@@ -363,7 +364,7 @@ export default function AdminJobsPage() {
                 <AdminBadge
                   kind={result.status === "success" ? "success" : "error"}
                 >
-                  {result.status}
+                  {statusLabel(result.status)}
                 </AdminBadge>
               }
             />
