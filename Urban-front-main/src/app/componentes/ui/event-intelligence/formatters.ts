@@ -1,20 +1,15 @@
 import type { AppBadgeKind } from "../AppBadge";
 import type { HostEventConfidence } from "@/app/service/api";
+import { brlCompact, brlWhole, multiple } from "../../../lib/format";
 
 export function formatCurrencyFromCents(value?: number | null): string {
   if (value === null || value === undefined || Number.isNaN(value)) return "-";
-  return new Intl.NumberFormat("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-    maximumFractionDigits: 0,
-  }).format(value / 100);
+  return brlWhole(value / 100);
 }
 
 export function formatCompactCurrencyFromCents(value?: number | null): string {
   if (value === null || value === undefined || Number.isNaN(value)) return "-";
-  const amount = value / 100;
-  if (amount >= 1000) return `R$ ${(amount / 1000).toFixed(1).replace(".", ",")} mil`;
-  return formatCurrencyFromCents(value);
+  return brlCompact(value / 100);
 }
 
 export function formatPercent(value?: number | null): string {
@@ -25,7 +20,7 @@ export function formatPercent(value?: number | null): string {
 
 export function formatMultiplier(value?: number | null): string {
   if (value === null || value === undefined || Number.isNaN(value)) return "-";
-  return `${value.toFixed(1).replace(".", ",")}x`;
+  return multiple(value);
 }
 
 export function formatShortDate(value?: string | null): string {

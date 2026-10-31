@@ -61,6 +61,7 @@ import {
   type HostBaselineDraft,
 } from "../../lib/hostBaseline";
 import pageStyles from "./page.module.css";
+import { brlWhole } from "../../lib/format";
 
 type SuggestionItem = {
   id?: string;
@@ -126,11 +127,7 @@ function parseMoney(value: string): number | null {
 
 function formatMoney(value: number | null | undefined): string {
   if (value === null || value === undefined || !Number.isFinite(value)) return "-";
-  return value.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-    maximumFractionDigits: 0,
-  });
+  return brlWhole(value);
 }
 
 function formatCents(value: number | null | undefined): string {

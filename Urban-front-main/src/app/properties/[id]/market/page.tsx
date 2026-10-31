@@ -21,6 +21,7 @@ import { trackEvent } from "../../../service/tracking";
 import { PercentileHero } from "./components/PercentileHero";
 import { AdrComparisonChart } from "./components/AdrComparisonChart";
 import styles from "./page.module.css";
+import { brlWhole } from "../../../lib/format";
 
 /**
  * /properties/:id/market — Market Intel dashboard (Gap 3 — Track 2, semana 5-6).
@@ -46,11 +47,7 @@ function isoOffset(daysAhead: number): string {
 }
 
 function formatBRL(value: number): string {
-  return value.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-    maximumFractionDigits: 0,
-  });
+  return brlWhole(value);
 }
 
 function formatPct(value: number): string {

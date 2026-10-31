@@ -37,6 +37,7 @@ import {
   priceUpdateOriginLabel,
   priceUpdateStatusLabel,
 } from "./stays-integration-domain";
+import { brlFromCents, pctSigned } from "../../lib/format";
 
 const operationModeLabels: Record<StaysListingPublic["operationMode"], string> = {
   inherit: "Usar padrão da conta",
@@ -46,7 +47,7 @@ const operationModeLabels: Record<StaysListingPublic["operationMode"], string> =
 
 function formatCurrency(cents?: number | null) {
   if (typeof cents !== "number" || !Number.isFinite(cents)) return "sem preço";
-  return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(cents / 100);
+  return brlFromCents(cents);
 }
 
 function errorMessage(err: unknown, fallback: string) {
@@ -349,7 +350,7 @@ function StaysListingRow({
                   <strong>
                     {preview.diffPercent == null
                       ? "—"
-                      : `${preview.diffPercent > 0 ? "+" : ""}${preview.diffPercent.toFixed(1)}%`}
+                      : pctSigned(preview.diffPercent)}
                   </strong>
                 </span>
               </AppHStack>

@@ -22,6 +22,7 @@ import {
 } from '../componentes/ui';
 import type { AppBadgeKind } from '../componentes/ui';
 import pageStyles from "./page.module.css";
+import { brlWhole, pct } from '../lib/format';
 
 const WINDOWS = [30, 90, 180, 365];
 
@@ -64,12 +65,7 @@ export default function MyRoiPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const fmt = (cents: number) =>
-    (cents / 100).toLocaleString('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-      maximumFractionDigits: 0,
-    });
+  const fmt = (cents: number) => brlWhole(cents / 100);
 
   const roiLabel = useMemo(() => {
     if (!data?.money.roiMultiple) return '-';
@@ -198,7 +194,7 @@ export default function MyRoiPage() {
         <AppMetricCard
           label="Sugestões aceitas"
           value={`${data.activity.accepted}/${data.activity.recommendations}`}
-          sub={`${data.activity.acceptanceRatePercent.toFixed(0)}% do total sugerido`}
+          sub={`${pct(data.activity.acceptanceRatePercent, 0)} do total sugerido`}
         />
         <AppMetricCard
           label="Potencial não aceito"
@@ -255,9 +251,9 @@ export default function MyRoiPage() {
           <AppCardHeader title="Uso das sugestões" />
           <div className="roi-progress-label">
             <span>Sugestões aceitas</span>
-            <strong>{acceptance.toFixed(0)}%</strong>
+            <strong>{pct(acceptance, 0)}</strong>
           </div>
-          <div className="roi-progress" aria-label={`Sugestões aceitas ${acceptance.toFixed(0)}%`}>
+          <div className="roi-progress" aria-label={`Sugestões aceitas ${pct(acceptance, 0)}`}>
             <span className={pageStyles.progressFill} style={{ "--pct": `${acceptance}%` } as React.CSSProperties} />
           </div>
           <div className="roi-mini-grid">

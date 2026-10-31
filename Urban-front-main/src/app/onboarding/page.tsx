@@ -73,6 +73,7 @@ import {
   type StrategyIconKey,
 } from './onboarding-domain';
 import { stashPendingEmail } from "@/app/lib/auth-links";
+import { brl, decimal } from '../lib/format';
 
 
 const MotionBox = motion(Box);
@@ -1066,7 +1067,7 @@ function OnboardingWizardContent() {
                               <Text fontSize="2xs" color="var(--app-warning-text)" lineHeight="short" mt={1}>
                                 {property.fallbackMessage}
                                 {property.provisionalDailyPrice
-                                  ? ` Valor encontrado: R$ ${property.provisionalDailyPrice.toFixed(2)} (${property.sourceLabel ?? 'fonte não informada'}).`
+                                  ? ` Valor encontrado: ${brl(property.provisionalDailyPrice)} (${property.sourceLabel ?? 'fonte não informada'}).`
                                   : ` Fonte: ${property.sourceLabel ?? 'fonte não informada'}.`}
                               </Text>
                             </Box>
@@ -1142,7 +1143,7 @@ function OnboardingWizardContent() {
                                       borderRadius="full"
                                       px={2}
                                     >
-                                      {property.rating.toFixed(2)}
+                                      {decimal(property.rating, 2)}
                                       {(property.reviewCount !== undefined && property.reviewCount > 0) &&
                                         ` (${property.reviewCount})`}
                                     </Badge>

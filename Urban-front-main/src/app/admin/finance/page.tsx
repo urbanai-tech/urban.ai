@@ -31,6 +31,7 @@ import {
   Icons,
 } from "../_components";
 import styles from "./page.module.css";
+import { brlFromCents, decimal, pct } from "../../lib/format";
 
 /**
  * /admin/finance — gestão financeira da plataforma.
@@ -99,8 +100,7 @@ export default function AdminFinancePage() {
     );
   }
 
-  const fmt = (cents: number) =>
-    `R$ ${(cents / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const fmt = (cents: number) => brlFromCents(cents);
 
   const perListingMargin = overview.perListing.marginPercent;
   const marginTrend: "up" | "down" = perListingMargin > 0 ? "up" : "down";
@@ -149,7 +149,7 @@ export default function AdminFinancePage() {
       align: "right",
       render: (c) => (
         <span className={styles.costAmountCell}>
-          R$ {(c.monthlyCostCents / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+          {brlFromCents(c.monthlyCostCents)}
         </span>
       ),
     },
@@ -238,7 +238,7 @@ export default function AdminFinancePage() {
               <p
                 className={styles.heroDescription}
               >
-                {perListingMargin.toFixed(1)}% sobre receita por imóvel · Use
+                {decimal(perListingMargin)}% sobre receita por imóvel · Use
                 como teto/piso para decisões de pricing.
               </p>
             </div>
@@ -273,9 +273,9 @@ export default function AdminFinancePage() {
           <AdminMetricCard
             label="Margem"
             value={fmt(overview.margin.absoluteCents)}
-            sub={`${overview.margin.percent.toFixed(1)}% sobre MRR`}
+            sub={`${decimal(overview.margin.percent)}% sobre MRR`}
             trend={marginTrend}
-            trendValue={`${overview.margin.percent.toFixed(1)}%`}
+            trendValue={pct(overview.margin.percent)}
             accent={perListingMargin > 30}
           />
           <AdminMetricCard

@@ -3,6 +3,7 @@
 import React from "react";
 import type { Scenario, ScenarioLabel } from "@/app/types/recommendation";
 import styles from "./ScenarioComparison.module.css";
+import { brl, brlWhole, pct } from "../../lib/format";
 
 /**
  * ScenarioComparison — compara 2 ou 3 cenários de preço lado-a-lado
@@ -16,12 +17,7 @@ import styles from "./ScenarioComparison.module.css";
  */
 
 function fmtBRL(value: number, fractionDigits = 0): string {
-  return value.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-    minimumFractionDigits: fractionDigits,
-    maximumFractionDigits: fractionDigits,
-  });
+  return fractionDigits === 0 ? brlWhole(value) : brl(value);
 }
 
 function fmtRevenueShort(value: number): string {
@@ -39,8 +35,7 @@ function fmtRevenueShort(value: number): string {
 
 function fmtPct(value: number): string {
   // Aceita tanto 0-1 quanto 0-100. Se vier <= 1 trata como fracao.
-  const pct = value <= 1 ? value * 100 : value;
-  return `${pct.toFixed(0)}%`;
+  return pct(value <= 1 ? value * 100 : value, 0);
 }
 
 const LABEL_PT: Record<ScenarioLabel, string> = {

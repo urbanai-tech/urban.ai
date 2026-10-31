@@ -5,6 +5,7 @@ import { parseLocalDate } from "@/app/lib/date";
 import type { MarketIntelDailyPoint } from "../../../../service/api";
 import { visuallyHiddenStyle } from "../../../../componentes/ui/styles";
 import styles from "./AdrComparisonChart.module.css";
+import { brlCompact, brlWhole } from "../../../../lib/format";
 
 /**
  * <AdrComparisonChart> — SVG inline 2 séries (sua ADR vs mediana comp set).
@@ -30,17 +31,12 @@ const PADDING_BOTTOM = 32;
 const VIEWBOX_WIDTH = 800;
 
 function formatBRL(value: number): string {
-  return value.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-    maximumFractionDigits: 0,
-  });
+  return brlWhole(value);
 }
 
 function formatAxisK(value: number): string {
-  // Ex: 240 → "R$ 0,2k" — eixo Y compacto
-  const k = value / 1000;
-  return `R$ ${k.toFixed(1).replace(".", ",")}k`;
+  // Eixo Y compacto: 240 → "R$ 240", 1200 → "R$ 1,2 mil"
+  return brlCompact(value);
 }
 
 function formatDateLong(iso: string): string {

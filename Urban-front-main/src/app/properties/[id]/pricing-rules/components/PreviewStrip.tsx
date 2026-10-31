@@ -4,6 +4,7 @@ import React, { useMemo } from "react";
 import { parseLocalDate } from "@/app/lib/date";
 import type { PricingRulesPreviewResponse } from "../../../../service/api";
 import styles from "./PreviewStrip.module.css";
+import { pctSigned } from "../../../../lib/format";
 
 /**
  * PreviewStrip — strip horizontal de 14 dias mostrando preço base vs preço com
@@ -125,8 +126,7 @@ export function PreviewStrip({
           <span
             className={`${styles.deltaBadge} ${deltaPositive ? styles.deltaBadgePositive : styles.deltaBadgeNegative}`}
           >
-            {deltaPositive ? "+" : ""}
-            {summary.deltaPct.toFixed(1)}%
+            {pctSigned(summary.deltaPct)}
           </span>
         </div>
       </header>
@@ -143,12 +143,11 @@ export function PreviewStrip({
           const rulesH = Math.max(6, Math.round((day.rulesPrice / summary.maxPrice) * 90));
           const delta = day.rulesPrice - day.basePrice;
           const deltaPct = day.basePrice > 0 ? (delta / day.basePrice) * 100 : 0;
-          const up = delta >= 0;
           return (
             <div
               key={day.date}
               className={styles.dayColumn}
-              title={`${label.weekday} ${label.day} • base ${formatCurrency(day.basePrice)} • com regras ${formatCurrency(day.rulesPrice)} (${up ? "+" : ""}${deltaPct.toFixed(1)}%)`}
+              title={`${label.weekday} ${label.day} • base ${formatCurrency(day.basePrice)} • com regras ${formatCurrency(day.rulesPrice)} (${pctSigned(deltaPct)})`}
             >
               <svg
                 viewBox="0 0 24 100"

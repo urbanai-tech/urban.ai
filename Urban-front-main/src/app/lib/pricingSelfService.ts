@@ -1,4 +1,5 @@
 import type { BillingCycle, Plan } from "../service/api";
+import { brl } from "./format";
 
 export const BILLING_CYCLE_META: Record<
   BillingCycle,
@@ -123,10 +124,5 @@ export function calculatePricingQuote(plan: Plan, quantity: number, cycle: Billi
 }
 
 export function formatMoney(value: number): string {
-  return value.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+  return brl(value);
 }

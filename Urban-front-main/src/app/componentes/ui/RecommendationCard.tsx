@@ -21,6 +21,7 @@ import type {
   Scenario,
 } from "@/app/types/recommendation";
 import styles from "./RecommendationCard.module.css";
+import { brlWhole, km, pct, pctSigned } from "../../lib/format";
 
 /**
  * RecommendationCard — o objeto central da Urban AI.
@@ -80,12 +81,7 @@ export type RecommendationCardProps = {
 };
 
 function fmtBRL(value: number): string {
-  return value.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  });
+  return brlWhole(value);
 }
 
 function fmtDate(value: string): string {
@@ -106,13 +102,11 @@ function fmtDate(value: string): string {
 }
 
 function fmtPct(value: number, fractionDigits = 0): string {
-  const pct = value <= 1 ? value * 100 : value;
-  return `${pct.toFixed(fractionDigits)}%`;
+  return pct(value <= 1 ? value * 100 : value, fractionDigits);
 }
 
 function fmtSignedPct(value: number, fractionDigits = 1): string {
-  const sign = value > 0 ? "+" : "";
-  return `${sign}${value.toFixed(fractionDigits)}%`;
+  return pctSigned(value, fractionDigits);
 }
 
 const CONFIDENCE_LABEL: Record<RecommendationConfidence, string> = {
@@ -265,7 +259,7 @@ function buildExplanation({
   ) {
     items.push({
       label: "Segurança",
-      value: `-${parsed.guardrailDownPct.toFixed(0)}% / +${parsed.guardrailUpPct.toFixed(0)}%`,
+      value: `-${pct(parsed.guardrailDownPct, 0)} / +${pct(parsed.guardrailUpPct, 0)}`,
       detail: "Limite que evita queda ou alta agressiva demais.",
     });
   }
@@ -468,8 +462,7 @@ export function RecommendationCard({
 }: RecommendationCardProps) {
   const deltaAbs = suggestedPrice - currentPrice;
   const deltaPct = currentPrice > 0 ? (deltaAbs / currentPrice) * 100 : 0;
-  const deltaSign = deltaAbs > 0 ? "+" : "";
-  const deltaLabel = `${deltaSign}${deltaPct.toFixed(1)}%`;
+  const deltaLabel = pctSigned(deltaPct, 1);
   const DeltaIcon = deltaAbs < 0 ? TrendingDown : TrendingUp;
 
   const isApplied = status === "applied";
@@ -555,7 +548,7 @@ export function RecommendationCard({
               {typeof distanceKm === "number" && (
                 <span>
                   {" · "}
-                  {distanceKm.toFixed(1)} km
+                  {km(distanceKm)}
                 </span>
               )}
             </span>

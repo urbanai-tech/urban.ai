@@ -5,6 +5,7 @@ import Link from "next/link";
 import { AppEmptyState } from "./AppEmptyState";
 import { Calendar, Check } from "./Icons";
 import styles from "./PortfolioCalendar.module.css";
+import { brlCompact, brlWhole } from "../../lib/format";
 
 /**
  * <PortfolioCalendar> — grid horizontal/vertical para o `/portfolio` (Gap 1).
@@ -138,20 +139,12 @@ function fmtDayMonth(iso: string): string {
 }
 
 function fmtBRLShort(value: number): string {
-  // Compacto pra célula 56px: "R$ 320" ou "R$ 1,2k"
-  if (value >= 1000) {
-    return `R$ ${(value / 1000).toFixed(1).replace(".", ",")}k`;
-  }
-  return `R$ ${Math.round(value)}`;
+  // Compacto pra célula 56px: "R$ 320" ou "R$ 1,2 mil"
+  return brlCompact(value);
 }
 
 function fmtBRLFull(value: number): string {
-  return value.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  });
+  return brlWhole(value);
 }
 
 function fmtStrategy(value: unknown): string | null {

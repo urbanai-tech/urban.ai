@@ -31,6 +31,7 @@ import {
 } from '../componentes/ui';
 import styles from "./page.module.css";
 import './properties.css';
+import { brl } from '../lib/format';
 
 type PricingDraft = { manualDailyPrice: string; averageMonthlyRevenue: string };
 type IdentityDraft = { internalNickname: string; internalCode: string };
@@ -324,7 +325,7 @@ export default function MyProperties() {
 
   const formatMoney = (value: number | null | undefined) => {
     if (value === null || value === undefined) return '-';
-    return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    return brl(value);
   };
 
   const getAirbnbRoomUrl = (listingId?: string | null) => {

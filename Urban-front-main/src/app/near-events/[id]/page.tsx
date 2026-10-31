@@ -8,6 +8,7 @@ import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from 'react-i18next';
 import styles from "./page.module.css";
+import { decimal } from "../../lib/format";
 
 export type Evento = {
   id: string;
@@ -145,7 +146,7 @@ export default function CasaEventosProximosPage() {
                     {ev.enderecoCompleto}
                   </MetaRow>
                   <p className={styles.eventDistance}>
-                    {(Number(ev.distancia_metros) / 1000).toFixed(1)} {t('casas_proximas.km')}
+                    {decimal(Number(ev.distancia_metros) / 1000)} {t('casas_proximas.km')}
                   </p>
                 </div>
               </AppCard>
