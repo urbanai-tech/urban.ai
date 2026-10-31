@@ -9,9 +9,6 @@ function cx(...parts: Array<string | false | null | undefined>) {
   return parts.filter(Boolean).join(" ");
 }
 
-/** `outline: none` fica inline para continuar vencendo `.urban-app input:focus-visible`. */
-const noOutline: React.CSSProperties = { outline: "none" };
-
 /**
  * Input/Select/Textarea light premium do app autenticado.
  * Substitui `Input size="sm"` chakra default + variantes filled cinza.
@@ -103,7 +100,7 @@ export const AppInput = React.forwardRef<HTMLInputElement, InputProps>(function 
       ref={ref}
       {...fieldProps}
       className={cx(styles.field, Boolean(leftAddon) && styles.withAddon, Boolean(error) && styles.invalid, className)}
-      style={{ ...noOutline, ...style }}
+      style={style}
       {...rest}
     />
   );
@@ -121,12 +118,19 @@ export const AppInput = React.forwardRef<HTMLInputElement, InputProps>(function 
   );
 });
 
-type SelectProps = React.SelectHTMLAttributes<HTMLSelectElement> & {
-  label?: string;
+type SelectBaseProps = React.SelectHTMLAttributes<HTMLSelectElement> & {
   helper?: string;
   error?: string;
   shellStyle?: React.CSSProperties;
 };
+
+/** Todo select precisa de nome acessivel: label visivel, ria-label ou ria-labelledby (WCAG 4.1.2). */
+type SelectProps = SelectBaseProps &
+  (
+    | { label: string }
+    | { label?: undefined; "aria-label": string }
+    | { label?: undefined; "aria-labelledby": string }
+  );
 
 export const AppSelect = React.forwardRef<HTMLSelectElement, SelectProps>(function AppSelect(
   { label, helper, error, style, className, shellStyle, children, id, "aria-describedby": describedBy, ...rest },
@@ -139,7 +143,7 @@ export const AppSelect = React.forwardRef<HTMLSelectElement, SelectProps>(functi
         ref={ref}
         {...fieldProps}
         className={cx(styles.field, styles.select, className)}
-        style={{ ...noOutline, ...style }}
+        style={style}
         {...rest}
       >
         {children}
@@ -167,7 +171,7 @@ export const AppTextarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
         {...fieldProps}
         rows={rows}
         className={cx(styles.field, styles.textarea, className)}
-        style={{ ...noOutline, ...style }}
+        style={style}
         {...rest}
       />
     </FieldShell>

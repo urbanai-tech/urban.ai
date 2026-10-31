@@ -1,7 +1,7 @@
 /*
  * Campos do app (input/select/textarea). Base com UM seletor (0,1,0): classes do
- * caller (`className`, `.x.x`) vencem. `outline: none` continua inline em AppInput.tsx
- * porque a regra global `.urban-app input:focus-visible` precisa continuar mascarada.
+ * caller (`className`, `.x.x`) vencem. O foco visivel (WCAG 2.4.7) vem de
+ * `.field:focus-visible` abaixo; nao ha mais `outline: none` inline.
  */
 .field {
   width: 100%;
@@ -17,6 +17,18 @@
   font-weight: 400;
   transition: border-color 120ms, box-shadow 120ms;
   font-family: var(--font-brand);
+}
+
+/*
+ * Foco por teclado: anel de 2px na cor de acento (claro #103134 sobre branco ~13:1;
+ * escuro #C7E2CE sobre #0C1B1D ~12:1, bem acima dos 3:1 de WCAG 1.4.11) mais a
+ * borda de acento e um halo suave. Fica no modulo para valer mesmo fora de `.urban-app`.
+ */
+.field:focus-visible {
+  outline: 2px solid var(--app-accent);
+  outline-offset: 2px;
+  border-color: var(--app-accent);
+  box-shadow: 0 0 0 4px var(--app-accent-soft);
 }
 
 .withAddon {
