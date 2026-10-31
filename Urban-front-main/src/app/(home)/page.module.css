@@ -165,6 +165,22 @@
   color: var(--app-accent);
 }
 
+.sessionNotice {
+  margin: 16px 0 0;
+  padding: 12px 14px;
+  border: 1px solid var(--app-warning-border);
+  border-radius: 8px;
+  background: var(--app-warning-soft);
+  color: var(--app-warning-text);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.sessionNotice + .formLead {
+  margin-top: 12px;
+}
+
 .formLead {
   font-size: 14px;
   color: var(--app-text-muted);

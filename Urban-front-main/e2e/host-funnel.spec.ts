@@ -55,7 +55,11 @@ test.describe('Funil do anfitrião', () => {
     await page.getByLabel(/Confirmar senha/i).fill('Senha123!');
 
     const submit = page.getByRole('button', { name: /Criar conta/i });
-    await expect(submit).toBeDisabled();
+    // O botão fica habilitado; sem o aceite, o envio é barrado e o que falta aparece inline.
+    await expect(submit).toBeEnabled();
+    await submit.click();
+    await expect(page.locator('#create-error')).toContainText('aceite dos Termos de Uso');
+    expect(captured.register).toBeNull();
 
     const terms = page.getByRole('checkbox', { name: /Termos de Uso/i });
     await expect(page.getByRole('link', { name: 'Termos de Uso' })).toHaveAttribute('href', /\/termos$/);

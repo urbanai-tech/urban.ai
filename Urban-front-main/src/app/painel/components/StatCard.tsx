@@ -78,7 +78,7 @@ export default function MetricStrip({ propertyId }: MetricStripProps) {
 
   return (
     <>
-      <ul className="urban-metric-strip" aria-label="Indicadores" aria-busy={loading || undefined}>
+      <ul className="urban-metric-strip" tabIndex={0} aria-label="Indicadores" aria-busy={loading || undefined}>
         {chips.map((chip) => (
           <li key={chip.id} className="urban-metric-chip" title={chip.help} data-loading={loading || undefined} data-metric={chip.id}>
             <strong>{chip.value}</strong>

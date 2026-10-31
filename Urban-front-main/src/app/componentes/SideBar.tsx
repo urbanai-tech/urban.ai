@@ -304,10 +304,7 @@ export default function SideBar() {
               label={item.label}
               active={isActive(item.path)}
               collapsed={collapsed}
-              onSelect={() => {
-                router.push(item.path);
-                setMobileOpen(false);
-              }}
+              onSelect={() => setMobileOpen(false)}
             />
           ))}
 
@@ -320,10 +317,7 @@ export default function SideBar() {
               label={item.label}
               active={isActive(item.path)}
               collapsed={collapsed}
-              onSelect={() => {
-                router.push(item.path);
-                setMobileOpen(false);
-              }}
+              onSelect={() => setMobileOpen(false)}
             />
           ))}
 
@@ -336,10 +330,7 @@ export default function SideBar() {
               label={item.label}
               active={isActive(item.path)}
               collapsed={collapsed}
-              onSelect={() => {
-                router.push(item.path);
-                setMobileOpen(false);
-              }}
+              onSelect={() => setMobileOpen(false)}
             />
           ))}
         </nav>
@@ -563,7 +554,7 @@ type IconKey =
   | 'more';
 
 function NavLink({
-  path: _path,
+  path,
   icon,
   label,
   active,
@@ -577,10 +568,13 @@ function NavLink({
   collapsed?: boolean;
   onSelect: () => void;
 }) {
+  // Link real (abrir em nova aba, semântica de navegação) com aria-current no ativo.
   return (
-    <button
-      type="button"
+    <NextLink
+      href={path}
       onClick={onSelect}
+      aria-current={active ? 'page' : undefined}
+      aria-label={collapsed ? label : undefined}
       title={collapsed ? label : undefined}
       className={`${styles.navLink} ${collapsed ? styles.navLinkCollapsed : ''} ${active ? styles.navLinkActive : ''}`}
     >
@@ -588,7 +582,7 @@ function NavLink({
         <NavIcon name={icon} />
       </span>
       {!collapsed && <span>{label}</span>}
-    </button>
+    </NextLink>
   );
 }
 

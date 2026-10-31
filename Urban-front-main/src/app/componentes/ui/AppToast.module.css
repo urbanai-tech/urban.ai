@@ -5,14 +5,38 @@
  */
 .toastStack {
   position: fixed;
-  top: 20px;
-  right: 20px;
+  /* Embaixo e ao centro: não cobre cabeçalho, seletor de imóvel nem o primeiro campo dos
+     formulários, e fica longe do botão flutuante do Ask Urban (canto direito). */
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
   z-index: 3000;
   display: flex;
   flex-direction: column;
   gap: 10px;
   pointer-events: none;
+  width: max-content;
   max-width: calc(100vw - 40px);
+  /* O provider pode ficar fora de `.urban-app` (ex.: /create): sem estes aliases o toast
+     perdia fundo, borda e cores e o texto se misturava ao conteúdo. */
+  --app-accent: var(--theme-app-accent);
+  --app-accent-soft: var(--theme-app-accent-soft);
+  --app-danger: var(--theme-app-danger);
+  --app-divider: var(--theme-app-divider);
+  --app-shadow-overlay: var(--theme-app-shadow-overlay);
+  --app-success: var(--theme-app-success);
+  --app-surface: var(--theme-app-surface);
+  --app-surface-muted: var(--theme-app-surface-muted);
+  --app-text: var(--theme-app-text);
+  --app-text-muted: var(--theme-app-text-muted);
+  --app-warning: var(--theme-app-warning);
+}
+
+@media (max-width: 767px) {
+  .toastStack {
+    /* Acima da tab bar e da faixa do botão flutuante (56px + respiro). */
+    bottom: calc(var(--app-tabbar-height, 58px) + env(safe-area-inset-bottom, 0px) + 56px + 24px);
+  }
 }
 
 .toast {
@@ -103,11 +127,11 @@
 
 @keyframes toastIn {
   from {
-    transform: translateX(20px);
+    transform: translateY(12px);
     opacity: 0;
   }
   to {
-    transform: translateX(0);
+    transform: translateY(0);
     opacity: 1;
   }
 }

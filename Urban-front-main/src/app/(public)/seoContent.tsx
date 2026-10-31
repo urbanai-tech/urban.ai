@@ -202,7 +202,7 @@ function ComparisonSection() {
     <section id="comparacao" className="public-section public-section--soft">
       <div className="public-container">
         <SectionHeading eyebrow="Comparação direta" title={<>Planilha e My Urban cumprem <em>papéis diferentes.</em></>} description="A planilha continua útil para regras financeiras. O My Urban adiciona leitura contínua de contexto e exceções." />
-        <div className="public-comparison-wrap"><table className="public-comparison"><thead><tr><th>Capacidade</th><th>Planilha</th><th>My Urban</th></tr></thead><tbody>
+        <div className="public-comparison-wrap" role="region" tabIndex={0} aria-label="Comparação entre planilha e My Urban"><table className="public-comparison"><thead><tr><th>Capacidade</th><th>Planilha</th><th>My Urban</th></tr></thead><tbody>
           {rows.map(([name, sheet, urban]) => <tr key={name}><td>{name}</td><td>{typeof sheet === "string" ? sheet : sheet ? <Check aria-hidden size={18} /> : <Minus aria-hidden size={18} />}</td><td>{urban ? <Check aria-hidden size={18} /> : <Minus aria-hidden size={18} />}</td></tr>)}
         </tbody></table></div>
       </div>

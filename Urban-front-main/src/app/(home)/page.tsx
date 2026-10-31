@@ -2,7 +2,7 @@
 
 import NextLink from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import "../../../i18n";
 import { useToastCompat } from "../componentes/ui";
@@ -35,6 +35,17 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [focusEmail, setFocusEmail] = useState(false);
   const [focusPwd, setFocusPwd] = useState(false);
+  // Vindo do redirect de sessão expirada (client.ts): explica por que caiu no login.
+  const [sessionExpired, setSessionExpired] = useState(false);
+  useEffect(() => {
+    try {
+      if (new URLSearchParams(window.location.search).get("reason") === "session-expired") {
+        setSessionExpired(true);
+      }
+    } catch {
+      /* sem aviso, o login segue normal */
+    }
+  }, []);
   // Erro de login também inline (o toast some sozinho): ligado aos campos por
   // aria-describedby; aria-invalid só nos campos que o erro realmente envolve.
   const [loginError, setLoginError] = useState<{
@@ -160,6 +171,11 @@ export default function Login() {
             <br />
             <span className={styles.formTitleAccent}>de volta.</span>
           </h2>
+          {sessionExpired && (
+            <p role="status" className={styles.sessionNotice}>
+              Sua sessão expirou. Entre de novo para continuar.
+            </p>
+          )}
           <p className={styles.formLead}>
             Entre com seu e-mail e senha para acessar suas recomendações.
           </p>

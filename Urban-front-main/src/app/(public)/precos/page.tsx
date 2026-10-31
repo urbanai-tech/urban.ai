@@ -128,7 +128,7 @@ export default async function PrecosPage() {
             title={<>Veja o que entra em <em>cada plano.</em></>}
             description="Escolha pelo tamanho da operação — não por uma lista artificial de limitações."
           />
-          <div className="public-comparison-wrap">
+          <div className="public-comparison-wrap" role="region" tabIndex={0} aria-label="Comparação de planos">
             <table className="public-comparison">
               <thead><tr><th>Recurso</th><th>Starter</th><th>Profissional</th><th>Escala</th></tr></thead>
               <tbody>

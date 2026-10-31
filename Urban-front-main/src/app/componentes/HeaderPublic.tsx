@@ -18,6 +18,7 @@ export default function HeaderPublic() {
   const [open, setOpen] = useState(false);
   const toggleRef = useRef<HTMLButtonElement>(null);
   const firstLinkRef = useRef<HTMLAnchorElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -25,16 +26,37 @@ export default function HeaderPublic() {
     document.body.style.overflow = "hidden";
     firstLinkRef.current?.focus();
 
-    const closeOnEscape = (event: KeyboardEvent) => {
+    // Foco preso entre o botão (que continua visível acima do painel) e os links do painel.
+    const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setOpen(false);
         requestAnimationFrame(() => toggleRef.current?.focus());
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const items = [
+        toggleRef.current,
+        ...Array.from(panelRef.current?.querySelectorAll<HTMLElement>("a[href]") ?? []),
+      ].filter((el): el is HTMLElement => Boolean(el));
+      if (items.length === 0) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+      const active = document.activeElement;
+      if (event.shiftKey && active === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && active === last) {
+        event.preventDefault();
+        first.focus();
+      } else if (!items.includes(active as HTMLElement)) {
+        event.preventDefault();
+        (event.shiftKey ? last : first).focus();
       }
     };
-    window.addEventListener("keydown", closeOnEscape);
+    window.addEventListener("keydown", onKeyDown);
     return () => {
       document.body.style.overflow = previousOverflow;
-      window.removeEventListener("keydown", closeOnEscape);
+      window.removeEventListener("keydown", onKeyDown);
     };
   }, [open]);
 
@@ -70,7 +92,11 @@ export default function HeaderPublic() {
       </div>
 
       <div
+        ref={panelRef}
         id="public-mobile-menu"
+        role="dialog"
+        aria-modal={open ? "true" : undefined}
+        aria-label="Menu de navegação"
         className={`public-mobile-menu ${open ? "is-open" : ""}`}
         aria-hidden={!open}
       >

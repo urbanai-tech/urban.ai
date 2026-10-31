@@ -210,6 +210,7 @@ export default function AdminPropertiesPage() {
         <NextLink
           href={`/admin/properties/${r.id}`}
           className={styles.detailLink}
+          aria-label={`Ver detalhes de ${r.propertyName || "imóvel sem nome"}`}
         >
           <Icons.ArrowRight size={14} />
         </NextLink>

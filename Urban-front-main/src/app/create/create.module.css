@@ -234,6 +234,10 @@
   padding: 28px;
 }
 
+.formError.formError {
+  margin-top: 16px;
+}
+
 .submitButton.submitButton {
   margin-top: 20px;
 }

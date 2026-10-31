@@ -426,7 +426,7 @@ export default function MyProperties() {
         />
       )}
 
-      <div className="properties-summary-grid">
+      <div className="properties-summary-grid" role="group" tabIndex={0} aria-label="Resumo dos imóveis">
         <div>
           <span>{properties.length}</span>
           <p>imóveis ativos</p>
