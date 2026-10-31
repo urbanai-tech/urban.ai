@@ -26,7 +26,7 @@ jobs:
     # O cron pertence ao repositório canônico. Forks continuam podendo executar
     # manualmente quando tiverem seus próprios secrets configurados.
     if: ${{ github.event_name == 'workflow_dispatch' || github.repository == 'urbanai-tech/urban.ai' }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     # Backup precisa terminar mesmo que demore (default 360min é suficiente).
     timeout-minutes: 60

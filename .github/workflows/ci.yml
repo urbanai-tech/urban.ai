@@ -17,7 +17,7 @@ jobs:
 
   repository-gates:
     name: Repository - secrets, artifacts and documentation links
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
     steps:
@@ -59,7 +59,7 @@ jobs:
 
   backend-test:
     name: Backend — typecheck + jest
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: urban-ai-backend-main
@@ -113,7 +113,7 @@ jobs:
 
   backend-build:
     name: Backend — nest build (prod artifact)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: urban-ai-backend-main
@@ -132,7 +132,7 @@ jobs:
 
   backend-migrations:
     name: Backend — migrations dry-run against MySQL
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: urban-ai-backend-main
@@ -180,7 +180,7 @@ jobs:
 
   frontend-test:
     name: Frontend — typecheck + build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: Urban-front-main
@@ -217,7 +217,7 @@ jobs:
 
   webscraping-test:
     name: Webscraping - pytest
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: urban-webscraping-main
@@ -243,7 +243,7 @@ jobs:
 
   pipeline-test:
     name: Pipeline - pytest
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: urban-pipeline-main
@@ -267,7 +267,7 @@ jobs:
 
   release-evidence:
     name: Release - evidence dry-run
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
@@ -282,7 +282,7 @@ jobs:
 
   frontend-e2e-mock-local:
     name: Frontend - Playwright mocked local E2E
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [frontend-test]
     defaults:
       run:
@@ -342,7 +342,7 @@ jobs:
 
   frontend-smoke:
     name: Frontend - Playwright public smoke
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [frontend-test]
     # Em PR, o codigo novo e validado pelo E2E local acima. Em push, main valida
     # o dominio publico de producao; staging usa o alvo remoto configurado.
@@ -374,7 +374,7 @@ jobs:
 
   product-audit:
     name: Produto - E2E audit admin/host
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [frontend-test]
     if: ${{ vars.E2E_PRODUCT_AUDIT_ENABLED == 'true' && vars.E2E_BASE_URL != '' && vars.E2E_API_URL != '' }}
     defaults:
