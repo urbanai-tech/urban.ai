@@ -27,22 +27,9 @@
 }
 
 .footerLogo {
+  --brand-logo-height: 14px;
   display: inline-flex;
-  align-items: baseline;
-  gap: 4px;
-}
-
-.footerLogoPart {
-  font-size: 16px;
-  font-weight: 400;
-  text-transform: uppercase;
-  color: var(--app-text);
-  line-height: 1;
-  letter-spacing: 0;
-}
-
-.footerLogoAccent {
-  color: var(--app-accent);
+  align-items: center;
 }
 
 .footerSeparator {

@@ -3,6 +3,7 @@
 import React from "react";
 import NextLink from "next/link";
 import styles from "./AppFooter.module.css";
+import { BrandLogo } from "./BrandLogo";
 
 const PUBLIC_SITE_URL = (
   process.env.NEXT_PUBLIC_MARKETING_URL ||
@@ -32,14 +33,7 @@ export function AppFooter() {
       <div className={styles.footerInner}>
         <div className={styles.footerBrandRow}>
           <span className={styles.footerLogo}>
-            <span className={`urban-app-display ${styles.footerLogoPart}`}>
-              URBAN
-            </span>
-            <span
-              className={`urban-app-display ${styles.footerLogoPart} ${styles.footerLogoAccent}`}
-            >
-              AI
-            </span>
+            <BrandLogo variant="wordmark" />
           </span>
           <span className={styles.footerSeparator}>·</span>
           <span className={styles.footerCopyright}>
