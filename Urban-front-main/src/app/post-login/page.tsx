@@ -88,10 +88,7 @@ export default function PostLoginPage() {
   return (
     <UrbanAiLoader
       fullscreen
-      src="/urban-logo-transparent-soft.png"
       alt="My Urban"
-      width={360}
-      height={120}
       overlayBg="color-mix(in srgb, var(--theme-app-bg) 94%, transparent)"
       orbitColor="color-mix(in srgb, var(--theme-app-accent) 62%, transparent)"
     />

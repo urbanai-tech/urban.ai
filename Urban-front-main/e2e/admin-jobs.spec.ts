@@ -101,6 +101,13 @@ test.describe('Admin jobs operations', () => {
 
     await page.getByRole('button', { name: /Rodar geocoder/i }).click();
 
+    // UX-17: o job só roda depois da confirmação, que explica o efeito.
+    const dialog = page.getByRole('dialog');
+    await expect(dialog.getByRole('heading', { name: /Rodar "Geocoder de eventos"\?/ })).toBeVisible();
+    await expect(dialog.getByText(/até 50 eventos sem coordenadas/i)).toBeVisible();
+    expect(geocoderRunRequested).toBe(false);
+    await dialog.getByRole('button', { name: /Rodar geocoder/i }).click();
+
     await expect(page.getByRole('heading', { name: 'geocoder', exact: true })).toBeVisible();
     await expect(page.getByText(/attempted/i)).toBeVisible();
     await expect(page.getByText(/missing address/i)).toBeVisible();

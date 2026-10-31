@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Building2, Check, MapPinned, ShieldCheck } from "lucide-react";
 import { JsonLd, buildSeoMetadata, faqPageJsonLd } from "../../lib/seo";
+import { formatPublicPrice, getPublicPricing } from "../../lib/publicPlans";
 import styles from "./page.module.css";
 import {
   CheckList,
@@ -43,7 +44,9 @@ const FAQ = [
   },
 ];
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const pricing = await getPublicPricing();
+
   return (
     <main className="urban-manifesto urban-public-page">
       <JsonLd id="landing-faq-jsonld" data={faqPageJsonLd(FAQ, "/")} />
@@ -180,7 +183,7 @@ export default function LandingPage() {
             <span className="public-price-card__tag">Mais escolhido</span>
             <h2>Profissional</h2>
             <p className="public-price-card__audience">Para quem opera múltiplos imóveis e quer acesso à integração Stays (beta fechado, sob convite).</p>
-            <p className="public-price-card__price"><strong>R$ 99</strong><span>/ imóvel / mês</span></p>
+            <p className="public-price-card__price"><strong>R$ {formatPublicPrice(pricing.profissional.monthly)}</strong><span>/ imóvel / mês</span></p>
             <p className="public-price-card__billing">No ciclo mensal. Ciclos mais longos têm valor reduzido por imóvel.</p>
             <PublicButton href={PUBLIC_SIGNUP_URL}>Começar agora</PublicButton>
           </div>

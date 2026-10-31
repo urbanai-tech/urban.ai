@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Check, Minus } from "lucide-react";
 import { JsonLd, buildSeoMetadata, faqPageJsonLd, offerJsonLd } from "../../lib/seo";
+import { formatPublicPrice, getPublicPricing, jsonLdPrice, type PublicPricing } from "../../lib/publicPlans";
 import styles from "./page.module.css";
 import {
   CheckList,
@@ -24,11 +25,11 @@ const FAQ = [
   { question: "Tenho mais de 500 imóveis. Como funciona?", answer: "Operações maiores recebem uma proposta adequada a volume, contas, integração e necessidades de atendimento." },
 ];
 
-const plans = [
+const buildPlans = (pricing: PublicPricing) => [
   {
     name: "Starter",
     audience: "Para anfitriões com 1 a 3 imóveis.",
-    price: "149",
+    price: formatPublicPrice(pricing.starter.monthly),
     note: "por imóvel/mês no ciclo mensal",
     features: [
       "Painel e recomendações por data",
@@ -41,7 +42,7 @@ const plans = [
   {
     name: "Profissional",
     audience: "Para operações com 4 a 500 imóveis.",
-    price: "99",
+    price: formatPublicPrice(pricing.profissional.monthly),
     note: "por imóvel/mês no ciclo mensal",
     featured: true,
     features: [
@@ -67,12 +68,17 @@ const plans = [
   },
 ];
 
-export default function PrecosPage() {
+export default async function PrecosPage() {
+  // Mesma fonte do checkout (GET /plans); fallback nos valores de referência.
+  const pricing = await getPublicPricing();
+  const plans = buildPlans(pricing);
+  const ladder = pricing.profissional;
+
   return (
     <main className="urban-manifesto urban-public-page">
       <JsonLd id="pricing-jsonld" data={[
-        offerJsonLd("Starter", "149", "/precos"),
-        offerJsonLd("Profissional", "99", "/precos"),
+        offerJsonLd("Starter", jsonLdPrice(pricing.starter.monthly), "/precos"),
+        offerJsonLd("Profissional", jsonLdPrice(pricing.profissional.monthly), "/precos"),
         faqPageJsonLd(FAQ, "/precos"),
       ]} />
 
@@ -151,10 +157,10 @@ export default function PrecosPage() {
           <div className="public-content-card">
             <h3>Referência do plano Profissional</h3>
             <CheckList items={[
-              "Mensal: R$ 99 por imóvel/mês",
-              "Trimestral: R$ 85 por imóvel/mês",
-              "Semestral: R$ 72 por imóvel/mês",
-              "Anual: R$ 67 por imóvel/mês",
+              `Mensal: R$ ${formatPublicPrice(ladder.monthly)} por imóvel/mês`,
+              `Trimestral: R$ ${formatPublicPrice(ladder.quarterly)} por imóvel/mês`,
+              `Semestral: R$ ${formatPublicPrice(ladder.semestral)} por imóvel/mês`,
+              `Anual: R$ ${formatPublicPrice(ladder.annual)} por imóvel/mês`,
             ]} />
           </div>
         </div>

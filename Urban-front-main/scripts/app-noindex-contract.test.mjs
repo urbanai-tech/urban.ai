@@ -12,8 +12,8 @@ function listFrom(source, name) {
 }
 
 // Diretórios de src/app que NÃO são rotas do app logado: grupos públicos,
-// rotas de infraestrutura e arquivos internos.
-const NOT_APP_ROUTES = new Set(['(public)', '(home)', 'api', 'componentes', 'context', 'lib', 'service', 'types']);
+// rotas de infraestrutura (og = imagem OG/Twitter, precisa abrir no domínio público) e arquivos internos.
+const NOT_APP_ROUTES = new Set(['(public)', '(home)', 'api', 'og', 'componentes', 'context', 'lib', 'service', 'types']);
 
 async function appRouteSegments() {
   const entries = await readdir(appDir, { withFileTypes: true });

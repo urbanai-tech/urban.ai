@@ -213,7 +213,7 @@ export function PricingSelfServiceCalculator({
           <div>
             <h4 className={styles.summaryTitle}>{activePlan?.title ?? "Sem faixa"}</h4>
             <p className={styles.summaryRange}>
-              {activePlan ? formatQuantityRange(activePlan) : "Configure uma faixa ativa no admin."}
+              {activePlan ? formatQuantityRange(activePlan) : "Faixa sob consulta."}
             </p>
           </div>
 
@@ -236,7 +236,7 @@ export function PricingSelfServiceCalculator({
             </>
           ) : (
             <p className={styles.bodyText}>
-              Essa quantidade exige atendimento comercial. Ajuste o teto self-service no admin ou fale com vendas.
+              Para essa quantidade de imóveis, fale com a gente para montar o plano Escala.
             </p>
           )}
 

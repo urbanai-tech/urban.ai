@@ -4,6 +4,11 @@ import { Repository } from 'typeorm';
 import { BillingCycle, Plan } from '../entities/plan.entity';
 import { getEnvKeys, isBillingCycle } from '../payments/stripe-price-id.resolver';
 
+// Stays está em beta fechado, sob convite (como diz o site). O texto antigo
+// prometia "aplicação direta" no checkout; é trocado também nos bancos já semeados.
+export const STAYS_FEATURE_TEXT = 'Integração Stays em beta fechado, sob convite';
+export const LEGACY_STAYS_FEATURE_TEXT = 'Modo automático via Stays (aplicação direta)';
+
 @Injectable()
 export class PlansService implements OnModuleInit {
   private readonly logger = new Logger(PlansService.name);
@@ -104,7 +109,7 @@ export class PlansService implements OnModuleInit {
         'Cobrança por imóvel — sem teto rígido',
         'Monitoramento avançado de eventos',
         'Recomendações com contexto de evento e raio',
-        'Modo automático via Stays (aplicação direta)',
+        STAYS_FEATURE_TEXT,
         'Histórico completo no dashboard',
         'Notificações por e-mail + painel',
         'Suporte prioritário',
@@ -146,6 +151,12 @@ export class PlansService implements OnModuleInit {
 
   private mergeSeedPlan(existing: Plan, seed: Plan): Plan {
     const merged = Object.assign(existing, this.fillMissing(existing, seed));
+    // Troca só o texto legado exato; features editadas no admin ficam como estão.
+    if (Array.isArray(merged.features) && merged.features.includes(LEGACY_STAYS_FEATURE_TEXT)) {
+      merged.features = merged.features.map((feature) =>
+        feature === LEGACY_STAYS_FEATURE_TEXT ? STAYS_FEATURE_TEXT : feature,
+      );
+    }
     this.applyStripeEnvOverrides(merged, seed);
     return merged;
   }

@@ -6,3 +6,5 @@ Eixo wdth limitado a 100-125 (fontTools varLib.instancer, wdth=100:125): o produ
 Depois do instancer, OS/2.xAvgCharWidth, panose e os extremos de head/hhea foram restaurados do original: o navegador
 usa xAvgCharWidth para a largura intrinseca de <input>, entao sem isso os campos mudavam alguns pixels.
 Se algum texto precisar de largura menor que 100%, regenere a partir do pacote original sem o limite.
+public/og/archivo-og-500.ttf e archivo-og-800.ttf: instancias estaticas (wght 500/800, wdth 100) geradas deste arquivo
+com fontTools varLib.instancer, so para a imagem OG (satori nao le woff2 nem fonte variavel). Mesma licenca OFL.

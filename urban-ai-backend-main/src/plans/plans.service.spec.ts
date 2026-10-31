@@ -105,6 +105,38 @@ describe('PlansService', () => {
     });
   });
 
+  describe('texto do Stays (beta sob convite)', () => {
+    it('o seed do Profissional não promete aplicação direta', async () => {
+      await service.seedPlans();
+
+      const saved = repo.save!.mock.calls[0][0];
+      const pro = saved.find((p: any) => p.name === 'profissional');
+      expect(pro.features).toContain('Integração Stays em beta fechado, sob convite');
+      expect(pro.features).not.toContain('Modo automático via Stays (aplicação direta)');
+    });
+
+    it('troca o texto legado em bancos já semeados, preservando o resto das features', async () => {
+      repo.findOne!.mockImplementation(async ({ where }: any) => {
+        if (where.name !== 'profissional') return null;
+        return {
+          id: 'pro-id',
+          name: 'profissional',
+          features: ['Feature editada', 'Modo automático via Stays (aplicação direta)', 'Suporte prioritário'],
+        };
+      });
+
+      await service.seedPlans();
+
+      const saved = repo.save!.mock.calls[0][0];
+      const pro = saved.find((p: any) => p.name === 'profissional');
+      expect(pro.features).toEqual([
+        'Feature editada',
+        'Integração Stays em beta fechado, sob convite',
+        'Suporte prioritário',
+      ]);
+    });
+  });
+
   describe('getPlanByName', () => {
     it('delegates to repository.findOne with a name filter', async () => {
       const plan = { id: '1', name: 'starter' } as Plan;

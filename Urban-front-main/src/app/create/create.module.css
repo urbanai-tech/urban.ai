@@ -20,21 +20,31 @@
   overflow: hidden;
 }
 
+/* Painel sempre escuro com o fundo oficial 04 + scrim (igual ao aside do login). */
 .createSide.createSide {
-  display: none;
+  display: block;
   width: 50%;
   height: 100vh;
   position: relative;
+  overflow: hidden;
+  background-color: var(--brand-black);
+  background-image: var(--brand-bg-glow);
+  background-size: cover;
+  background-position: center;
 }
 
-.sideImage.sideImage {
-  object-fit: cover;
+.sideLogo.sideLogo {
+  position: absolute;
+  top: 40px;
+  left: 40px;
+  z-index: 1;
+  --brand-logo-height: 72px;
 }
 
 .sideScrim.sideScrim {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, var(--theme-app-legacy-create-scrim-00) 0%, var(--theme-app-legacy-create-scrim-45) 100%);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--brand-black) 40%, transparent) 0%, color-mix(in srgb, var(--brand-black) 70%, transparent) 100%);
   pointer-events: none;
 }
 
@@ -62,7 +72,7 @@
 }
 
 .createForm.createForm {
-  width: 100%;
+  width: 50%;
   min-height: 100vh;
   display: flex;
   align-items: center;
@@ -86,7 +96,17 @@
 }
 
 .logoImage.logoImage {
-  height: auto;
+  --brand-logo-height: 30px;
+}
+
+@media (max-width: 767px) {
+  .createSide.createSide {
+    display: none;
+  }
+
+  .createForm.createForm {
+    width: 100%;
+  }
 }
 
 .fieldGrid.fieldGrid {

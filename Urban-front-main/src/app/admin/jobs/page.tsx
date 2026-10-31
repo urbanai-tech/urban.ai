@@ -18,6 +18,7 @@ import {
   AdminCardHeader,
   AdminButton,
   AdminBadge,
+  AdminConfirmDialog,
   AdminStatusDot,
   AdminTable,
   type AdminTableColumn,
@@ -38,7 +39,16 @@ import styles from "./page.module.css";
  *  - Tabela histórica usa AdminTable.
  *  - "← Voltar" removido (AdminShell tem breadcrumb).
  */
+type PendingJob = {
+  name: string;
+  title: string;
+  actionLabel: string;
+  impact: string;
+  handler: () => Promise<AdminJobRunResponse>;
+};
+
 export default function AdminJobsPage() {
+  const [pendingJob, setPendingJob] = useState<PendingJob | null>(null);
   const [pendingGeocode, setPendingGeocode] = useState<number | null>(null);
   const [geocoderStatus, setGeocoderStatus] = useState<GeocoderStatus | null>(null);
   const [datasetHealth, setDatasetHealth] = useState<string | null>(null);
@@ -237,7 +247,16 @@ export default function AdminJobsPage() {
             disabled={!!running || geocoderBlocked}
             running={running === "geocoder"}
             actionLabel="Rodar geocoder"
-            onRun={() => runJob("geocoder", () => runAdminGeocoderJob(50))}
+            onRun={() =>
+              setPendingJob({
+                name: "geocoder",
+                title: "Geocoder de eventos",
+                actionLabel: "Rodar geocoder",
+                impact:
+                  "Vai consultar o geocoder externo e gravar latitude/longitude em até 50 eventos sem coordenadas (consome cota do provedor).",
+                handler: () => runAdminGeocoderJob(50),
+              })
+            }
           />
 
           <JobCard
@@ -248,7 +267,16 @@ export default function AdminJobsPage() {
             disabled={!!running}
             running={running === "reset-stale-enrichment"}
             actionLabel="Resetar stale"
-            onRun={() => runJob("reset-stale-enrichment", runAdminResetStaleEnrichmentJob)}
+            onRun={() =>
+              setPendingJob({
+                name: "reset-stale-enrichment",
+                title: "Reset enrichment stale",
+                actionLabel: "Resetar stale",
+                impact:
+                  "Vai zerar o enriquecimento de eventos com relevância antiga ou zerada, para que sejam reprocessados no próximo ciclo. Não dá para desfazer.",
+                handler: runAdminResetStaleEnrichmentJob,
+              })
+            }
           />
 
           <JobCard
@@ -259,7 +287,16 @@ export default function AdminJobsPage() {
             disabled={!!running}
             running={running === "dataset-snapshot"}
             actionLabel="Rodar snapshot"
-            onRun={() => runJob("dataset-snapshot", runAdminDatasetSnapshot)}
+            onRun={() =>
+              setPendingJob({
+                name: "dataset-snapshot",
+                title: "Snapshot de dataset",
+                actionLabel: "Rodar snapshot",
+                impact:
+                  "Vai gravar o preço atual de todos os imóveis cadastrados como um novo ponto da série de treino. Esse registro fica no dataset.",
+                handler: runAdminDatasetSnapshot,
+              })
+            }
           />
 
           <JobCard
@@ -270,7 +307,16 @@ export default function AdminJobsPage() {
             disabled={!!running}
             running={running === "event-proximity-snapshot"}
             actionLabel="Gerar features"
-            onRun={() => runJob("event-proximity-snapshot", runAdminEventProximitySnapshot)}
+            onRun={() =>
+              setPendingJob({
+                name: "event-proximity-snapshot",
+                title: "Features de eventos",
+                actionLabel: "Gerar features",
+                impact:
+                  "Vai gerar e gravar os snapshots de proximidade a eventos de cada imóvel no dataset de treino.",
+                handler: runAdminEventProximitySnapshot,
+              })
+            }
           />
         </div>
       </section>
@@ -374,6 +420,19 @@ export default function AdminJobsPage() {
           }
         />
       </section>
+
+      <AdminConfirmDialog
+        open={!!pendingJob}
+        onClose={() => setPendingJob(null)}
+        title={`Rodar "${pendingJob?.title ?? ""}"?`}
+        body={pendingJob?.impact}
+        confirmLabel={pendingJob?.actionLabel ?? "Confirmar"}
+        onConfirm={() => {
+          const job = pendingJob;
+          setPendingJob(null);
+          if (job) void runJob(job.name, job.handler);
+        }}
+      />
 
       <footer
         className={styles.pageFooter}
