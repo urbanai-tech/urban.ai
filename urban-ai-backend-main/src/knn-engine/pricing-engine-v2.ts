@@ -1,3 +1,4 @@
+import type { MarketSignalV2 } from '../market-data/market-signal';
 import type { PricingRuleConfigItem } from '../entities/pricing-rule-config.entity';
 import { addDaysToDateKey, toDayKey, todaySaoPauloDateKey } from '../common/sp-date';
 import {
@@ -45,6 +46,7 @@ export type PricingDriverSource =
   | 'gemini'
   | 'rule'
   | 'baseline'
+  | 'market'
   | 'guardrail';
 
 /**
@@ -84,6 +86,11 @@ export interface PricingContextV2 {
   guardrail?: PricingGuardrailV2 | null;
   /** Distância imóvel→evento em km (para `event_uplift.radiusKm`). */
   distanceKm?: number | null;
+  /**
+   * Insumo de mercado por bairro (ADR 0028), só agregados. EM SOMBRA: vira um driver informativo
+   * (peso 0) e vai em `details.shadowV2.market`; não altera o preço do v1 nem o do v2.
+   */
+  market?: MarketSignalV2 | null;
 }
 
 export interface AttractivityLike {
@@ -211,6 +218,22 @@ export function computePriceV2(
         0,
         'classification',
         'Informativo: o preço base do anfitrião já reflete o padrão do imóvel; o v2 não soma prêmio de categoria.',
+        false,
+      ),
+    );
+  }
+
+  // --- Mercado do bairro (informativo, sem efeito no preço) ---------------
+  if (ctx.market) {
+    const m = ctx.market;
+    const origem = m.sources.map((src) => src.source).join(', ') || 'sem fonte';
+    drivers.push(
+      driver(
+        'market_position',
+        `Mercado: percentil ${m.percentile} do bairro`,
+        0,
+        'market',
+        `Informativo (sombra): diária mediana do bairro R$${m.medianAdr} em ${m.sampleSize} anúncios a ${m.radiusKm} km (${origem}). Não altera o preço.`,
         false,
       ),
     );

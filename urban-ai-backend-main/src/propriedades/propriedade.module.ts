@@ -21,6 +21,7 @@ import { OccupancyHistory } from 'src/entities/occupancy-history.entity';
 import { PricingRuleConfig } from 'src/entities/pricing-rule-config.entity';
 import { HostBaselineService } from './host-baseline.service';
 import { AirbnbListingMetadataService } from './airbnb-listing-metadata.service';
+import { MarketDataModule } from '../market-data/market-data.module';
 import { PropertyEventAnalysesService } from './property-event-analyses.service';
 import { PropertyListingQuoteService } from './property-listing-quote.service';
 import { PropertyPortfolioService } from './property-portfolio.service';
@@ -46,6 +47,8 @@ import { PropertyScrapingService } from './property-scraping.service';
         AuthModule,
         // F6.1 — motor de pricing (engine + strategies + bootstrap)
         KnnEngineModule,
+        // Insumo de mercado por bairro para o v2 em sombra (ADR 0028)
+        MarketDataModule,
     ],
     controllers: [PropriedadeController],
     providers: [
