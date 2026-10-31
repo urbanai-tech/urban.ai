@@ -312,10 +312,11 @@ export default function CalendarioPage() {
                 className="urban-cal-month urban-focus-ring"
                 aria-pressed={active}
                 data-empty={month.count === 0 || undefined}
-                aria-label={`${monthName(month.date)}: ${month.count === 1 ? '1 sugestão' : `${month.count} sugestões`}`}
+                // WCAG 2.5.3: o nome acessível começa pelo texto visível ("out 0"), depois o mês por extenso.
+                aria-label={`${month.label} ${month.count === 1 ? '1 sugestão' : `${month.count} sugestões`} em ${monthName(month.date)}`}
                 onClick={() => goToMonth(month.date)}
               >
-                {month.label}
+                {month.label}{' '}
                 <span className="urban-cal-month__count">{month.count}</span>
               </button>
             </li>
@@ -483,7 +484,7 @@ export default function CalendarioPage() {
                         onClick={() => setSelectedDay(isSelected ? null : day)}
                       >
                         <span>{format(day, 'd')}</span>
-                        {dayEvents.length > 0 && <span className="urban-cal-day__dot">{dayEvents.length}</span>}
+                        {dayEvents.length > 0 && <span className="urban-cal-day__dot" data-count={dayEvents.length} aria-hidden="true" />}
                       </button>
                     );
                   })}
