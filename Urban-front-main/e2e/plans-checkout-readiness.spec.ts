@@ -104,6 +104,31 @@ test.describe('Plans checkout readiness', () => {
     expect(checkoutCalled).toBe(true);
   });
 
+  test('checkout tem marca, voltar, resumo da cobranca e preco por ciclo', async ({ page }) => {
+    await acceptCookieConsent(page);
+    await mockPlans(page, [makePlan()]);
+
+    await page.goto('/plans');
+
+    await expect(page.getByRole('link', { name: /Voltar ao painel/i })).toBeVisible();
+    await expect(page.getByRole('link', { name: /My Urban, ir para o painel/i })).toBeVisible();
+
+    // E2E-21: cada ciclo mostra o valor por imovel/mes (nao "base").
+    const cycles = page.getByRole('group', { name: /Período de cobrança/i });
+    await expect(cycles.getByRole('button', { name: /Mensal/ })).toContainText(/R\$\s*97,00 por imóvel\/mês/);
+    await expect(cycles.getByRole('button', { name: /Anual/ })).toContainText(/R\$\s*77,00 por imóvel\/mês/);
+    await expect(cycles.getByText('base')).toHaveCount(0);
+
+    // UX-12: resumo claro (5 imoveis x R$ 77 x 12 = R$ 4.620 por ano).
+    const summary = page.getByLabel('Resumo da cobrança');
+    await expect(summary).toContainText('Imóveis');
+    await expect(summary).toContainText('Próxima cobrança');
+    await expect(page.getByText(/Total a cada ano/i)).toBeVisible();
+    await expect(page.getByText(/R\$\s*4\.620,00/).first()).toBeVisible();
+    await expect(page.getByText(/Cancele quando quiser, sem multa/i)).toBeVisible();
+    await expect(page.getByRole('link', { name: /Termos de uso/i })).toBeVisible();
+  });
+
   test('plano sob consulta nao renderiza CTA de checkout', async ({ page }) => {
     await acceptCookieConsent(page);
     await mockPlans(page, [makePlan({ name: 'enterprise', title: 'Enterprise', isCustomPrice: true })]);

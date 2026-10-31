@@ -12,10 +12,30 @@
  */
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { getPlans, type Plan } from "../service/api";
 import { useCheckoutReturnNotice } from "../componentes/useCheckoutReturnNotice";
+import { BrandLogo } from "../componentes/ui/BrandLogo";
 import { PricingSelfServiceCalculator } from "../componentes/PricingCalculatorV2";
 import styles from "./plans.module.css";
+
+const PUBLIC_SITE_URL = process.env.NEXT_PUBLIC_PUBLIC_SITE_URL || "https://myurbanai.com";
+
+/** Cabeçalho mínimo do checkout: marca + volta ao app (sem a navegação do painel). */
+function CheckoutHeader() {
+  return (
+    <header className={styles.checkoutHeader}>
+      <div className={styles.checkoutHeaderInner}>
+        <Link href="/dashboard" className={styles.checkoutBrand} aria-label="My Urban, ir para o painel">
+          <BrandLogo variant="wordmark" priority />
+        </Link>
+        <Link href="/dashboard" className={styles.backLink}>
+          <span aria-hidden="true">←</span> Voltar ao painel
+        </Link>
+      </div>
+    </header>
+  );
+}
 
 export default function PlansPage() {
   useCheckoutReturnNotice("canceled");
@@ -50,6 +70,7 @@ export default function PlansPage() {
       id="main-content"
       className={`urban-app ${styles.mainContentText}`}
     >
+      <CheckoutHeader />
       {/* ============== HERO ============== */}
       <section
         className={`urban-grain ${styles.grain}`}
@@ -63,7 +84,7 @@ export default function PlansPage() {
           <p
             className={`urban-eyebrow ${styles.eyebrow}`}
           >
-            CHECKOUT — ESCOLHA SEU PLANO
+            ESCOLHA SEU PLANO
           </p>
           <h1
             className={`urban-app-display ${styles.appDisplay}`}
@@ -139,9 +160,17 @@ export default function PlansPage() {
           <p
             className={styles.footerNote}
           >
-            Pagamento seguro via Stripe. Cancele a qualquer momento — sem
-            contrato. Mensal e flexibilidade pura, anual e o melhor
-            custo-benefício.
+            Pagamento seguro via Stripe. Cancele a qualquer momento, sem
+            multa. Os valores são por imóvel; o total e a data da próxima
+            cobrança aparecem no resumo do pedido.
+          </p>
+          <p className={styles.footerLinks}>
+            <a href={`${PUBLIC_SITE_URL}/termos`} className={styles.footerLink}>
+              Termos de uso
+            </a>
+            <a href={`${PUBLIC_SITE_URL}/privacidade`} className={styles.footerLink}>
+              Política de privacidade
+            </a>
           </p>
         </div>
       </section>
