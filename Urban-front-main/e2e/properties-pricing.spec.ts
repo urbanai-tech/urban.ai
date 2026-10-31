@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { acceptCookieConsent } from './test-helpers';
+import { acceptCookieConsent, gotoHydrated } from './test-helpers';
 
 const property = {
   id: 'prop-pricing-e2e',
@@ -84,7 +84,7 @@ test.describe('Properties pricing inputs', () => {
       });
     });
 
-    await page.goto('/properties');
+    await gotoHydrated(page, '/properties');
 
     await expect(page.getByText('Apartamento Vila Mariana')).toBeVisible();
 
@@ -126,7 +126,7 @@ test.describe('Properties pricing inputs', () => {
       });
     });
 
-    await page.goto('/properties');
+    await gotoHydrated(page, '/properties');
 
     await expect(page.getByText('Apartamento Vila Mariana')).toBeVisible();
     await page.getByRole('button', { name: /delete|excluir/i }).click();
