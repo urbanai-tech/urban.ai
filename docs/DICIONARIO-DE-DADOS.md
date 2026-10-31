@@ -51,9 +51,9 @@ Categorias presentes no schema (detalhe coluna a coluna na seção gerada "Colun
 
 ## Resumo
 
-- Tabelas (entidades TypeORM): **46**
-- Colunas: **759**
-- Chaves estrangeiras: **72**
+- Tabelas (entidades TypeORM): **50**
+- Colunas: **798**
+- Chaves estrangeiras: **77**
 - Tabela de controle de migrations (`migrations`) não é entidade e não consta aqui.
 
 ## Tabelas por domínio
@@ -66,6 +66,7 @@ Categorias presentes no schema (detalhe coluna a coluna na seção gerada "Colun
 | Eventos, ingestão e deduplicação | `events`, `event_sources`, `event_dedup_candidates`, `event_historical_multiplier`, `coverage_regions`, `external_listing`, `process_status` |
 | Precificação e análises | `analise_preco`, `analise_endereco_evento`, `pricing_rule_configs`, `pricing_decision_snapshots`, `price_updates`, `price_snapshots`, `occupancy_history`, `event_intelligence_snapshots`, `event_property_impacts`, `event_proximity_features`, `ask_urban_messages` |
 | Notificações e comunicação | `notifications`, `push_subscriptions`, `push_deliveries`, `event_alert_dispatches`, `communication_events`, `user_communication_preferences`, `pricing_recommendation_digests` |
+| Proprietários e relatório mensal | `property_owners`, `property_owner_properties`, `owner_reports`, `owner_report_links` |
 | Administração e auditoria | `admin_audit_logs`, `admin_job_runs`, `platform_costs` |
 | Aquisição (waitlist e contato) | `waitlist`, `contact_submissions` |
 
@@ -92,6 +93,8 @@ Lista curada em `PII_COLUMNS` (scripts/generate-data-dictionary.ts); o gerador f
 | `contact_submissions` | `name` | nome | Texto puro. Proteção adicional: a confirmar. |
 | `contact_submissions` | `userAgent` | user-agent | Texto puro. Retenção: a confirmar. |
 | `email_confirmations` | `code` | código de confirmação (hash) | Hash versionado vinculado ao usuário (`hashConfirmationCode`); texto puro apenas em registros legados. Tentativas limitadas (`attemptCount`, `lockedUntil`). |
+| `owner_report_links` | `token_hash` | credencial de leitura (hash) | SHA-256 da parte aleatória do token; o token nunca é gravado. Expira (padrão 30 dias), revogável; apagado 30 dias depois de vencer/revogar (ADR 0027). |
+| `owner_reports` | `payload_json` | desempenho financeiro dos imóveis (receita registrada, diária, ocupação) e nome do proprietário | JSON sem IDs internos, escopo por proprietário. Retenção: OWNER_REPORT_RETENTION_MONTHS (padrão 12) após o fim do mês (ADR 0027). |
 | `password_reset_tokens` | `ip` | IP | Texto puro. Política de retenção: a confirmar. |
 | `password_reset_tokens` | `tokenHash` | token de redefinição (hash) | Só o SHA-256 do token é persistido; expira (`expiresAt`) e é de uso único (`usedAt`). |
 | `password_reset_tokens` | `userAgent` | user-agent | Texto puro. Política de retenção: a confirmar. |
@@ -101,6 +104,10 @@ Lista curada em `PII_COLUMNS` (scripts/generate-data-dictionary.ts); o gerador f
 | `price_updates` | `userAgent` | user-agent | Texto puro. Retenção: a confirmar. |
 | `pricing_recommendation_digests` | `recipient_email` | e-mail do destinatário | Texto puro. Proteção adicional: a confirmar. |
 | `pricing_recommendation_digests` | `recipient_name` | nome do destinatário | Texto puro. Proteção adicional: a confirmar. |
+| `property_owners` | `consent_ip` | IP (declaração de base legal do anfitrião) | Texto puro (`req.ip`), truncado a 64 caracteres. Prova de consentimento: fica enquanto o proprietário existir (ADR 0027). |
+| `property_owners` | `email` | e-mail de terceiro (proprietário do imóvel) | Texto puro, em minúsculas, único por anfitrião. Só recebe o relatório mensal, com descadastro. Mesma retenção do nome (ADR 0027). |
+| `property_owners` | `name` | nome de terceiro (proprietário do imóvel) | Texto puro, escopo por `user_id` do anfitrião (CASCADE). Retenção: some com a conta do anfitrião ou quando ele remove o proprietário (ADR 0027). |
+| `property_owners` | `unsubscribe_ref` | referência opaca do descadastro | Aleatório de 128 bits, inútil sem a assinatura HMAC do servidor. Trocada quando o e-mail muda. |
 | `push_subscriptions` | `auth` | segredo de autenticação Web Push | Texto puro. Proteção adicional: a confirmar. |
 | `push_subscriptions` | `deviceSecretHash` | segredo do dispositivo (hash) | Só o SHA-256 do segredo é persistido. |
 | `push_subscriptions` | `endpoint` | endpoint Web Push | Texto puro (necessário para enviar o push); há `endpointHash` SHA-256 para busca/deduplicação. |
@@ -127,7 +134,7 @@ Lista curada em `PII_COLUMNS` (scripts/generate-data-dictionary.ts); o gerador f
 
 **Candidatas por nome ainda não classificadas** (heurística; revisar e mover para `PII_COLUMNS` ou aceitar como não sensíveis):
 
-`admin_job_runs.name`, `communication_events.template_name`, `notifications.send_email`, `plans.name`, `platform_costs.name`, `pricing_recommendation_digests.wants_email`, `push_subscriptions.endpointHash`, `stays_accounts.tokenExpiresAt`, `user.email_verified_at`, `user_communication_preferences.email_pricing`, `user_communication_preferences.onboarding_emails`, `waitlist.inviteTokenExpiresAt`
+`admin_job_runs.name`, `communication_events.template_name`, `notifications.send_email`, `owner_reports.email_status`, `owner_reports.email_attempts`, `owner_reports.email_sent_at`, `owner_reports.email_failure_reason`, `plans.name`, `platform_costs.name`, `pricing_recommendation_digests.wants_email`, `push_subscriptions.endpointHash`, `stays_accounts.tokenExpiresAt`, `user.email_verified_at`, `user_communication_preferences.email_pricing`, `user_communication_preferences.onboarding_emails`, `waitlist.inviteTokenExpiresAt`
 
 ## Tabelas
 
@@ -978,6 +985,69 @@ Relações:
 - `IDX_bfb6513d4f14687f65e4de6438`: `origin`, `date`
 - `IDX_eb85ee18a0b90f6c7a7bce3dbf` (UNIQUE): `list_id`, `date`
 
+### `owner_report_links`
+
+- Entidade: `OwnerReportLink` (`src/entities/owner-report-link.entity.ts`)
+- Domínio: Proprietários e relatório mensal
+- Descrição: Link público, somente leitura, de um relatório. O token em si NÃO é guardado: só o SHA-256 da parte aleatória (`tokenHash`). Expira (`expiresAt`) e o anfitrião pode revogar (`revokedAt`). Linhas vencidas/revogadas são apagadas depois de 30 dias (ADR 0027).
+
+| Coluna | Propriedade | Tipo | Nulo | Padrão | Chaves | Observação |
+| --- | --- | --- | --- | --- | --- | --- |
+| `id` | `id` | varchar(36) | não |  | PK, uuid auto |  |
+| `report_id` | `reportId` | varchar(36) | não |  | IDX, FK |  |
+| `token_hash` | `tokenHash` | varchar(64) | não |  | UNIQUE |  |
+| `origin` | `origin` | varchar(8) | não | host |  |  |
+| `expires_at` | `expiresAt` | datetime | não |  | IDX |  |
+| `revoked_at` | `revokedAt` | datetime | sim |  |  |  |
+| `view_count` | `viewCount` | int | não | 0 |  |  |
+| `first_viewed_at` | `firstViewedAt` | datetime | sim |  |  |  |
+| `last_viewed_at` | `lastViewedAt` | datetime | sim |  |  |  |
+| `created_at` | `createdAt` | datetime | não | CURRENT_TIMESTAMP(6) |  |  |
+
+Relações:
+
+| Tipo | Propriedade | Alvo | Coluna(s) FK | onDelete | onUpdate |
+| --- | --- | --- | --- | --- | --- |
+| many-to-one | `report` | `owner_reports` | report_id | CASCADE | NO ACTION |
+
+Índices e unicidades:
+
+- `IDX_owner_report_links_expires`: `expires_at`
+- `IDX_owner_report_links_report`: `report_id`
+- `UQ_owner_report_links_token_hash` (UNIQUE): `token_hash`
+
+### `owner_reports`
+
+- Entidade: `OwnerReport` (`src/entities/owner-report.entity.ts`)
+- Domínio: Proprietários e relatório mensal
+- Descrição: Relatório mensal de um proprietário: snapshot do payload (sem IDs internos) + registro do envio por e-mail. `UQ_owner_reports_owner_period` é a chave de idempotência do envio: no máximo um relatório (e um e-mail) por proprietário por mês. Retenção: `OWNER_REPORT_RETENTION_MONTHS` (padrão 12) depois do fim do mês reportado; os links caem em cascata. Ver ADR 0027.
+
+| Coluna | Propriedade | Tipo | Nulo | Padrão | Chaves | Observação |
+| --- | --- | --- | --- | --- | --- | --- |
+| `id` | `id` | varchar(36) | não |  | PK, uuid auto |  |
+| `owner_id` | `ownerId` | varchar(36) | não |  | UNIQUE (composto), FK |  |
+| `period` | `period` | varchar(7) | não |  | UNIQUE (composto), IDX | `YYYY-MM` (mês de calendário de São Paulo). |
+| `payload_json` | `payloadJson` | longtext | não |  |  |  |
+| `payload_version` | `payloadVersion` | int | não | 1 |  |  |
+| `generated_at` | `generatedAt` | datetime | não |  |  |  |
+| `email_status` | `emailStatus` | varchar(16) | não | pending |  |  |
+| `email_attempts` | `emailAttempts` | int | não | 0 |  |  |
+| `email_sent_at` | `emailSentAt` | datetime | sim |  |  |  |
+| `email_failure_reason` | `emailFailureReason` | varchar(255) | sim |  |  | Motivo curto da última falha (sem e-mail nem dado pessoal). |
+| `created_at` | `createdAt` | datetime | não | CURRENT_TIMESTAMP(6) |  |  |
+| `updated_at` | `updatedAt` | datetime | não | CURRENT_TIMESTAMP(6) |  |  |
+
+Relações:
+
+| Tipo | Propriedade | Alvo | Coluna(s) FK | onDelete | onUpdate |
+| --- | --- | --- | --- | --- | --- |
+| many-to-one | `owner` | `property_owners` | owner_id | CASCADE | NO ACTION |
+
+Índices e unicidades:
+
+- `IDX_owner_reports_period`: `period`
+- `UQ_owner_reports_owner_period` (UNIQUE): `owner_id`, `period`
+
 ### `password_reset_tokens`
 
 - Entidade: `PasswordResetToken` (`src/entities/password-reset-token.entity.ts`)
@@ -1495,6 +1565,63 @@ Relações:
 | `createdAt` | `createdAt` | datetime | não | CURRENT_TIMESTAMP(6) |  |  |
 | `updatedAt` | `updatedAt` | datetime | não | CURRENT_TIMESTAMP(6) |  |  |
 
+### `property_owner_properties`
+
+- Entidade: `PropertyOwnerProperty` (`src/entities/property-owner-property.entity.ts`)
+- Domínio: Proprietários e relatório mensal
+- Descrição: Vínculo proprietário -> imóvel. Um imóvel tem no máximo UM proprietário (`UQ_property_owner_properties_address`); um proprietário pode ter vários imóveis.
+
+| Coluna | Propriedade | Tipo | Nulo | Padrão | Chaves | Observação |
+| --- | --- | --- | --- | --- | --- | --- |
+| `id` | `id` | varchar(36) | não |  | PK, uuid auto |  |
+| `owner_id` | `ownerId` | varchar(36) | não |  | IDX, FK |  |
+| `address_id` | `addressId` | varchar(36) | não |  | UNIQUE, FK |  |
+| `created_at` | `createdAt` | datetime | não | CURRENT_TIMESTAMP(6) |  |  |
+
+Relações:
+
+| Tipo | Propriedade | Alvo | Coluna(s) FK | onDelete | onUpdate |
+| --- | --- | --- | --- | --- | --- |
+| many-to-one | `owner` | `property_owners` | owner_id | CASCADE | NO ACTION |
+| many-to-one | `address` | `addresses` | address_id | CASCADE | NO ACTION |
+
+Índices e unicidades:
+
+- `IDX_property_owner_properties_owner`: `owner_id`
+- `UQ_property_owner_properties_address` (UNIQUE): `address_id`
+
+### `property_owners`
+
+- Entidade: `PropertyOwner` (`src/entities/property-owner.entity.ts`)
+- Domínio: Proprietários e relatório mensal
+- Descrição: Proprietário de imóvel(is) cadastrado pelo anfitrião (ADR 0027). NÃO é conta nem usuário: é um terceiro que só recebe o relatório mensal. O anfitrião é quem responde pelo compartilhamento (declaração de base legal registrada em `consent*`). Retenção: some junto com a conta do anfitrião (CASCADE) ou quando o anfitrião o remove.
+
+| Coluna | Propriedade | Tipo | Nulo | Padrão | Chaves | Observação |
+| --- | --- | --- | --- | --- | --- | --- |
+| `id` | `id` | varchar(36) | não |  | PK, uuid auto |  |
+| `user_id` | `userId` | varchar(36) | não |  | UNIQUE (composto), FK |  |
+| `name` | `name` | varchar(160) | não |  |  |  |
+| `email` | `email` | varchar(254) | não |  | UNIQUE (composto) | Sempre em minúsculas. |
+| `monthly_report_enabled` | `monthlyReportEnabled` | tinyint | não | true |  | Preferência do anfitrião: enviar o relatório mensal por e-mail. |
+| `consent_version` | `consentVersion` | varchar(48) | não |  |  | Versão do texto de declaração aceito pelo anfitrião (ver owner-report.constants). |
+| `consent_accepted_at` | `consentAcceptedAt` | datetime | não |  |  |  |
+| `consent_ip` | `consentIp` | varchar(64) | sim |  |  | IP real (`req.ip`) de quem declarou. |
+| `unsubscribed_at` | `unsubscribedAt` | datetime | sim |  |  | O próprio proprietário pediu para não receber (link de descadastro). O anfitrião não desfaz. |
+| `unsubscribe_ref` | `unsubscribeRef` | varchar(32) | não |  | UNIQUE | Referência opaca (não é o ID) do token de descadastro; o token só vale com a assinatura HMAC. |
+| `created_at` | `createdAt` | datetime | não | CURRENT_TIMESTAMP(6) |  |  |
+| `updated_at` | `updatedAt` | datetime | não | CURRENT_TIMESTAMP(6) |  |  |
+
+Relações:
+
+| Tipo | Propriedade | Alvo | Coluna(s) FK | onDelete | onUpdate |
+| --- | --- | --- | --- | --- | --- |
+| many-to-one | `user` | `user` | user_id | CASCADE | NO ACTION |
+
+Índices e unicidades:
+
+- `UQ_property_owners_unsubscribe_ref` (UNIQUE): `unsubscribe_ref`
+- `UQ_property_owners_user_email` (UNIQUE): `user_id`, `email`
+
 ### `push_deliveries`
 
 - Entidade: `PushDelivery` (`src/entities/push-delivery.entity.ts`)
@@ -1723,6 +1850,7 @@ Relações:
 | `marketing` | `marketing` | tinyint | não | false |  |  |
 | `stays_alerts` | `staysAlerts` | tinyint | não | true |  |  |
 | `billing_alerts` | `billingAlerts` | tinyint | não | true |  |  |
+| `owner_reports` | `ownerReports` | tinyint | não | true |  | Enviar ao proprietário o relatório mensal e receber o lembrete de fim de mês (ADR 0027). |
 | `createdAt` | `createdAt` | timestamp | não | CURRENT_TIMESTAMP(6) |  |  |
 | `updatedAt` | `updatedAt` | timestamp | não | CURRENT_TIMESTAMP(6) |  |  |
 

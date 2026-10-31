@@ -88,7 +88,7 @@ export class AccountDataService {
       communicationPreferences: preferences
         ? pick(preferences, [
             'emailPricing', 'pushPricing', 'pushEvents', 'weeklyReport', 'onboardingEmails', 'marketing', 'staysAlerts',
-            'billingAlerts', 'createdAt', 'updatedAt',
+            'billingAlerts', 'ownerReports', 'createdAt', 'updatedAt',
           ])
         : null,
       properties: lists.map((item) =>

@@ -14,13 +14,18 @@ const DEFAULT_PREFERENCES = {
   marketing: false,
   staysAlerts: true,
   billingAlerts: true,
+  ownerReports: true,
 };
 
-const UNSUBSCRIBE_FIELD: Record<UnsubscribeCategory, 'onboardingEmails' | 'weeklyReport' | 'emailPricing' | 'marketing'> = {
+const UNSUBSCRIBE_FIELD: Record<
+  UnsubscribeCategory,
+  'onboardingEmails' | 'weeklyReport' | 'emailPricing' | 'marketing' | 'ownerReports'
+> = {
   onboarding: 'onboardingEmails',
   weekly_report: 'weeklyReport',
   pricing: 'emailPricing',
   marketing: 'marketing',
+  owner_reports: 'ownerReports',
 };
 
 @Injectable()

@@ -45,6 +45,10 @@ export class UserCommunicationPreferences {
   @Column({ name: 'billing_alerts', type: 'boolean', default: true })
   billingAlerts: boolean;
 
+  /** Enviar ao proprietário o relatório mensal e receber o lembrete de fim de mês (ADR 0027). */
+  @Column({ name: 'owner_reports', type: 'boolean', default: true })
+  ownerReports: boolean;
+
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
 
