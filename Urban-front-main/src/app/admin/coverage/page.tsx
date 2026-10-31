@@ -170,6 +170,7 @@ export default function CoverageAdminPage() {
       width: 160,
       render: (r) => (
         <AdminSelect
+          aria-label="Status da região"
           value={r.status}
           onChange={(e) =>
             handleStatusChange(r, e.target.value as CoverageRegion["status"])

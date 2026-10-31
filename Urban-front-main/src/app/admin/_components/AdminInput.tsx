@@ -105,13 +105,20 @@ export const AdminInput = React.forwardRef<HTMLInputElement, InputProps>(
   },
 );
 
-type SelectProps = React.SelectHTMLAttributes<HTMLSelectElement> & {
-  label?: string;
+type SelectBaseProps = React.SelectHTMLAttributes<HTMLSelectElement> & {
   helper?: string;
   error?: string;
   shellStyle?: React.CSSProperties;
   shellClassName?: string;
 };
+
+/** Todo select precisa de nome acessivel: `label` visivel, `aria-label` ou `aria-labelledby` (WCAG 4.1.2). */
+type SelectProps = SelectBaseProps &
+  (
+    | { label: string }
+    | { label?: undefined; "aria-label": string }
+    | { label?: undefined; "aria-labelledby": string }
+  );
 
 export const AdminSelect = React.forwardRef<HTMLSelectElement, SelectProps>(
   function AdminSelect(
