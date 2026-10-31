@@ -125,16 +125,32 @@ export default function SideBar() {
   }, []);
 
   useEffect(() => {
+    let savedCollapsed: string | null = null;
     try {
-      const savedCollapsed = window.localStorage.getItem(HOST_SIDEBAR_COLLAPSED_KEY);
-      if (savedCollapsed === 'true') {
-        setCollapsed(true);
-      } else if (savedCollapsed === 'false') {
-        setCollapsed(false);
-      }
+      savedCollapsed = window.localStorage.getItem(HOST_SIDEBAR_COLLAPSED_KEY);
     } catch {
-      /* keep the default expanded state */
+      /* keep the default state */
     }
+    if (savedCollapsed === 'true') {
+      setCollapsed(true);
+      return;
+    }
+    if (savedCollapsed === 'false') {
+      setCollapsed(false);
+      return;
+    }
+    // Sem preferência salva: em tablet (768-1180px) a sidebar de 247px espremia o
+    // conteúdo; começa recolhida (trilho de ícones) e acompanha a largura (DS-05).
+    const upToTablet = window.matchMedia('(max-width: 1180px)');
+    const mobile = window.matchMedia('(max-width: 767px)');
+    const sync = () => setCollapsed(upToTablet.matches && !mobile.matches);
+    sync();
+    upToTablet.addEventListener('change', sync);
+    mobile.addEventListener('change', sync);
+    return () => {
+      upToTablet.removeEventListener('change', sync);
+      mobile.removeEventListener('change', sync);
+    };
   }, []);
 
   const loadMe = useCallback(() => {
