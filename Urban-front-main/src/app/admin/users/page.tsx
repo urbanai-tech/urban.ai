@@ -187,7 +187,7 @@ export default function AdminUsersPage() {
     {
       key: "role",
       header: "Papel",
-      width: 140,
+      width: 170,
       render: (u) => (
         <AdminSelect
           aria-label="Papel do usuário"
@@ -265,7 +265,7 @@ export default function AdminUsersPage() {
         className={styles.filters}
         onSubmit={applyFilters}
         role="search"
-        aria-label="Buscar usuários"
+        aria-label="Filtrar usuários"
       >
         <AdminInput
           label="Buscar"
