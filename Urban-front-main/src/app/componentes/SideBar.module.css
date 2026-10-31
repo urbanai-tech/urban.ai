@@ -209,6 +209,7 @@
   cursor: pointer;
   transition: color 120ms, background 120ms;
   text-align: left;
+  text-decoration: none;
   font-family: Inter, system-ui, sans-serif;
 }
 
