@@ -13,7 +13,7 @@ import { brlCompact, brlWhole } from "../../../../lib/format";
  *  - Linha sólida accent: yourAdr
  *  - Linha tracejada muted: medianAdr
  *  - Hover capture via overlay invisível → tooltip flutuante
- *  - Eixo Y em R$ k (0.2k, 0.3k)
+ *  - Eixo Y em R$ ("R$ 240", "R$ 1,2 mil")
  *  - Eixo X com 5 ticks (dia 1, 8, 15, 22, 29 quando há 30 pontos)
  *
  * Memoizado quando `data` não muda (props comparison superficial via JSX —
@@ -24,7 +24,7 @@ export interface AdrComparisonChartProps {
   height?: number;
 }
 
-const PADDING_LEFT = 52;
+const PADDING_LEFT = 62;
 const PADDING_RIGHT = 24;
 const PADDING_TOP = 28;
 const PADDING_BOTTOM = 32;
