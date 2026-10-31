@@ -762,6 +762,7 @@ function OnboardingWizardContent() {
               mx={0.5} transition="background 0.4s ease" />
           ))}
         </HStack>
+        {/* UX-09: único contador de etapa (antes havia também "Passo X de 3"). */}
         <Text fontSize="xs" color="gray.400" textAlign="right" mt={1}>
           Etapa {step} de {TOTAL_STEPS}
         </Text>
@@ -826,8 +827,6 @@ function OnboardingWizardContent() {
                 variants={pageVariants} transition={{ duration: 0.4 }}>
                 <VStack spacing={6} align="stretch">
                   <Box textAlign="center">
-                    <Text fontSize="xs" color="gray.400" fontWeight="bold" textTransform="uppercase"
-                      letterSpacing="widest" mb={2}>Passo 1 de 3</Text>
                     <Heading as="h1" size="lg" mb={3} color="gray.800">Conecte seus Imóveis</Heading>
                     <Text color="gray.500" maxW="440px" mx="auto">
                       Importe seus imóveis colando o link de um <strong>anúncio individual</strong> ou
@@ -1009,8 +1008,6 @@ function OnboardingWizardContent() {
                 variants={pageVariants} transition={{ duration: 0.4 }}>
                 <VStack spacing={6} align="stretch">
                   <Box textAlign="center">
-                    <Text fontSize="xs" color="gray.400" fontWeight="bold" textTransform="uppercase"
-                      letterSpacing="widest" mb={2}>Passo 2 de 3</Text>
                     <Heading as="h1" size="lg" mb={2} color="gray.800">Selecionar Imóveis</Heading>
                     <Text color="gray.500">
                       Encontramos <strong>{properties.length}</strong> {properties.length === 1 ? 'imóvel' : 'imóveis'}.
@@ -1258,8 +1255,6 @@ function OnboardingWizardContent() {
                 variants={pageVariants} transition={{ duration: 0.4 }}>
                 <VStack spacing={8} align="stretch">
                   <Box textAlign="center">
-                    <Text fontSize="xs" color="gray.400" fontWeight="bold" textTransform="uppercase"
-                      letterSpacing="widest" mb={2}>Passo 3 de 3</Text>
                     <Heading as="h1" size="lg" mb={3} color="gray.800">Ajustar as recomendações</Heading>
                     <Text color="gray.500" maxW="440px" mx="auto">
                       Escolha o quanto você quer que as sugestões sejam cautelosas ou ousadas.

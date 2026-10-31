@@ -81,6 +81,56 @@
   display: grid;
 }
 
+.gridDesktop1.gridDesktop1 {
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+.gridDesktop2.gridDesktop2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.gridDesktop3.gridDesktop3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.gridDesktop4.gridDesktop4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.gridDesktop5.gridDesktop5 {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.gridDesktop6.gridDesktop6 {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+@media (max-width: 767px) {
+  .gridMobile1.gridMobile1 {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+
+  .gridMobile2.gridMobile2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .gridMobile3.gridMobile3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .gridMobile4.gridMobile4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .gridMobile5.gridMobile5 {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .gridMobile6.gridMobile6 {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+
 .tabListBase.tabListBase {
   display: flex;
   gap: 4px;
