@@ -15,8 +15,8 @@ import { updatePassword } from "@/app/service/api";
 import styles from "./page.module.css";
 
 const PASSWORD_RULES: { key: keyof PasswordChecks; label: string }[] = [
-  { key: "lower", label: "Letra minuscula" },
-  { key: "upper", label: "Letra maiuscula" },
+  { key: "lower", label: "Letra minúscula" },
+  { key: "upper", label: "Letra maiúscula" },
   { key: "number", label: "Número" },
   { key: "special", label: "Caractere especial (!@#$%^&*)" },
   { key: "length", label: "Mínimo de 8 caracteres" },
@@ -100,7 +100,7 @@ export default function PasswordConfirmation() {
       const res = await updatePassword(token, password);
 
       if (!res.enviado) {
-        throw new Error(res.motivo || "Erro ao confirmar redefinicao de senha");
+        throw new Error(res.motivo || "Erro ao confirmar redefinição de senha");
       }
 
       toast.success("Sua senha foi redefinida com sucesso.");
@@ -124,7 +124,7 @@ export default function PasswordConfirmation() {
           senha segura.
         </>
       }
-      subtitle="Escolha uma senha forte para concluir a redefinicao da sua conta My Urban."
+      subtitle="Escolha uma senha forte para concluir a redefinição da sua conta My Urban."
       asideEyebrow="ACESSO SEGURO"
       asideTitle={
         <>
@@ -187,7 +187,7 @@ export default function PasswordConfirmation() {
             <PasswordRulesPanel checks={checks} strength={strength} />
 
             {tokenChecked && !token && (
-              <InlineAlert>Link de redefinicao incompleto. Solicite um novo e-mail.</InlineAlert>
+              <InlineAlert>Link de redefinição incompleto. Solicite um novo e-mail.</InlineAlert>
             )}
 
             <AppButton

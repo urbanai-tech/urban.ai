@@ -37,7 +37,7 @@ export default function PasswordResetRequest() {
       toast.error(
         error.response?.data?.message ||
           error.message ||
-          "Erro ao enviar o e-mail de redefinicao.",
+          "Erro ao enviar o e-mail de redefinição.",
       );
     } finally {
       setLoading(false);
@@ -54,7 +54,7 @@ export default function PasswordResetRequest() {
           senha.
         </>
       }
-      subtitle="Digite o e-mail da sua conta para receber um link seguro de redefinicao."
+      subtitle="Digite o e-mail da sua conta para receber um link seguro de redefinição."
       asideEyebrow="SEGURANÇA"
       asideTitle={
         <>

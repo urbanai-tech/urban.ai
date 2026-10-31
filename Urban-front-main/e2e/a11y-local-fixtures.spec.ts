@@ -32,7 +32,7 @@ test.describe('A11y local com fixtures autenticadas', () => {
     await page.locator('#host-main-content').waitFor({ state: 'visible' });
 
     await page.keyboard.press('Tab');
-    const skipLink = page.getByRole('link', { name: 'Pular para conteudo principal' });
+    const skipLink = page.getByRole('link', { name: 'Pular para conteúdo principal' });
     await expect(skipLink).toBeFocused();
     await expect(skipLink).toBeVisible();
     await skipLink.press('Enter');
@@ -45,7 +45,7 @@ test.describe('A11y local com fixtures autenticadas', () => {
     await page.getByRole('heading', { name: 'Painel' }).waitFor({ state: 'visible' });
 
     await page.keyboard.press('Tab');
-    const skipLink = page.getByRole('link', { name: 'Pular para conteudo principal' });
+    const skipLink = page.getByRole('link', { name: 'Pular para conteúdo principal' });
     await expect(skipLink).toBeFocused();
     await expect(skipLink).toBeVisible();
     await skipLink.press('Enter');

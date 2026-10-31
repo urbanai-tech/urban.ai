@@ -647,7 +647,7 @@ export default function MyProperties() {
 
                 <div className="properties-signal-grid">
                   <div className="properties-signal">
-                    <span>Localizacao</span>
+                    <span>Localização</span>
                     <strong>{addressLabel || 'Revise o endereço'}</strong>
                   </div>
                   <div className="properties-signal">
@@ -660,7 +660,7 @@ export default function MyProperties() {
                   <div className="properties-signal">
                     <span>Preço monitorado</span>
                     <strong>{getPriceSourceLabel(prop)}</strong>
-                    <small>{lastPricingUpdate ? `Atualizado ${lastPricingUpdate}` : 'Sem alteracao recente'}</small>
+                    <small>{lastPricingUpdate ? `Atualizado ${lastPricingUpdate}` : 'Sem alteração recente'}</small>
                   </div>
                 </div>
 
@@ -668,17 +668,17 @@ export default function MyProperties() {
                   <div className="properties-history">
                     <p className="properties-history-title">Últimas alterações de preço base</p>
                     {(pricingHistory[prop.id] ?? []).length === 0 ? (
-                      <p className="properties-empty-note">Nenhuma alteracao registrada ainda.</p>
+                      <p className="properties-empty-note">Nenhuma alteração registrada ainda.</p>
                     ) : (
                       <div className="properties-history-list">
                         {pricingHistory[prop.id].map((item) => (
                           <div className="properties-history-row" key={item.id}>
                             <span>{formatDateTime(item.createdAt)}</span>
                             <span>
-                              Diária {formatMoney(item.previousManualDailyPrice)} -&gt; {formatMoney(item.newManualDailyPrice)}
+                              Diária {formatMoney(item.previousManualDailyPrice)} → {formatMoney(item.newManualDailyPrice)}
                             </span>
                             <span>
-                              Mes {formatMoney(item.previousAverageMonthlyRevenue)} -&gt; {formatMoney(item.newAverageMonthlyRevenue)}
+                              Mês {formatMoney(item.previousAverageMonthlyRevenue)} → {formatMoney(item.newAverageMonthlyRevenue)}
                             </span>
                           </div>
                         ))}

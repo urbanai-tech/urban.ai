@@ -149,7 +149,7 @@ export default function AdminPriceIntelligencePage() {
       },
       {
         key: "startedAt",
-        header: "Inicio",
+        header: "Início",
         width: 180,
         render: (row) => <SmallMuted>{formatDate(row.startedAt)}</SmallMuted>,
       },

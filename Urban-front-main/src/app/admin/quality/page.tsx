@@ -230,7 +230,7 @@ export default function AdminQualityPage() {
               >
                 <div>
                   <p className="urban-admin-eyebrow">
-                    MAPE (ULTIMOS {quality.windowDays} DIAS)
+                    MAPE (ÚLTIMOS {quality.windowDays} DIAS)
                   </p>
                   <p
                     className={`urban-admin-display-hero ${styles.mapeValue} ${mapeToneClass}`}

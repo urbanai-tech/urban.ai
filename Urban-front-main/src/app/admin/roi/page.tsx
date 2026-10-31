@@ -210,7 +210,7 @@ export default function AdminRoiPage() {
           className={styles.windowHeader}
         >
           <p className={`urban-admin-eyebrow ${styles.windowEyebrow}`}>
-            JANELA DE ANALISE
+            JANELA DE ANÁLISE
           </p>
           <SegmentedControl
             value={windowDays}

@@ -121,7 +121,7 @@ export default function PricingConfigPage() {
         <p
           className={styles.warningTitle}
         >
-          Atencao
+          Atenção
         </p>
         <p className={styles.warningBody}>
           Os <strong className={styles.emphasis}>Stripe Price IDs</strong>

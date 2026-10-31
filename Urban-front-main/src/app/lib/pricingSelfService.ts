@@ -5,7 +5,7 @@ export const BILLING_CYCLE_META: Record<
   BillingCycle,
   { label: string; months: number; shortLabel: string }
 > = {
-  monthly: { label: "Mensal", months: 1, shortLabel: "mes" },
+  monthly: { label: "Mensal", months: 1, shortLabel: "mês" },
   quarterly: { label: "Trimestral", months: 3, shortLabel: "3 meses" },
   semestral: { label: "Semestral", months: 6, shortLabel: "6 meses" },
   annual: { label: "Anual", months: 12, shortLabel: "ano" },

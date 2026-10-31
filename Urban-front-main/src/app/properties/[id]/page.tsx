@@ -782,9 +782,9 @@ function PropertyDetailContent() {
                 <div>
                   <strong>{formatDateTime(item.createdAt)}</strong>
                   <span>
-                    Diária {formatMoney(item.previousManualDailyPrice)} -&gt; {formatMoney(item.newManualDailyPrice)}
+                    Diária {formatMoney(item.previousManualDailyPrice)} → {formatMoney(item.newManualDailyPrice)}
                     {" | "}
-                    Mês {formatMoney(item.previousAverageMonthlyRevenue)} -&gt; {formatMoney(item.newAverageMonthlyRevenue)}
+                    Mês {formatMoney(item.previousAverageMonthlyRevenue)} → {formatMoney(item.newAverageMonthlyRevenue)}
                   </span>
                 </div>
               </div>

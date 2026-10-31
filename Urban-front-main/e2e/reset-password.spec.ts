@@ -106,7 +106,7 @@ test.describe('Reset de senha', () => {
 
   test('sem token mostra link incompleto e não permite enviar', async ({ page }) => {
     await page.goto('/reset-password');
-    await expect(page.getByText(/Link de redefinicao incompleto/i)).toBeVisible();
+    await expect(page.getByText(/Link de redefinição incompleto/i)).toBeVisible();
     await expect(page.getByRole('button', { name: /Confirmar nova senha/i })).toBeDisabled();
   });
 });

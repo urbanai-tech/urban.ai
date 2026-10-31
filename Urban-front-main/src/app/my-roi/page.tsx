@@ -281,7 +281,7 @@ export default function MyRoiPage() {
                     <p className="roi-property-name">{win.propertyName}</p>
                     <p className="roi-property-sub">
                       {fmt(win.currentPriceCents)}
-                      {' -> '}
+                      {' → '}
                       {fmt(win.appliedPriceCents)} · {win.nights} noite(s)
                     </p>
                   </div>

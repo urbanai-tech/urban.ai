@@ -78,7 +78,7 @@ export default function PlansPage() {
             className={styles.heroSubtitle}
           >
             Comece com 1 imóvel ou comece com 10 — você só paga pelo que conecta.
-            Ciclos longos tem desconto progressivo.
+            Ciclos longos têm desconto progressivo.
           </p>
         </div>
       </section>
@@ -141,7 +141,7 @@ export default function PlansPage() {
           >
             Pagamento seguro via Stripe. Cancele a qualquer momento — sem
             contrato. Mensal e flexibilidade pura, anual e o melhor
-            custo-beneficio.
+            custo-benefício.
           </p>
         </div>
       </section>
