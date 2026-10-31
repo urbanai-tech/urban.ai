@@ -34,7 +34,8 @@ Fontes que nunca tiveram volume (baseline baixo) e fontes ignoradas não alertam
 | `COLLECTOR_ZERO_YIELD_MIN_BASELINE_ITEMS` | `5` | Mínimo de itens no baseline. |
 | `COLLECTOR_ZERO_YIELD_IGNORE_SOURCES` | `admin-*,marcha-para-jesus` | Lista separada por vírgula; sufixo `*` = prefixo. Curadoria manual e evento anual não devem alertar. |
 | `COLLECTOR_ZERO_YIELD_SOURCE_WINDOWS` | vazio | Janela própria por fonte, ex.: `api-football:168,sympla:72`. |
-| `COLLECTOR_ZERO_YIELD_REALERT_HOURS` | `24` | Intervalo para reenviar o mesmo alerta (estado em memória; reinício rearma). |
+| `COLLECTOR_ZERO_YIELD_REALERT_HOURS` | `24` | Intervalo para reenviar o mesmo alerta (estado persistido em `collector_alert_state`; sobrevive a deploy). |
+| `COLLECTOR_NEVER_DELIVERED_ENABLED` / `COLLECTOR_NEVER_DELIVERED_DAYS` | `true` / `7` | Alerta fonte **configurada que nunca entregou** (fonte nova). Ver [histórico de eventos](./eventos-historico-mudancas.md). |
 
 ### Onde o alerta aparece
 
