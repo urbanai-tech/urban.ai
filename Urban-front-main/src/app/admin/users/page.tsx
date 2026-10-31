@@ -1,11 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type FormEvent } from "react";
 import {
   fetchAdminUsers,
   setAdminUserRole,
   setAdminUserActive,
   type AdminUser,
+  type AdminUsersFilters,
 } from "../../service/api";
 import {
   AdminSectionHeader,
@@ -13,6 +14,7 @@ import {
   AdminTable,
   type AdminTableColumn,
   AdminSelect,
+  AdminInput,
   AdminBadge,
   AdminEmptyState,
   AdminPageLoading,
@@ -20,6 +22,13 @@ import {
   useAdminToast,
   Icons,
 } from "../_components";
+import { roleLabel, statusLabel } from "../_lib/status-labels";
+import {
+  EMPTY_USER_FILTERS,
+  filtersToQuery,
+  hasActiveFilters,
+  type UserFiltersForm,
+} from "./users-filters";
 import styles from "./page.module.css";
 
 type UserRole = "host" | "admin" | "support";
@@ -33,11 +42,19 @@ type UserRole = "host" | "admin" | "support";
  *  - confirm() de mudança de role → AdminConfirmDialog.
  *  - Badges status com AdminBadge.
  *  - alert() → useAdminToast.
+ *
+ * Busca e filtros (e-mail/nome/empresa, papel, status, plano, data de criação)
+ * são aplicados no backend (GET /admin/users); a paginação preserva o filtro
+ * aplicado. O formulário só consulta ao enviar (Enter ou "Filtrar").
  */
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [form, setForm] = useState<UserFiltersForm>(EMPTY_USER_FILTERS);
+  const [applied, setApplied] = useState<AdminUsersFilters>({});
+  const [loadedOnce, setLoadedOnce] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
@@ -45,14 +62,17 @@ export default function AdminUsersPage() {
   const [confirmActive, setConfirmActive] = useState<{ user: AdminUser; next: boolean } | null>(null);
   const toast = useAdminToast();
 
-  const load = useCallback(async (p: number) => {
+  const load = useCallback(async (p: number, filters: AdminUsersFilters = {}) => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetchAdminUsers(p, 20);
+      const res = await fetchAdminUsers(p, 20, filters);
       setUsers(res.data);
       setPage(res.page);
       setTotalPages(res.totalPages);
+      setTotal(res.total);
+      setApplied(filters);
+      setLoadedOnce(true);
     } catch (err: unknown) {
       const e = err as { response?: { status?: number }; message?: string };
       const status = e?.response?.status;
@@ -70,15 +90,25 @@ export default function AdminUsersPage() {
     load(1);
   }, [load]);
 
+  function applyFilters(e: FormEvent) {
+    e.preventDefault();
+    load(1, filtersToQuery(form));
+  }
+
+  function clearFilters() {
+    setForm(EMPTY_USER_FILTERS);
+    load(1);
+  }
+
   async function applyRole() {
     if (!confirmRole) return;
     const { user, role } = confirmRole;
     setBusy(user.id);
     try {
       await setAdminUserRole(user.id, role);
-      toast.success(`Role de ${user.email || user.username} atualizada para ${role}.`);
+      toast.success(`Papel de ${user.email || user.username} atualizado para ${roleLabel(role)}.`);
       setConfirmRole(null);
-      await load(page);
+      await load(page, applied);
     } catch (err: unknown) {
       const e = err as { message?: string };
       toast.error("Erro: " + (e?.message || "falhou"));
@@ -95,7 +125,7 @@ export default function AdminUsersPage() {
       await setAdminUserActive(user.id, next);
       toast.success(`${user.email || user.username} ${next ? "ativado" : "desativado"}.`);
       setConfirmActive(null);
-      await load(page);
+      await load(page, applied);
     } catch (err: unknown) {
       const e = err as { message?: string };
       toast.error("Erro: " + (e?.message || "falhou"));
@@ -104,7 +134,7 @@ export default function AdminUsersPage() {
     }
   }
 
-  if (loading && users.length === 0) {
+  if (loading && !loadedOnce) {
     return <AdminPageLoading />;
   }
 
@@ -117,7 +147,7 @@ export default function AdminUsersPage() {
           body={error}
           icon={<Icons.AlertCircle size={32} />}
           action={
-            <AdminButton variant="primary" onClick={() => load(1)}>
+            <AdminButton variant="primary" onClick={() => load(1, applied)}>
               Tentar novamente
             </AdminButton>
           }
@@ -156,7 +186,7 @@ export default function AdminUsersPage() {
     },
     {
       key: "role",
-      header: "Role",
+      header: "Papel",
       width: 140,
       render: (u) => (
         <AdminSelect
@@ -168,9 +198,9 @@ export default function AdminUsersPage() {
           disabled={busy === u.id}
           shellClassName={styles.roleShell}
         >
-          <option value="host">host</option>
-          <option value="admin">admin</option>
-          <option value="support">support</option>
+          <option value="host">{roleLabel("host")}</option>
+          <option value="admin">{roleLabel("admin")}</option>
+          <option value="support">{roleLabel("support")}</option>
         </AdminSelect>
       ),
     },
@@ -179,11 +209,11 @@ export default function AdminUsersPage() {
       header: "Modo",
       render: (u) => (
         <span className={styles.modeCell}>
-          {u.operationMode || "—"}
+          {u.operationMode ? statusLabel(u.operationMode) : "—"}
           {u.pricingStrategy && (
             <span className={styles.pricingStrategyText}>
               {" · "}
-              {u.pricingStrategy}
+              {statusLabel(u.pricingStrategy)}
             </span>
           )}
         </span>
@@ -227,8 +257,87 @@ export default function AdminUsersPage() {
       <AdminSectionHeader
         eyebrow="ADMIN · USUÁRIOS"
         title="Usuários"
-        subtitle="Gestão de roles e status de ativação. Mudanças aqui têm efeito imediato."
+        subtitle="Gestão de papéis e status de ativação. Mudanças aqui têm efeito imediato."
       />
+
+      {/* === Busca e filtros === */}
+      <form
+        className={styles.filters}
+        onSubmit={applyFilters}
+        role="search"
+        aria-label="Buscar usuários"
+      >
+        <AdminInput
+          label="Buscar"
+          type="search"
+          placeholder="E-mail, nome ou empresa"
+          maxLength={120}
+          value={form.q}
+          onChange={(e) => setForm({ ...form, q: e.target.value })}
+          shellClassName={styles.filterSearch}
+        />
+        <AdminSelect
+          label="Papel"
+          value={form.role}
+          onChange={(e) => setForm({ ...form, role: e.target.value as UserFiltersForm["role"] })}
+        >
+          <option value="">Todos</option>
+          <option value="host">{roleLabel("host")}</option>
+          <option value="admin">{roleLabel("admin")}</option>
+          <option value="support">{roleLabel("support")}</option>
+        </AdminSelect>
+        <AdminSelect
+          label="Status"
+          value={form.ativo}
+          onChange={(e) => setForm({ ...form, ativo: e.target.value as UserFiltersForm["ativo"] })}
+        >
+          <option value="">Todos</option>
+          <option value="true">Ativos</option>
+          <option value="false">Inativos</option>
+        </AdminSelect>
+        <AdminInput
+          label="Plano"
+          placeholder="Ex.: profissional"
+          maxLength={64}
+          value={form.plan}
+          onChange={(e) => setForm({ ...form, plan: e.target.value })}
+        />
+        <AdminInput
+          label="Criado de"
+          type="date"
+          value={form.createdFrom}
+          max={form.createdTo || undefined}
+          onChange={(e) => setForm({ ...form, createdFrom: e.target.value })}
+        />
+        <AdminInput
+          label="Criado até"
+          type="date"
+          value={form.createdTo}
+          min={form.createdFrom || undefined}
+          onChange={(e) => setForm({ ...form, createdTo: e.target.value })}
+        />
+        <div className={styles.filterActions}>
+          <AdminButton type="submit" variant="primary" size="sm" disabled={loading}>
+            Filtrar
+          </AdminButton>
+          <AdminButton
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={clearFilters}
+            disabled={
+              loading ||
+              (!hasActiveFilters(applied) && !hasActiveFilters(filtersToQuery(form)))
+            }
+          >
+            Limpar
+          </AdminButton>
+        </div>
+      </form>
+      <p className={styles.resultCount} role="status">
+        {total === 1 ? "1 usuário" : `${total.toLocaleString("pt-BR")} usuários`}
+        {hasActiveFilters(applied) ? " com os filtros aplicados" : ""}
+      </p>
 
       {/* === Tabela === */}
       <AdminTable
@@ -236,10 +345,22 @@ export default function AdminUsersPage() {
         rows={users}
         rowKey={(r) => r.id}
         empty={
-          <AdminEmptyState
-            title="Nenhum usuário"
-            body="Nenhum usuário cadastrado ainda."
-          />
+          hasActiveFilters(applied) ? (
+            <AdminEmptyState
+              title="Nenhum usuário encontrado"
+              body="Nenhum usuário atende aos filtros aplicados. Ajuste ou limpe os filtros."
+              action={
+                <AdminButton variant="secondary" size="sm" onClick={clearFilters}>
+                  Limpar filtros
+                </AdminButton>
+              }
+            />
+          ) : (
+            <AdminEmptyState
+              title="Nenhum usuário"
+              body="Nenhum usuário cadastrado ainda."
+            />
+          )
         }
       />
 
@@ -254,7 +375,7 @@ export default function AdminUsersPage() {
           <AdminButton
             variant="ghost"
             size="sm"
-            onClick={() => load(Math.max(1, page - 1))}
+            onClick={() => load(Math.max(1, page - 1), applied)}
             disabled={page <= 1 || loading}
             leftIcon={<Icons.ArrowLeft size={11} />}
           >
@@ -263,7 +384,7 @@ export default function AdminUsersPage() {
           <AdminButton
             variant="ghost"
             size="sm"
-            onClick={() => load(Math.min(totalPages, page + 1))}
+            onClick={() => load(Math.min(totalPages, page + 1), applied)}
             disabled={page >= totalPages || loading}
             rightIcon={<Icons.ArrowRight size={11} />}
           >
@@ -272,15 +393,15 @@ export default function AdminUsersPage() {
         </div>
       </div>
 
-      {/* === Confirm role === */}
+      {/* === Confirmação de papel === */}
       <AdminConfirmDialog
         open={!!confirmRole}
         onClose={() => setConfirmRole(null)}
         onConfirm={applyRole}
-        title="Alterar role"
+        title="Alterar papel"
         body={
           confirmRole
-            ? `Mudar role de ${confirmRole.user.email || confirmRole.user.username} para "${confirmRole.role}"? A mudança tem efeito imediato.`
+            ? `Mudar o papel de ${confirmRole.user.email || confirmRole.user.username} para "${roleLabel(confirmRole.role)}"? A mudança tem efeito imediato.`
             : ""
         }
         confirmLabel="Alterar"
