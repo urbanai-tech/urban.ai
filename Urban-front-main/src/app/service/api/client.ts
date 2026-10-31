@@ -135,7 +135,8 @@ api.interceptors.response.use(
       // por quem chamou; redirecionar aqui recarregaria a página e apagaria o erro do login.
       if (!isAuthMeProbe && !shouldSkipRefresh(requestUrl) && !isPublicPath(pathname)) {
         const redirect = encodeURIComponent(pathname + window.location.search);
-        window.location.href = `/?next=${redirect}`;
+        // reason=session-expired só liga o aviso na tela de login (sem dados da sessão).
+        window.location.href = `/?next=${redirect}&reason=session-expired`;
       }
     }
 
