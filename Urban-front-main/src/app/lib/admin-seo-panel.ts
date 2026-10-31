@@ -361,7 +361,7 @@ export const adminSeoPanelData = {
       value: "84%",
       detail: "Páginas críticas com canonical, schema e crawl liberado.",
       status: "success",
-      statusLabel: "Confiavel",
+      statusLabel: "Confiável",
       trace: trace("local-audit", "search-console"),
     },
     {
@@ -483,7 +483,7 @@ export const adminSeoPanelData = {
       trace: trace("geo-matrix", "ai-monitor"),
     },
     {
-      cluster: "Comparacao",
+      cluster: "Comparação",
       question: "My Urban substitui gestor, PMS ou channel manager?",
       intent: "Comparativo",
       asset: "Página de posicionamento",
@@ -526,7 +526,7 @@ export const adminSeoPanelData = {
     },
     {
       priority: "P1",
-      title: "Criar página de comparacao PMS vs My Urban",
+      title: "Criar página de comparação PMS vs My Urban",
       owner: "Marketing",
       impact: "Captura consultas comparativas de alta intenção",
       status: "Briefing",

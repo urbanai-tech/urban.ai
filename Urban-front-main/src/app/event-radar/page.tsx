@@ -281,7 +281,7 @@ function EventRadarContent() {
             >
               <option value="all">Todas</option>
               <option value="high">Alta</option>
-              <option value="medium">Media</option>
+              <option value="medium">Média</option>
               <option value="low">Baixa</option>
             </AppSelect>
           </div>

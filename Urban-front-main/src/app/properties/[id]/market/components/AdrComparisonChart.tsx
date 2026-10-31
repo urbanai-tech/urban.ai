@@ -128,7 +128,7 @@ export function AdrComparisonChart({
       <div
         className={styles.emptyState}
       >
-        Sem dados diarios para o período selecionado.
+        Sem dados diários para o período selecionado.
       </div>
     );
   }

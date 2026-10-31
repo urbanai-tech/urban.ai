@@ -41,7 +41,7 @@ export function PercentileHero({
 
   return (
     <section
-      aria-label="Comparacao com o mercado"
+      aria-label="Comparação com o mercado"
       className={styles.heroSection}
     >
       <p className="urban-app-eyebrow">POSIÇÃO NO MERCADO · ÚLTIMOS 30 DIAS</p>

@@ -147,7 +147,7 @@ function MarketIntelContent() {
         <AppSectionHeader
           eyebrow="MERCADO · IMÓVEIS PARECIDOS"
           title="Como seu imóvel se compara"
-          subtitle="Comparacao com imóveis parecidos em até 3 km · atualizado a cada 24h"
+          subtitle="Comparação com imóveis parecidos em até 3 km · atualizado a cada 24h"
         />
         <div
           className={styles.loadingStack}
@@ -182,7 +182,7 @@ function MarketIntelContent() {
         <AppSectionHeader
           eyebrow="MERCADO · IMÓVEIS PARECIDOS"
           title="Como seu imóvel se compara"
-          subtitle="Comparacao com imóveis parecidos em até 3 km · atualizado a cada 24h"
+          subtitle="Comparação com imóveis parecidos em até 3 km · atualizado a cada 24h"
         />
         <AppEmptyState
           eyebrow="ALGO DEU ERRADO"
@@ -314,7 +314,7 @@ function MarketIntelContent() {
               <p
                 className={styles.sectionSubtitle}
               >
-                Linha solida e o seu imóvel · tracejada e a média dos {data.comparablesCount} imóveis parecidos.
+                Linha sólida é o seu imóvel · tracejada é a média dos {data.comparablesCount} imóveis parecidos.
               </p>
             </header>
             <AdrComparisonChart data={data.daily} />

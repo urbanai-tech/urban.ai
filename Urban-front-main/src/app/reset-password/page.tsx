@@ -81,7 +81,7 @@ export default function PasswordConfirmation() {
 
   const strength = useMemo(() => {
     if (satisfiedCount <= 3) return "Fraca";
-    if (satisfiedCount <= 5) return "Media";
+    if (satisfiedCount <= 5) return "Média";
     return "Forte";
   }, [satisfiedCount]);
 
@@ -265,7 +265,7 @@ function PasswordRulesPanel({
           className={`${styles.strengthLabel} ${
             strength === "Forte"
               ? styles.strengthStrong
-              : strength === "Media"
+              : strength === "Média"
                 ? styles.strengthMedium
                 : styles.strengthWeak
           }`}
