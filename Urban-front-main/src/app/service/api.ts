@@ -12,3 +12,4 @@ export * from "./api/admin";
 export * from "./api/event-coverage";
 export * from "./api/portfolio";
 export * from "./api/ask";
+export * from "./api/owners";

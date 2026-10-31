@@ -218,6 +218,7 @@ export type CommunicationPreferences = {
   marketing: boolean;
   staysAlerts: boolean;
   billingAlerts: boolean;
+  ownerReports: boolean;
   createdAt: string;
   updatedAt: string;
 };
@@ -232,6 +233,7 @@ export type UpdateCommunicationPreferencesPayload = Partial<
     | "marketing"
     | "staysAlerts"
     | "billingAlerts"
+    | "ownerReports"
   >
 >;
 

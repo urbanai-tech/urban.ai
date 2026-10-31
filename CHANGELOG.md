@@ -7,6 +7,24 @@ primeiro.
 
 ---
 
+## [Relatório do proprietário] — 2026-10-31 — Relatório mensal em link seguro, com envio opcional
+
+### Adicionado
+
+- **Proprietário por imóvel** (sem multi-conta) em `/proprietarios`: cadastro com **declaração de base legal do anfitrião**
+  (versão do texto, data e IP registrados), vínculo de imóveis e preferência de envio mensal. O anfitrião só vê e edita o que é dele.
+- **Relatório mensal** por proprietário: diária média, ocupação (só com calendário real), receita registrada, eventos do mês,
+  recomendações aplicadas e efeito confirmado, comparação com o mês anterior. **Sem resultado registrado, o relatório diz
+  "sem dado"**; nada é estimado. Lembrete ao anfitrião 2 dias antes do fim do mês para registrar resultados.
+- **Link seguro** (`/relatorio/<token>`): somente leitura, expira (padrão 30 dias), revogável, `noindex`, sem IDs internos,
+  com limite de requisições; versão para impressão/PDF por CSS.
+- **Envio mensal por e-mail** ao proprietário (job `owner-report-monthly`, primeiros dias úteis, idempotente por mês), com
+  descadastro de um clique. **Desligado por padrão** (`OWNER_REPORT_EMAIL_ENABLED`) até a revisão jurídica do texto.
+- **Export CSV do portfólio** (botão em `/portfolio`) com células neutralizadas contra fórmula de planilha.
+- Preferência `ownerReports` em Comunicações; migration reversível `1793720000000-CreateOwnerReports`; [ADR 0027](docs/adr/0027-relatorio-mensal-proprietario.md).
+
+---
+
 ## [Senha sem hash no cliente] — 2026-10-28 — Pass-the-hash fechado, migração sem reset
 
 ### Segurança

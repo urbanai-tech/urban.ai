@@ -18,6 +18,7 @@ export const NAV_ICONS = {
   portfolio: Icons.Briefcase,
   map: Icons.MapPin,
   earnings: Icons.Wallet,
+  owners: Icons.Users,
   plan: Icons.CreditCard,
   profile: Icons.User,
   integrations: Icons.Plug,

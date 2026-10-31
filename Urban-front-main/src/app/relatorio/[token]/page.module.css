@@ -1,0 +1,19 @@
+.loading {
+  margin: 0;
+  padding: 48px 0;
+  font-size: var(--text-sm);
+  color: var(--app-text-muted);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 16px;
+}
+
+/* Na impressão só o relatório: some o botão e o respiro do container. */
+@media print {
+  .actions {
+    display: none;
+  }
+}

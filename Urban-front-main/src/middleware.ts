@@ -75,6 +75,8 @@ const APP_ONLY_PREFIXES = [
   "/my-roi",
   "/portfolio",
   "/profile",
+  "/proprietarios",
+  "/relatorio",
   "/event-radar",
   "/events",
   "/forbidden",

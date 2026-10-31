@@ -43,6 +43,11 @@ const ITEMS: Array<{
     body: "Toda segunda: o que aconteceu com as suas recomendações na semana passada, os eventos relevantes das próximas semanas e o lembrete de registrar resultados.",
   },
   {
+    key: "ownerReports",
+    title: "Relatório mensal aos proprietários",
+    body: "Envia o relatório do mês aos proprietários que você cadastrou e avisa você no fim do mês para registrar resultados. Cada proprietário também pode se descadastrar.",
+  },
+  {
     key: "onboardingEmails",
     title: "Dicas de primeiros passos",
     body: "Série curta de e-mails nos primeiros dias para configurar seus imóveis e entender as sugestões.",

@@ -33,6 +33,8 @@ const PRIVATE_DISALLOW = [
   "/settings",
   "/my-roi",
   "/profile",
+  "/proprietarios",
+  "/relatorio",
   "/event-radar",
   "/events",
   "/forbidden",
