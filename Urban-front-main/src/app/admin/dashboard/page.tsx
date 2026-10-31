@@ -769,6 +769,10 @@ function MiniTimeline({
   buckets: Array<{ day: string; inScope: number; outOfScope: number }>;
 }) {
   const max = Math.max(...buckets.map((b) => b.inScope + b.outOfScope), 1);
+  // DS-20: sem nenhuma coleta no período, mostra o estado vazio em vez de um gráfico em branco.
+  if (!buckets.some((b) => b.inScope + b.outOfScope > 0)) {
+    return <p className={styles.timelineEmpty} role="status">Sem coletas nos últimos 30 dias.</p>;
+  }
   return (
     <div>
       <div

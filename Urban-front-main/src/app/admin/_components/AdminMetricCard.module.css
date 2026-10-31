@@ -14,6 +14,7 @@
 }
 
 .root.root {
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -34,6 +35,7 @@
 
 .value.value.value {
   color: var(--admin-text);
+  overflow-wrap: anywhere;
 }
 
 .valueSm.valueSm.valueSm {
