@@ -36,6 +36,7 @@ import {
   Icons,
 } from "../../componentes/ui";
 import styles from "./integrations.module.css";
+import { brlFromCents, pctSigned } from "../../lib/format";
 
 const STAYS_CONSENT_VERSION = "stays-connect-v1";
 
@@ -52,7 +53,7 @@ function tomorrowIso() {
 
 function formatCurrency(cents?: number | null) {
   if (typeof cents !== "number" || !Number.isFinite(cents)) return "sem preço";
-  return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(cents / 100);
+  return brlFromCents(cents);
 }
 
 /**
@@ -498,7 +499,7 @@ export default function IntegrationsPage() {
                   value={
                     previewResult.diffPercent == null
                       ? "sem preço anterior"
-                      : `${previewResult.diffPercent > 0 ? "+" : ""}${previewResult.diffPercent.toFixed(1)}%`
+                      : pctSigned(previewResult.diffPercent)
                   }
                 />
                 <PreviewStat

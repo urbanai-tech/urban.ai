@@ -24,6 +24,7 @@ import {
   Icons,
 } from "../_components";
 import styles from "./page.module.css";
+import { brl } from "../../lib/format";
 
 const DEFAULT_EMAIL = process.env.NEXT_PUBLIC_ADMIN_ALPHA_DEFAULT_EMAIL?.trim() ?? "";
 
@@ -506,10 +507,6 @@ function SmallStat({ label, value }: { label: string; value: string }) {
 function formatBRL(value: number | string | null | undefined) {
   const n = Number(value);
   if (!Number.isFinite(n)) return "R$ 0,00";
-  return new Intl.NumberFormat("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-    maximumFractionDigits: 2,
-  }).format(n);
+  return brl(n);
 }
 

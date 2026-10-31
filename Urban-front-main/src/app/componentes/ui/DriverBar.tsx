@@ -27,7 +27,7 @@ const DRIVER_DEFS: ReadonlyArray<{
 }> = [
   { key: "event", short: "Evento", color: "var(--app-accent)" },
   { key: "pace", short: "Ritmo", color: "var(--app-success)" },
-  { key: "compSet", short: "Comparacao", color: "var(--app-warning)" },
+  { key: "compSet", short: "Comparação", color: "var(--app-warning)" },
   { key: "seasonality", short: "Sazonalidade", color: "var(--app-text-muted)" },
 ];
 

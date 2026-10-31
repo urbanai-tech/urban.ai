@@ -29,6 +29,7 @@ import {
 } from "../_components";
 import type { AdminBadgeKind, AdminStatusKind } from "../_components";
 import styles from "./page.module.css";
+import { brl } from "../../lib/format";
 
 /**
  * /admin/pricing-config — gestão dos preços dos planos da Urban AI.
@@ -120,7 +121,7 @@ export default function PricingConfigPage() {
         <p
           className={styles.warningTitle}
         >
-          Atencao
+          Atenção
         </p>
         <p className={styles.warningBody}>
           Os <strong className={styles.emphasis}>Stripe Price IDs</strong>
@@ -460,12 +461,7 @@ function parseAdminMoney(value: string | undefined | null): number {
 }
 
 function formatAdminMoney(value: number) {
-  return value.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+  return brl(value);
 }
 
 function PreviewMetric({ label, value }: { label: string; value: string }) {

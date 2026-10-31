@@ -20,9 +20,9 @@ const content: Record<
   host: {
     eyebrow: "SUA OPERAÇÃO ESTÁ SEGURA",
     title: "Não conseguimos carregar esta área.",
-    body: "Os seus dados não foram alterados. Tente novamente ou retorne ao dashboard para continuar.",
+    body: "Os seus dados não foram alterados. Tente novamente ou retorne ao calendário para continuar.",
     homeHref: "/dashboard",
-    homeLabel: "Ir ao dashboard",
+    homeLabel: "Ir ao calendário",
   },
   admin: {
     eyebrow: "FALHA OPERACIONAL",

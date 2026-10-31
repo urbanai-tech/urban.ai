@@ -12,6 +12,7 @@ import {
   Icons,
 } from "../_components";
 import styles from "./page.module.css";
+import { decimal } from "../../lib/format";
 
 /**
  * /admin/funnel — funil de produto Urban AI.
@@ -218,7 +219,7 @@ function FunnelChart({ stages, max }: { stages: Stage[]; max: number }) {
             className={styles.stageLabels}
           >
             {stages.map((s, i) => {
-              const pctOfMax = ((s.value / max) * 100).toFixed(1);
+              const pctOfMax = decimal((s.value / max) * 100);
               return (
                 <div
                   key={s.key}
@@ -252,10 +253,10 @@ function FunnelChart({ stages, max }: { stages: Stage[]; max: number }) {
           {stages.map((s, i) => {
             const prev = i === 0 ? null : stages[i - 1];
             const drop = prev && prev.value > 0
-              ? ((1 - s.value / prev.value) * 100).toFixed(1)
+              ? decimal((1 - s.value / prev.value) * 100)
               : null;
             const advance = prev && prev.value > 0
-              ? ((s.value / prev.value) * 100).toFixed(1)
+              ? decimal((s.value / prev.value) * 100)
               : null;
             return (
               <li
@@ -329,7 +330,7 @@ function NextLeverage({ stages }: { stages: Stage[] }) {
         <strong className={styles.emphasisAccent}>
           {biggestDrop.lost.toLocaleString("pt-BR")}
         </strong>{" "}
-        usuários ({biggestDrop.percent.toFixed(1)}% de drop-off). Foque aqui
+        usuários ({decimal(biggestDrop.percent)}% de drop-off). Foque aqui
         para a próxima iteração de produto.
       </p>
       <div className={styles.leverageActions}>

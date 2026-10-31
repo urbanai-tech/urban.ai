@@ -21,6 +21,7 @@ import { trackEvent } from "../../../service/tracking";
 import { PercentileHero } from "./components/PercentileHero";
 import { AdrComparisonChart } from "./components/AdrComparisonChart";
 import styles from "./page.module.css";
+import { brlWhole } from "../../../lib/format";
 
 /**
  * /properties/:id/market — Market Intel dashboard (Gap 3 — Track 2, semana 5-6).
@@ -46,11 +47,7 @@ function isoOffset(daysAhead: number): string {
 }
 
 function formatBRL(value: number): string {
-  return value.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-    maximumFractionDigits: 0,
-  });
+  return brlWhole(value);
 }
 
 function formatPct(value: number): string {
@@ -150,7 +147,7 @@ function MarketIntelContent() {
         <AppSectionHeader
           eyebrow="MERCADO · IMÓVEIS PARECIDOS"
           title="Como seu imóvel se compara"
-          subtitle="Comparacao com imóveis parecidos em até 3 km · atualizado a cada 24h"
+          subtitle="Comparação com imóveis parecidos em até 3 km · atualizado a cada 24h"
         />
         <div
           className={styles.loadingStack}
@@ -185,7 +182,7 @@ function MarketIntelContent() {
         <AppSectionHeader
           eyebrow="MERCADO · IMÓVEIS PARECIDOS"
           title="Como seu imóvel se compara"
-          subtitle="Comparacao com imóveis parecidos em até 3 km · atualizado a cada 24h"
+          subtitle="Comparação com imóveis parecidos em até 3 km · atualizado a cada 24h"
         />
         <AppEmptyState
           eyebrow="ALGO DEU ERRADO"
@@ -317,7 +314,7 @@ function MarketIntelContent() {
               <p
                 className={styles.sectionSubtitle}
               >
-                Linha solida e o seu imóvel · tracejada e a média dos {data.comparablesCount} imóveis parecidos.
+                Linha sólida é o seu imóvel · tracejada é a média dos {data.comparablesCount} imóveis parecidos.
               </p>
             </header>
             <AdrComparisonChart data={data.daily} />

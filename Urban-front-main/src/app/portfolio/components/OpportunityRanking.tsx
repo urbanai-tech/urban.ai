@@ -9,6 +9,7 @@ import {
   Icons,
 } from "../../componentes/ui";
 import styles from "./OpportunityRanking.module.css";
+import { brlWhole } from "../../lib/format";
 
 export type PortfolioOpportunityRankingItem = {
   id: string;
@@ -29,11 +30,7 @@ export type PortfolioOpportunityRankingItem = {
 
 function formatCurrency(value: number | null | undefined): string {
   if (value == null || !Number.isFinite(value)) return "--";
-  return value.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-    maximumFractionDigits: 0,
-  });
+return brlWhole(value, "--");
 }
 
 function formatPercent(value: number | null | undefined): string {

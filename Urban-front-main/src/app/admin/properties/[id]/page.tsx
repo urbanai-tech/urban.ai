@@ -19,6 +19,7 @@ import {
 } from "../../_components";
 import type { AdminBadgeKind } from "../../_components";
 import styles from "./page.module.css";
+import { kmFromMeters, pctSigned } from "../../../lib/format";
 
 /**
  * /admin/properties/[id] — detalhe consolidado de um imóvel (gap I5 do roadmap).
@@ -468,8 +469,7 @@ function RecentAnalysesTable({ rows }: { rows: AnalysisRow[] }) {
         const d = Number(r.diferencaPercentual);
         return (
           <span className={`${styles.deltaValue} ${d >= 0 ? styles.deltaPositive : styles.deltaNegative}`}>
-            {d > 0 ? "+" : ""}
-            {d.toFixed(1)}%
+            {pctSigned(d)}
           </span>
         );
       },
@@ -553,7 +553,7 @@ function NearbyEventsTable({ rows }: { rows: EventRow[] }) {
       render: (e) =>
         e.distanciaMetros != null ? (
           <span className={styles.distanceCell}>
-            {(Number(e.distanciaMetros) / 1000).toFixed(1)} km
+            {kmFromMeters(Number(e.distanciaMetros))}
           </span>
         ) : (
           <span className={styles.emptyCell}>—</span>

@@ -124,7 +124,7 @@ export function AskUrbanDrawer({ open, onClose, restoreFocusTo }: Props) {
       const trimmed = text.trim();
       if (!trimmed || loading) return;
       if (hardCapReached) {
-        toast.warn("Limite diario atingido.", "Volte amanha para continuar.");
+        toast.warn("Limite diário atingido.", "Volte amanhã para continuar.");
         return;
       }
 
@@ -330,7 +330,7 @@ export function AskUrbanDrawer({ open, onClose, restoreFocusTo }: Props) {
               role="status"
               className={styles.limitNotice}
             >
-              Limite diario atingido. O contador reseta amanha.
+              Limite diário atingido. O contador reseta amanhã.
             </p>
           )}
           <div

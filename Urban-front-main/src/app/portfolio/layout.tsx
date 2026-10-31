@@ -1,8 +1,9 @@
-"use client";
-
 import "../app.css";
 import React from "react";
 import HostShell from "../componentes/HostShell";
+import { appMetadata } from "../lib/pageTitle";
+
+export const metadata = appMetadata("Portfólio");
 
 /**
  * Layout `/portfolio` (Gap 1 — Track 2 semana 3-4).

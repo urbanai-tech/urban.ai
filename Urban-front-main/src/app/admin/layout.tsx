@@ -4,9 +4,10 @@ import type { Metadata } from "next";
 import { AdminGate } from "./_components/AdminGate";
 import { AdminShell } from "./_components/AdminShell";
 import { AdminToastProvider } from "./_components/AdminToast";
+import { adminTitle } from "../lib/pageTitle";
 
 export const metadata: Metadata = {
-  title: "Admin - My Urban AI",
+  title: adminTitle(),
   robots: {
     index: false,
     follow: false,

@@ -193,7 +193,7 @@ export default function AdminCommunicationsPage() {
         {data && data.total > data.limit && (
           <div className={styles.pagination}>
             <p className={styles.paginationInfo}>
-              Pagina {page} de {totalPages} · {data.total.toLocaleString("pt-BR")} registros
+              Página {page} de {totalPages} · {data.total.toLocaleString("pt-BR")} registros
             </p>
             <div className={styles.paginationActions}>
               <AdminButton variant="secondary" disabled={page <= 1} onClick={() => load(page - 1)}>
@@ -227,7 +227,7 @@ function CommunicationRow({ event }: { event: CommunicationEvent }) {
 
         <div className={styles.eventBody}>
           <p className={styles.eventTitle}>
-            {event.subject || event.title || event.kind || "Comunicacao"}
+            {event.subject || event.title || event.kind || "Comunicação"}
           </p>
           <p className={styles.eventRecipient}>
             {target}

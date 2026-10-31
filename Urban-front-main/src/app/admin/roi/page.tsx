@@ -17,6 +17,7 @@ import {
 } from "../_components";
 import type { AdminBadgeKind } from "../_components";
 import styles from "./page.module.css";
+import { brlWhole, multiple, pct } from "../../lib/format";
 
 type RoiLeaderboardRow = AdminRoiOverview["leaderboard"][number];
 
@@ -60,12 +61,7 @@ export default function AdminRoiPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const fmt = (cents: number) =>
-    (cents / 100).toLocaleString("pt-BR", {
-      style: "currency",
-      currency: "BRL",
-      maximumFractionDigits: 0,
-    });
+  const fmt = (cents: number) => brlWhole(cents / 100);
 
   if (loading && !data) return <AdminPageLoading />;
 
@@ -136,12 +132,12 @@ export default function AdminRoiPage() {
           <p
             className={styles.roiMultiple}
           >
-            {row.money.roiMultiple ? `${row.money.roiMultiple.toFixed(1)}x` : "—"}
+            {row.money.roiMultiple ? multiple(row.money.roiMultiple) : "—"}
           </p>
           <p
             className={styles.cellSubtext}
           >
-            {row.money.roiPercent != null ? `${row.money.roiPercent.toFixed(0)}%` : ""}
+            {row.money.roiPercent != null ? pct(row.money.roiPercent, 0) : ""}
           </p>
         </div>
       ),
@@ -214,7 +210,7 @@ export default function AdminRoiPage() {
           className={styles.windowHeader}
         >
           <p className={`urban-admin-eyebrow ${styles.windowEyebrow}`}>
-            JANELA DE ANALISE
+            JANELA DE ANÁLISE
           </p>
           <SegmentedControl
             value={windowDays}
@@ -258,14 +254,14 @@ export default function AdminRoiPage() {
                 className={`urban-admin-display-md ${styles.roiAverageValue}`}
               >
                 {data.totals.roiMultiple
-                  ? `${data.totals.roiMultiple.toFixed(1)}x`
+                  ? multiple(data.totals.roiMultiple)
                   : "—"}
               </p>
               <p
                 className={styles.summaryCaption}
               >
                 {data.totals.roiPercent != null
-                  ? `${data.totals.roiPercent.toFixed(0)}% liquido`
+                  ? `${pct(data.totals.roiPercent, 0)} líquido`
                   : "sem custo"}
               </p>
             </div>

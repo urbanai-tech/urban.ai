@@ -24,7 +24,7 @@ export function SkipLink({ targetId = "main-content" }: { targetId?: string }) {
       onBlur={() => setFocused(false)}
       className={focused ? `${styles.skipLink} ${styles.skipLinkFocused}` : styles.skipLink}
     >
-      Pular para conteudo principal
+      Pular para conteúdo principal
     </a>
   );
 }

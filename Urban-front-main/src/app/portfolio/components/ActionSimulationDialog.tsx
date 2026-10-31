@@ -8,15 +8,12 @@ import type {
 } from "../../service/api";
 import type { PortfolioToolbarAction } from "./PortfolioToolbar";
 import styles from "./ActionSimulationDialog.module.css";
+import { brlWhole } from "../../lib/format";
 
 function formatCurrency(value: unknown): string {
   const num = typeof value === "number" ? value : null;
   if (num == null || !Number.isFinite(num)) return "--";
-  return num.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-    maximumFractionDigits: 0,
-  });
+return brlWhole(num, "--");
 }
 
 function moneyValue(value: unknown): number | null {

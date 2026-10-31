@@ -116,6 +116,26 @@ test.describe('Dashboard recommendations', () => {
     await expect(page.getByRole('button', { name: /Ignorar/i })).toBeVisible();
   });
 
+  test('sem sugestao valida mostra estado neutro e esconde o CTA primario (UX-14)', async ({ page }) => {
+    await acceptCookieConsent(page);
+    await mockProperties(page);
+    await page.route('**/propriedades/eventos-analisados-com-price**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ data: [{ ...recommendation, precoSugerido: '0', diferencaPercentual: '0' }] }),
+      });
+    });
+
+    await page.goto('/dashboard');
+
+    await expect(page.getByText('Expo Turismo SP')).toBeVisible();
+    await expect(page.getByText('Sem sugestão', { exact: true })).toBeVisible();
+    await expect(page.getByText(/Ainda n[aã]o h[aá] sugest[aã]o de pre[cç]o/i)).toBeVisible();
+    await expect(page.getByRole('button', { name: /Vou aplicar este pre/i })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: /Ignorar/i })).toBeVisible();
+  });
+
   test('dialog honesto: copia valor, confirma preco aplicado e nao promete automacao', async ({ page, context }) => {
     await context.grantPermissions(['clipboard-read', 'clipboard-write']).catch(() => undefined);
     await acceptCookieConsent(page);

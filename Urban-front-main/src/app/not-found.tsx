@@ -1,5 +1,9 @@
 import NextLink from "next/link";
+import type { Metadata } from "next";
 import styles from "./not-found.module.css";
+import { appTitle } from "./lib/pageTitle";
+
+export const metadata: Metadata = { title: appTitle("Página não encontrada") };
 
 /**
  * 404 — página não encontrada.

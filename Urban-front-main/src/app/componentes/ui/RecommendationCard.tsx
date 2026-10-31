@@ -21,6 +21,7 @@ import type {
   Scenario,
 } from "@/app/types/recommendation";
 import styles from "./RecommendationCard.module.css";
+import { brlWhole, km, pct, pctSigned } from "../../lib/format";
 
 /**
  * RecommendationCard — o objeto central da Urban AI.
@@ -80,12 +81,7 @@ export type RecommendationCardProps = {
 };
 
 function fmtBRL(value: number): string {
-  return value.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  });
+  return brlWhole(value);
 }
 
 function fmtDate(value: string): string {
@@ -106,13 +102,11 @@ function fmtDate(value: string): string {
 }
 
 function fmtPct(value: number, fractionDigits = 0): string {
-  const pct = value <= 1 ? value * 100 : value;
-  return `${pct.toFixed(fractionDigits)}%`;
+  return pct(value <= 1 ? value * 100 : value, fractionDigits);
 }
 
 function fmtSignedPct(value: number, fractionDigits = 1): string {
-  const sign = value > 0 ? "+" : "";
-  return `${sign}${value.toFixed(fractionDigits)}%`;
+  return pctSigned(value, fractionDigits);
 }
 
 const CONFIDENCE_LABEL: Record<RecommendationConfidence, string> = {
@@ -183,6 +177,11 @@ function parseReason(reason?: string): ParsedReason {
   };
 }
 
+/** Sem sugestão válida (ausente/zero): o card entra em estado neutro, sem CTA primário. */
+function hasSuggestedPrice(value: number): boolean {
+  return Number.isFinite(value) && value > 0;
+}
+
 function buildExplanation({
   currentPrice,
   suggestedPrice,
@@ -198,6 +197,13 @@ function buildExplanation({
   eventTitle: string;
   reason?: string;
 }): { lead: string; body: string; items: ExplanationItem[]; humanReason?: string } {
+  if (!hasSuggestedPrice(suggestedPrice)) {
+    return {
+      lead: "Ainda não há sugestão de preço para esta data.",
+      body: "O My Urban não tem dados suficientes para recomendar um valor com segurança. Nada precisa ser aplicado agora.",
+      items: [],
+    };
+  }
   const parsed = parseReason(reason);
   const isIncrease = deltaAbs > 0.5;
   const isDecrease = deltaAbs < -0.5;
@@ -265,7 +271,7 @@ function buildExplanation({
   ) {
     items.push({
       label: "Segurança",
-      value: `-${parsed.guardrailDownPct.toFixed(0)}% / +${parsed.guardrailUpPct.toFixed(0)}%`,
+      value: `-${pct(parsed.guardrailDownPct, 0)} / +${pct(parsed.guardrailUpPct, 0)}`,
       detail: "Limite que evita queda ou alta agressiva demais.",
     });
   }
@@ -468,9 +474,11 @@ export function RecommendationCard({
 }: RecommendationCardProps) {
   const deltaAbs = suggestedPrice - currentPrice;
   const deltaPct = currentPrice > 0 ? (deltaAbs / currentPrice) * 100 : 0;
-  const deltaSign = deltaAbs > 0 ? "+" : "";
-  const deltaLabel = `${deltaSign}${deltaPct.toFixed(1)}%`;
+  const deltaLabel = pctSigned(deltaPct, 1);
   const DeltaIcon = deltaAbs < 0 ? TrendingDown : TrendingUp;
+  const missingSuggestion = !hasSuggestedPrice(suggestedPrice);
+  // Sem ganho (sem sugestão ou igual ao preço atual): nada a aplicar enquanto pendente.
+  const noGain = missingSuggestion || Math.abs(deltaAbs) <= 0.5;
 
   const isApplied = status === "applied";
   const isAccepted = status === "accepted";
@@ -519,18 +527,22 @@ export function RecommendationCard({
         <p className={`urban-app-eyebrow-muted ${styles.priceEyebrow}`}>
           Sugestão da IA
         </p>
-        <p className="urban-app-display-md urban-rec__price-value">{fmtBRL(suggestedPrice)}</p>
+        <p className="urban-app-display-md urban-rec__price-value">
+          {missingSuggestion ? "Sem sugestão" : fmtBRL(suggestedPrice)}
+        </p>
         <p className="urban-rec__current">
           preço atual: <strong>{fmtBRL(currentPrice)}</strong> / diária
         </p>
       </div>
-      <div className="urban-rec__delta" data-direction={deltaDirection}>
-        <span className="urban-rec__delta-pct">
-          <DeltaIcon size={12} />
-          {deltaLabel}
-        </span>
-        <span className="urban-rec__delta-abs">{deltaAbsLabel} por noite</span>
-      </div>
+      {missingSuggestion ? null : (
+        <div className="urban-rec__delta" data-direction={deltaDirection}>
+          <span className="urban-rec__delta-pct">
+            <DeltaIcon size={12} />
+            {deltaLabel}
+          </span>
+          <span className="urban-rec__delta-abs">{deltaAbsLabel} por noite</span>
+        </div>
+      )}
     </div>
   );
 
@@ -555,7 +567,7 @@ export function RecommendationCard({
               {typeof distanceKm === "number" && (
                 <span>
                   {" · "}
-                  {distanceKm.toFixed(1)} km
+                  {km(distanceKm)}
                 </span>
               )}
             </span>
@@ -599,7 +611,7 @@ export function RecommendationCard({
               {secondaryLabel}
             </AppButton>
           )}
-          {onPrimary && !isApplied && (
+          {onPrimary && !isApplied && !(noGain && status === "pending") && (
             <AppButton
               variant="primary"
               size={compact ? "sm" : "md"}

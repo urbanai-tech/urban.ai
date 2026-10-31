@@ -18,6 +18,7 @@ import {
 } from "../_components";
 import type { AdminBadgeKind, AdminStatusKind } from "../_components";
 import styles from "./page.module.css";
+import { brlFromCents } from "../../lib/format";
 
 type PushRow = AdminStaysHealth["recent"][number];
 
@@ -121,7 +122,7 @@ export default function AdminStaysPage() {
       width: 110,
       render: (p) => (
         <span className={styles.pushPreviousPrice}>
-          R$ {(p.previousPriceCents / 100).toFixed(2)}
+          {brlFromCents(p.previousPriceCents)}
         </span>
       ),
     },
@@ -132,7 +133,7 @@ export default function AdminStaysPage() {
       width: 110,
       render: (p) => (
         <span className={styles.pushPriceCell}>
-          R$ {(p.newPriceCents / 100).toFixed(2)}
+          {brlFromCents(p.newPriceCents)}
         </span>
       ),
     },

@@ -30,6 +30,7 @@ import {
   type AdminTableColumn,
 } from "../../_components";
 import styles from "./page.module.css";
+import { decimal } from "../../../lib/format";
 
 type StatusFilter = EventDedupCandidateStatus | "all";
 type ConfidenceFilter = EventDedupConfidenceBand | "all";
@@ -454,7 +455,7 @@ function SignalCell({ candidate }: { candidate: EventDedupCandidate }) {
             key={label}
             className={styles.signalItem}
           >
-            {label}:{typeof value === "number" ? value.toFixed(2) : "-"}
+            {label}:{typeof value === "number" ? decimal(value, 2) : "-"}
           </span>
         ))}
       </div>

@@ -36,6 +36,7 @@ import { PortfolioCockpit, type PortfolioCockpitMetrics } from "./components/Por
 import { PortfolioToolbar, type PortfolioToolbarAction } from "./components/PortfolioToolbar";
 import { usePortfolioKeyboard } from "./usePortfolioKeyboard";
 import styles from "./page.module.css";
+import { brlWhole } from "../lib/format";
 
 const STRATEGY_OPTIONS: ReadonlyArray<{ id: string; label: string }> = [
   { id: "todas", label: "Todos os modos" },
@@ -954,11 +955,7 @@ function formatLongDate(value: string): string {
 }
 
 function formatCurrency(value: number): string {
-  return value.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-    maximumFractionDigits: 0,
-  });
+  return brlWhole(value);
 }
 
 function DateRangeField({

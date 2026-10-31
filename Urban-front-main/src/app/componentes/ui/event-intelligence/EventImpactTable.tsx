@@ -14,6 +14,7 @@ import {
   formatPercent,
 } from "./formatters";
 import styles from "./EventImpactTable.module.css";
+import { km } from "../../../lib/format";
 
 export function EventImpactTable({
   impacts,
@@ -66,7 +67,7 @@ export function EventImpactTable({
                   </AppBadge>
                 </div>
               </Cell>
-              <Cell>{impact.distanceKm !== null ? `${impact.distanceKm.toFixed(1).replace(".", ",")} km` : "-"}</Cell>
+              <Cell>{impact.distanceKm !== null ? km(impact.distanceKm) : "-"}</Cell>
               <Cell>{impact.propertyCaptureScore ?? "-"}</Cell>
               <Cell>{formatCurrencyFromCents(impact.currentPriceCents)}</Cell>
               <Cell>{formatPriceRange(impact.minAbsorbablePriceCents, impact.maxAbsorbablePriceCents)}</Cell>
@@ -175,7 +176,7 @@ function ImpactMobileCard({
               {confidenceLabel(impact.confidence)}
             </AppBadge>
             {impact.distanceKm !== null && (
-              <AppBadge kind="neutral">{impact.distanceKm.toFixed(1).replace(".", ",")} km</AppBadge>
+              <AppBadge kind="neutral">{km(impact.distanceKm)}</AppBadge>
             )}
           </div>
         </div>

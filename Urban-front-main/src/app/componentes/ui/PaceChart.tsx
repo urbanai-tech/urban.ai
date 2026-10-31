@@ -109,11 +109,12 @@ export function PaceChart({
     });
   }, [data, innerHeight, innerWidth]);
 
-  // X-axis ticks esparsos (~a cada 7 dias, máx 8 labels)
+  // X-axis ticks esparsos (máx ~6 labels). Não força o último ponto: ele
+  // encostava no tick anterior (DS-19: "25/dez 28/dez").
   const xTicks = useMemo(() => {
     if (points.length === 0) return [];
-    const stride = Math.max(1, Math.ceil(points.length / 8));
-    return points.filter((_, i) => i % stride === 0 || i === points.length - 1);
+    const stride = Math.max(1, Math.ceil(points.length / 6));
+    return points.filter((_, i) => i % stride === 0);
   }, [points]);
 
   // Y-axis ticks: 0, 25, 50, 75, 100

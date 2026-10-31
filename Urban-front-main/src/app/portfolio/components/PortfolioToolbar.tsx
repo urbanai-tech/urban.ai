@@ -144,7 +144,7 @@ export function PortfolioToolbar({
                   type="button"
                   onClick={onClearSelection}
                   disabled={loading}
-                  aria-label="Limpar selecao"
+                  aria-label="Limpar seleção"
                   className={`urban-focus-ring ${styles.clearButton}`}
                 >
                   limpar

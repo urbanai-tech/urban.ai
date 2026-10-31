@@ -5,6 +5,7 @@ import { parseLocalDate } from "@/app/lib/date";
 import type { MarketIntelDailyPoint } from "../../../../service/api";
 import { visuallyHiddenStyle } from "../../../../componentes/ui/styles";
 import styles from "./AdrComparisonChart.module.css";
+import { brlCompact, brlWhole } from "../../../../lib/format";
 
 /**
  * <AdrComparisonChart> — SVG inline 2 séries (sua ADR vs mediana comp set).
@@ -12,7 +13,7 @@ import styles from "./AdrComparisonChart.module.css";
  *  - Linha sólida accent: yourAdr
  *  - Linha tracejada muted: medianAdr
  *  - Hover capture via overlay invisível → tooltip flutuante
- *  - Eixo Y em R$ k (0.2k, 0.3k)
+ *  - Eixo Y em R$ ("R$ 240", "R$ 1,2 mil")
  *  - Eixo X com 5 ticks (dia 1, 8, 15, 22, 29 quando há 30 pontos)
  *
  * Memoizado quando `data` não muda (props comparison superficial via JSX —
@@ -23,24 +24,19 @@ export interface AdrComparisonChartProps {
   height?: number;
 }
 
-const PADDING_LEFT = 52;
+const PADDING_LEFT = 62;
 const PADDING_RIGHT = 24;
 const PADDING_TOP = 28;
 const PADDING_BOTTOM = 32;
 const VIEWBOX_WIDTH = 800;
 
 function formatBRL(value: number): string {
-  return value.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-    maximumFractionDigits: 0,
-  });
+  return brlWhole(value);
 }
 
 function formatAxisK(value: number): string {
-  // Ex: 240 → "R$ 0,2k" — eixo Y compacto
-  const k = value / 1000;
-  return `R$ ${k.toFixed(1).replace(".", ",")}k`;
+  // Eixo Y compacto: 240 → "R$ 240", 1200 → "R$ 1,2 mil"
+  return brlCompact(value);
 }
 
 function formatDateLong(iso: string): string {
@@ -119,12 +115,11 @@ export function AdrComparisonChart({
     if (geometry.points.length === 0) return [];
     const n = geometry.points.length;
     const stride = Math.max(1, Math.floor((n - 1) / 4));
-    const indices = new Set<number>();
-    for (let i = 0; i < n; i += stride) indices.add(i);
-    indices.add(n - 1);
-    return Array.from(indices)
-      .sort((a, b) => a - b)
-      .map((i) => geometry.points[i]);
+    const indices: number[] = [];
+    for (let i = 0; i < n; i += stride) indices.push(i);
+    // O último ponto só entra se couber sem encostar no tick anterior (DS-19: "29 30").
+    if (n - 1 - indices[indices.length - 1] >= stride * 0.6) indices.push(n - 1);
+    return indices.map((i) => geometry.points[i]);
   }, [geometry.points]);
 
   if (!data || data.length === 0) {
@@ -132,7 +127,7 @@ export function AdrComparisonChart({
       <div
         className={styles.emptyState}
       >
-        Sem dados diarios para o período selecionado.
+        Sem dados diários para o período selecionado.
       </div>
     );
   }

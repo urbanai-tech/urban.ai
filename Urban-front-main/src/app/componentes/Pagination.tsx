@@ -31,7 +31,7 @@ export function Pagination({
         </button>
 
         <p className={styles.paginationLabel} style={{ color: "#374151" }}>
-          Pagina {paginaAtual} de {totalPaginas}
+          Página {paginaAtual} de {totalPaginas}
         </p>
 
         <button

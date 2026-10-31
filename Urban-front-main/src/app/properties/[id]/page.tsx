@@ -61,6 +61,7 @@ import {
   type HostBaselineDraft,
 } from "../../lib/hostBaseline";
 import pageStyles from "./page.module.css";
+import { brlWhole } from "../../lib/format";
 
 type SuggestionItem = {
   id?: string;
@@ -126,11 +127,7 @@ function parseMoney(value: string): number | null {
 
 function formatMoney(value: number | null | undefined): string {
   if (value === null || value === undefined || !Number.isFinite(value)) return "-";
-  return value.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-    maximumFractionDigits: 0,
-  });
+  return brlWhole(value);
 }
 
 function formatCents(value: number | null | undefined): string {
@@ -785,9 +782,9 @@ function PropertyDetailContent() {
                 <div>
                   <strong>{formatDateTime(item.createdAt)}</strong>
                   <span>
-                    Diária {formatMoney(item.previousManualDailyPrice)} -&gt; {formatMoney(item.newManualDailyPrice)}
+                    Diária {formatMoney(item.previousManualDailyPrice)} → {formatMoney(item.newManualDailyPrice)}
                     {" | "}
-                    Mês {formatMoney(item.previousAverageMonthlyRevenue)} -&gt; {formatMoney(item.newAverageMonthlyRevenue)}
+                    Mês {formatMoney(item.previousAverageMonthlyRevenue)} → {formatMoney(item.newAverageMonthlyRevenue)}
                   </span>
                 </div>
               </div>

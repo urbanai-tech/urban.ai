@@ -1,7 +1,8 @@
-"use client";
-
 import "../app.css";
 import AuthGuard from "../context/AuthGuard";
+import { appMetadata } from "../lib/pageTitle";
+
+export const metadata = appMetadata("Planos");
 
 /**
  * /plans — checkout pos-login segue o tema (claro/escuro) com os tokens da marca.

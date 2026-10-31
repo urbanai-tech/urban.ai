@@ -147,7 +147,7 @@ export default function AdminJobsPage() {
     },
     {
       key: "startedAt",
-      header: "Inicio",
+      header: "Início",
       width: 180,
       render: (r) => (
         <span className={styles.startedAtCell}>
@@ -370,7 +370,7 @@ export default function AdminJobsPage() {
             <p
               className={styles.lastRunMeta}
             >
-              Inicio {new Date(result.startedAt).toLocaleString("pt-BR")} — fim{" "}
+              Início {new Date(result.startedAt).toLocaleString("pt-BR")} — fim{" "}
               {result.finishedAt
                 ? new Date(result.finishedAt).toLocaleString("pt-BR")
                 : "em andamento"}

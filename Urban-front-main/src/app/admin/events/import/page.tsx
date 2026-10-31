@@ -17,6 +17,7 @@ import {
   Icons,
 } from "../../_components";
 import styles from "./page.module.css";
+import { decimal } from "../../../lib/format";
 
 /**
  * /admin/events/import — Camada 3 (F6.2 Plus): import semestral em CSV.
@@ -275,7 +276,7 @@ export default function ImportarCsvEventos() {
                   <strong className={styles.emphasis}>
                     {file.name}
                   </strong>{" "}
-                  · {(file.size / 1024).toFixed(1)} KB
+                  · {decimal(file.size / 1024)} KB
                 </span>
               )}
             </div>

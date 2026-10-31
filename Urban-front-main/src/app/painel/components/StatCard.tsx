@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { getPropertyData } from '@/app/service/api';
+import { brlWhole, pctSigned } from '../../lib/format';
 
 type MetricStripProps = {
   propertyId: string | undefined;
@@ -9,8 +10,7 @@ type MetricStripProps = {
 
 type PropertyData = Awaited<ReturnType<typeof getPropertyData>>;
 
-const formatCurrency = (value: number) =>
-  value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
+const formatCurrency = (value: number) => brlWhole(value);
 
 /**
  * Faixa compacta de métricas do Hoje (chips). Antes eram 4 cards altos no topo
@@ -58,7 +58,7 @@ export default function MetricStrip({ propertyId }: MetricStripProps) {
       id: 'lift',
       label: `a mais aceito em ${month}`,
       value: value((d) =>
-        `${formatCurrency(d.lucroProjetadoGeradoPeloUrban ?? 0)}${typeof pct === 'number' && pct > 0 ? ` (+${pct.toFixed(0)}%)` : ''}`,
+        `${formatCurrency(d.lucroProjetadoGeradoPeloUrban ?? 0)}${typeof pct === 'number' && pct > 0 ? ` (${pctSigned(pct, 0)})` : ''}`,
       ),
       help: 'Diferença entre o seu preço e as sugestões que você aceitou neste mês.',
     },

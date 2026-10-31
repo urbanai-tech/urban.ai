@@ -3,6 +3,7 @@
 import React from "react";
 import { TrendingUp, TrendingDown } from "../../../../componentes/ui/Icons";
 import styles from "./PercentileHero.module.css";
+import { brlWhole } from "../../../../lib/format";
 
 /**
  * <PercentileHero> — Archivo (display) gigante "PERCENTIL X" + subtitle contextual
@@ -20,11 +21,7 @@ export interface PercentileHeroProps {
 }
 
 function formatBRL(value: number): string {
-  return value.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-    maximumFractionDigits: 0,
-  });
+  return brlWhole(value);
 }
 
 export function PercentileHero({
@@ -44,7 +41,7 @@ export function PercentileHero({
 
   return (
     <section
-      aria-label="Comparacao com o mercado"
+      aria-label="Comparação com o mercado"
       className={styles.heroSection}
     >
       <p className="urban-app-eyebrow">POSIÇÃO NO MERCADO · ÚLTIMOS 30 DIAS</p>

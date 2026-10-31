@@ -16,6 +16,7 @@ import {
 } from '../service/api';
 import { describeBasePriceReadiness } from '../lib/pricingInputs';
 import styles from "./AddPropertyModal.module.css";
+import { brl } from "../lib/format";
 
 export interface Property {
   id: number;
@@ -607,7 +608,7 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
                     <p className={styles.pendingFallbackMessage} style={{ color: "#9A3412" }}>
                       {property.fallbackMessage}
                       {property.provisionalDailyPrice
-                        ? ` Valor encontrado: R$ ${property.provisionalDailyPrice.toFixed(2)} (${property.sourceLabel ?? "fonte não informada"}).`
+                        ? ` Valor encontrado: ${brl(property.provisionalDailyPrice)} (${property.sourceLabel ?? "fonte não informada"}).`
                         : ` Fonte: ${property.sourceLabel ?? "fonte não informada"}.`}
                     </p>
                   </div>

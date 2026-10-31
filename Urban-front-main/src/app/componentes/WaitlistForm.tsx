@@ -155,7 +155,7 @@ export function WaitlistForm({
         {result && (
           <p className={styles.successPosition}>
             Sua posição na fila: #{result.position}. Guarde seu link de
-            indicacao quando ele aparecer no e-mail de confirmacao.
+            indicacao quando ele aparecer no e-mail de confirmação.
           </p>
         )}
       </div>
