@@ -37,7 +37,7 @@ const DEFAULT_TARGET_30D = 100;
 const DEFAULT_MIN_GEOCODED_PCT = 80;
 
 export type EventCoverageStatus = 'ok' | 'at_risk' | 'insufficient';
-export type EventCoverageSourceHealth = 'healthy' | 'stale' | 'zero_yield' | 'unmonitored';
+export type EventCoverageSourceHealth = 'healthy' | 'stale' | 'zero_yield' | 'never_delivered' | 'unmonitored';
 
 export interface EventCoverageConfig {
   target30d: number;
@@ -51,6 +51,8 @@ export interface EventCoverageSource {
   hoursSinceLastIngest: number | null;
   windowHours: number;
   health: EventCoverageSourceHealth;
+  /** Só em `never_delivered`: há quantos dias a fonte é esperada sem ter entregado nada. */
+  daysWaiting?: number;
 }
 
 export interface EventCoverageReason {
@@ -62,6 +64,7 @@ export interface EventCoverageReason {
     | 'dedup_pending'
     | 'source_stale'
     | 'source_zero_yield'
+    | 'source_never_delivered'
     | 'no_sources';
   severity: 'critical' | 'warning' | 'info';
   message: string;
@@ -175,6 +178,35 @@ export function buildSourceReport(
   return out.sort((a, b) => b.events30d - a.events30d || a.source.localeCompare(b.source));
 }
 
+/** Acrescenta ao relatório as fontes configuradas que nunca entregaram (lógica pura). */
+export function appendNeverDelivered(
+  sources: EventCoverageSource[],
+  findings: Array<{ source: string; daysWaiting: number }>,
+  zeroYieldConfig: ZeroYieldConfig,
+): EventCoverageSource[] {
+  const out = sources.map((s) => ({ ...s }));
+  for (const f of findings) {
+    const existing = out.find((s) => s.source === f.source);
+    if (existing) {
+      if (existing.events30d === 0 && existing.lastIngestAt === null) {
+        existing.health = 'never_delivered';
+        existing.daysWaiting = f.daysWaiting;
+      }
+      continue;
+    }
+    out.push({
+      source: f.source,
+      events30d: 0,
+      lastIngestAt: null,
+      hoursSinceLastIngest: null,
+      windowHours: zeroYieldConfig.sourceWindowHours[f.source] ?? zeroYieldConfig.windowHours,
+      health: 'never_delivered',
+      daysWaiting: f.daysWaiting,
+    });
+  }
+  return out.sort((a, b) => b.events30d - a.events30d || a.source.localeCompare(b.source));
+}
+
 export interface CoverageInputs {
   counts: { next7d: number; next30d: number; next90d: number };
   geocoded30d: number;
@@ -250,6 +282,13 @@ export function evaluateCoverage(
         source: s.source,
         message: `${s.source}: normalmente ativa, sem itens há ${s.hoursSinceLastIngest ?? '?'}h.`,
       });
+    } else if (s.health === 'never_delivered') {
+      reasons.push({
+        code: 'source_never_delivered',
+        severity: 'warning',
+        source: s.source,
+        message: `${s.source}: configurada há ${s.daysWaiting ?? '?'} dias e nunca entregou eventos.`,
+      });
     } else if (s.health === 'stale') {
       reasons.push({
         code: 'source_stale',
@@ -297,7 +336,7 @@ export class EventCoverageReportService {
     const w = coverageWindows(now);
 
     // Consultas independentes, todas agregadas no banco (sem N+1).
-    const [countsRow, histogramRows, sourceRows, activity, dedupRows, regions] = await Promise.all([
+    const [countsRow, histogramRows, sourceRows, activity, dedupRows, regions, neverDelivered] = await Promise.all([
       this.baseQuery(w.start, w.ends[90])
         .select('SUM(CASE WHEN e.dataInicio <= :e7 THEN 1 ELSE 0 END)', 'next7d')
         .addSelect('SUM(CASE WHEN e.dataInicio <= :e30 THEN 1 ELSE 0 END)', 'next30d')
@@ -331,6 +370,11 @@ export class EventCoverageReportService {
         .groupBy('c.confidenceBand')
         .getRawMany(),
       this.regionRepo.find({ where: [{ status: 'active' }, { status: 'bootstrap' }], order: { name: 'ASC' } }),
+      // Fonte nova que nunca entregou: leitura sem efeito colateral; falha aqui nunca derruba o relatório.
+      Promise.resolve()
+        .then(() => this.zeroYield.currentNeverDelivered(now, { persist: false }))
+        .then((r) => r.findings)
+        .catch(() => [] as Array<{ source: string; daysWaiting: number }>),
     ]);
 
     const n = (v: unknown) => Number(v ?? 0) || 0;
@@ -349,7 +393,11 @@ export class EventCoverageReportService {
       high: dedupBands.filter((r) => r.band === 'high').reduce((s, r) => s + n(r.count), 0),
     };
 
-    const sources = buildSourceReport(sourceRows as SourceEventRow[], activity, zeroYieldConfig, now);
+    const sources = appendNeverDelivered(
+      buildSourceReport(sourceRows as SourceEventRow[], activity, zeroYieldConfig, now),
+      neverDelivered,
+      zeroYieldConfig,
+    );
     const geocoded30d = n(countsRow?.geocoded30d);
     const withCategory30d = n(countsRow?.withCategory30d);
     const verdict = evaluateCoverage({ counts, geocoded30d, withCategory30d, dedupPending, sources }, config);

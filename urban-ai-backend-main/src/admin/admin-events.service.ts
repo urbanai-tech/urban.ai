@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { addDaysToDateKey, saoPauloDayBounds, saoPauloDaySql, todaySaoPauloDateKey } from '../common/sp-date';
 import { Repository } from 'typeorm';
 import { CollectorZeroYieldService, ZeroYieldFinding } from '../evento/collector-zero-yield.service';
+import { KNOWN_EVENT_COLLECTORS } from '../evento/collector-registry';
 import { Event as EventEntity } from '../entities/events.entity';
 import { clampInt } from '../common/clamp-int';
 
@@ -377,47 +378,8 @@ export class AdminEventsService {
       .orderBy('total', 'DESC')
       .getRawMany();
 
-    const knownCollectors: Array<{
-      source: string;
-      critical: boolean;
-      requiredEnv: string[];
-      aliases?: string[];
-    }> = [
-      {
-        source: 'api-football',
-        critical: false,
-        requiredEnv: ['API_FOOTBALL_KEY'],
-      },
-      { source: 'sp-cultura', critical: false, requiredEnv: [] },
-      { source: 'usp-eventos', critical: false, requiredEnv: [] },
-      { source: 'marcha-para-jesus', critical: false, requiredEnv: [] },
-      { source: 'allianz-parque', critical: false, requiredEnv: [] },
-      { source: 'anhembi', critical: false, requiredEnv: [] },
-      { source: 'sao-paulo-expo', critical: false, requiredEnv: [] },
-      { source: 'expo-center-norte', critical: false, requiredEnv: [] },
-      { source: 'transamerica-expo', critical: false, requiredEnv: [] },
-      { source: 'vibra-sao-paulo', critical: false, requiredEnv: [] },
-      { source: 'tokio-marine-hall', critical: false, requiredEnv: [] },
-      { source: 'espaco-unimed', critical: false, requiredEnv: [] },
-      { source: 'wtc-sao-paulo', critical: false, requiredEnv: [] },
-      {
-        source: 'serpapi-events',
-        critical: false,
-        requiredEnv: ['SERPAPI_KEY'],
-        aliases: ['serpapi_events'],
-      },
-      {
-        source: 'tavily',
-        critical: false,
-        requiredEnv: ['TAVILY_API_KEY', 'GEMINI_API_KEY'],
-      },
-      {
-        source: 'firecrawl',
-        critical: false,
-        requiredEnv: ['FIRECRAWL_API_KEY', 'GEMINI_API_KEY'],
-      },
-      { source: 'legacy-scrapyd-spiders', critical: false, requiredEnv: [] },
-    ];
+    // Registro compartilhado com o alerta "fonte configurada que nunca entregou" (evento/collector-registry.ts).
+    const knownCollectors = KNOWN_EVENT_COLLECTORS;
 
     const sources: any[] = rows.map((r: any) => {
       const rawSource = String(r.source ?? '(sem source)');

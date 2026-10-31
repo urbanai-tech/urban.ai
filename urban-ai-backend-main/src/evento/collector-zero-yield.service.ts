@@ -7,6 +7,15 @@ import { Event } from '../entities/events.entity';
 import { EventSource } from '../entities/event-source.entity';
 import { MailerService } from '../mailer/mailer.service';
 import { ScheduledJobRunnerService, runScheduledJob } from '../admin-job-runs/scheduled-job-runner.service';
+import { CollectorAlertStateService } from './collector-alert-state.service';
+import { KnownEventCollector, configuredCollectors } from './collector-registry';
+import {
+  NeverDeliveredConfig,
+  NeverDeliveredFinding,
+  evaluateNeverDelivered,
+  readNeverDeliveredConfig,
+  selectDueAlerts,
+} from './collector-never-delivered';
 
 /**
  * D2 — detecção de "sucesso silencioso" de fonte de eventos, do lado do BACKEND.
@@ -32,7 +41,10 @@ import { ScheduledJobRunnerService, runScheduledJob } from '../admin-job-runs/sc
  *   COLLECTOR_ZERO_YIELD_MIN_BASELINE_ITEMS default 5
  *   COLLECTOR_ZERO_YIELD_IGNORE_SOURCES     default "admin-*,marcha-para-jesus" (lista, sufixo * = prefixo)
  *   COLLECTOR_ZERO_YIELD_SOURCE_WINDOWS     default ""   ("fonte:horas,fonte:horas" — janela própria por fonte)
- *   COLLECTOR_ZERO_YIELD_REALERT_HOURS      default 24   (reenvio do mesmo alerta)
+ *   COLLECTOR_ZERO_YIELD_REALERT_HOURS      default 24   (reenvio do mesmo alerta; o estado fica em
+ *                                                         `collector_alert_state` e sobrevive a deploy)
+ *   COLLECTOR_NEVER_DELIVERED_ENABLED       default true (fonte configurada que nunca entregou)
+ *   COLLECTOR_NEVER_DELIVERED_DAYS          default 7    (dias de espera desde que a fonte passou a ser esperada)
  */
 
 export interface ZeroYieldConfig {
@@ -147,14 +159,20 @@ export function evaluateZeroYield(
 @Injectable()
 export class CollectorZeroYieldService {
   private readonly logger = new Logger(CollectorZeroYieldService.name);
-  /** source -> último alerta enviado (evita repetir a cada execução do cron). */
+  /**
+   * Fallback em memória (source -> último alerta) quando não há `CollectorAlertStateService`
+   * (testes unitários antigos, módulo sem a tabela). Em produção o estado vem do banco.
+   */
   private readonly lastAlertAt = new Map<string, number>();
+  private readonly lastNeverAlertAt = new Map<string, number>();
+  private readonly memoryExpectedSince = new Map<string, Date>();
 
   constructor(
     @InjectRepository(EventSource) private readonly eventSourceRepo: Repository<EventSource>,
     @InjectRepository(Event) private readonly eventRepo: Repository<Event>,
     @Optional() private readonly mailer?: MailerService,
     @Optional() private readonly scheduledJobRunner?: ScheduledJobRunnerService,
+    @Optional() private readonly alertState?: CollectorAlertStateService,
   ) {}
 
   @Cron('30 */6 * * *', {
@@ -242,14 +260,17 @@ export class CollectorZeroYieldService {
 
     const findings = evaluateZeroYield(activity, config, now);
     const active = new Set(findings.map((f) => f.source));
-    for (const source of [...this.lastAlertAt.keys()]) {
-      if (!active.has(source)) this.lastAlertAt.delete(source); // voltou a enviar: rearma o alerta
+
+    // Estado de realerta: persistido (sobrevive a deploy) ou, sem a tabela, em memória.
+    const lastAlerts = this.alertState ? await this.alertState.lastAlerts('zero_yield') : new Map(this.lastAlertAt);
+    const rearm = [...lastAlerts.keys()].filter((source) => !active.has(source)); // voltou a enviar: rearma o alerta
+    if (this.alertState) await this.alertState.clear('zero_yield', rearm);
+    for (const source of rearm) {
+      this.lastAlertAt.delete(source);
+      lastAlerts.delete(source);
     }
 
-    const due = findings.filter((f) => {
-      const last = this.lastAlertAt.get(f.source);
-      return last === undefined || now.getTime() - last >= config.realertHours * 3_600_000;
-    });
+    const due = selectDueAlerts(findings, lastAlerts, config.realertHours, now);
 
     if (due.length > 0) {
       this.logger.error(
@@ -264,11 +285,124 @@ export class CollectorZeroYieldService {
       });
       await this.notifyAdmin(due);
       for (const f of due) this.lastAlertAt.set(f.source, now.getTime());
+      if (this.alertState) await this.alertState.markAlerted('zero_yield', due.map((f) => f.source), now);
     } else {
       this.logger.log(`Zero-yield OK — ${activity.length} fontes, ${findings.length} em silêncio já alertadas.`);
     }
 
+    await this.checkNeverDelivered(config, now);
+
     return { checked: activity.length, alerts: findings };
+  }
+
+  // ---------------------------------------------------------------------------------------------
+  // Fonte configurada que nunca entregou (zero-yield de fonte nova)
+  // ---------------------------------------------------------------------------------------------
+
+  /** Fontes que já entregaram algum evento (de qualquer época), entre as `collectors` esperadas. */
+  private async deliveredSources(collectors: KnownEventCollector[]): Promise<Set<string>> {
+    const names = new Set<string>();
+    for (const c of collectors) {
+      names.add(c.source);
+      names.add(c.source.replace(/-/g, '_'));
+      for (const alias of c.aliases ?? []) names.add(alias);
+    }
+    if (names.size === 0) return new Set();
+    const rows = await this.eventRepo
+      .createQueryBuilder('e')
+      .select('e.source', 'source')
+      .where('e.source IN (:...names)', { names: [...names] })
+      .groupBy('e.source')
+      .getRawMany();
+    return new Set(rows.map((r: any) => normalizeSourceName(String(r.source ?? ''))).filter(Boolean));
+  }
+
+  /**
+   * Achados "configurada e nunca entregou". `persist: false` (painel) não inicia a contagem de
+   * espera: só o cron grava `firstExpectedAt`.
+   */
+  async currentNeverDelivered(
+    now: Date = new Date(),
+    options: { persist?: boolean } = {},
+  ): Promise<{ config: NeverDeliveredConfig; findings: NeverDeliveredFinding[] }> {
+    const config = readNeverDeliveredConfig();
+    if (!config.enabled) return { config, findings: [] };
+    const collectors = configuredCollectors();
+    const names = collectors.map((c) => normalizeSourceName(c.source));
+
+    let since: Map<string, Date>;
+    if (this.alertState) {
+      since =
+        options.persist === false
+          ? await this.alertState.readExpected(names)
+          : await this.alertState.syncExpected(names, now);
+    } else {
+      if (options.persist !== false) {
+        for (const name of names) if (!this.memoryExpectedSince.has(name)) this.memoryExpectedSince.set(name, now);
+      }
+      since = new Map(names.filter((n) => this.memoryExpectedSince.has(n)).map((n) => [n, this.memoryExpectedSince.get(n) as Date]));
+    }
+
+    const delivered = await this.deliveredSources(collectors);
+    const expected = names.filter((n) => since.has(n)).map((n) => ({ source: n, firstExpectedAt: since.get(n) as Date }));
+    return {
+      config,
+      findings: evaluateNeverDelivered(expected, delivered, readZeroYieldConfig().ignoreSources, config, now),
+    };
+  }
+
+  private async checkNeverDelivered(zeroYieldConfig: ZeroYieldConfig, now: Date): Promise<void> {
+    try {
+      const { findings } = await this.currentNeverDelivered(now);
+      const active = new Set(findings.map((f) => f.source));
+      const lastAlerts = this.alertState
+        ? await this.alertState.lastAlerts('never_delivered')
+        : new Map(this.lastNeverAlertAt);
+      const rearm = [...lastAlerts.keys()].filter((source) => !active.has(source));
+      if (this.alertState) await this.alertState.clear('never_delivered', rearm);
+      for (const source of rearm) {
+        this.lastNeverAlertAt.delete(source);
+        lastAlerts.delete(source);
+      }
+
+      const due = selectDueAlerts(findings, lastAlerts, zeroYieldConfig.realertHours, now);
+      if (due.length === 0) return;
+
+      this.logger.error(
+        `Fontes de eventos configuradas que NUNCA entregaram: ${due.map((f) => `${f.source} (${f.daysWaiting} d)`).join(', ')}`,
+      );
+      Sentry.captureMessage('Fonte de eventos configurada nunca entregou', {
+        level: 'error',
+        tags: { component: 'collector-never-delivered' },
+        extra: { alerts: due },
+      });
+      await this.notifyNeverDelivered(due);
+      for (const f of due) this.lastNeverAlertAt.set(f.source, now.getTime());
+      if (this.alertState) await this.alertState.markAlerted('never_delivered', due.map((f) => f.source), now);
+    } catch (error: any) {
+      this.logger.warn(`Verificação de fonte que nunca entregou falhou: ${error?.message}`);
+    }
+  }
+
+  private async notifyNeverDelivered(findings: NeverDeliveredFinding[]): Promise<void> {
+    const to = process.env.ADMIN_ALERT_EMAIL?.trim() || process.env.OPS_ALERT_EMAIL?.trim();
+    if (!to || !this.mailer) return;
+    const body = [
+      'Fontes de eventos configuradas que nunca entregaram nenhum evento (provável coletor não agendado, chave ou seletor errado):',
+      '',
+      ...findings.map((f) => `- ${f.source}: esperada há ${f.daysWaiting} dias, nenhum evento recebido`),
+      '',
+      'Veja /admin/event-coverage e docs/runbooks/coletores-zero-yield.md.',
+    ].join('\n');
+    try {
+      await this.mailer.sendTextEmailCron(
+        { email: to, name: 'My Urban Admin' },
+        `My Urban — fonte de eventos nunca entregou (${findings.map((f) => f.source).join(', ')})`.slice(0, 200),
+        body,
+      );
+    } catch (error: any) {
+      this.logger.warn(`Falha ao enviar e-mail de fonte que nunca entregou: ${error?.message}`);
+    }
   }
 
   private async notifyAdmin(findings: ZeroYieldFinding[]): Promise<void> {
