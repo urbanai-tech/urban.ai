@@ -47,6 +47,7 @@ import { RolesGuard } from './auth/roles.guard';
 import { HealthModule } from './health/health.module';
 import { PushModule } from './push/push.module';
 import { HostPanelsModule } from './host-panels/host-panels.module';
+import { OwnerReportModule } from './owner-report/owner-report.module';
 import { AdminJobRunsModule } from './admin-job-runs/admin-job-runs.module';
 import { RedisLockModule } from './common/redis-lock';
 import { SubscriptionModule } from './subscription/subscription.module';
@@ -189,6 +190,7 @@ const dbTimezoneOption = process.env.DB_TIMEZONE?.trim() ? { timezone: process.e
     CommunicationsModule,
     HealthModule,
     HostPanelsModule,
+    OwnerReportModule,
   ],
   controllers: [
     ProcessoController, AppController],

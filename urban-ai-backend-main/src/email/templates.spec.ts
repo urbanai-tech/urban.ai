@@ -168,3 +168,67 @@ describe('EmailTemplates - escape de HTML em valores controlados pelo usuário',
     expect(html).not.toContain('"><script>');
   });
 });
+
+describe('EmailTemplates - relatório do proprietário (ADR 0027)', () => {
+  const evil = '<script>alert(1)</script>"\'';
+
+  it('e-mail ao proprietário: link, validade, descadastro e aviso; tudo escapado', () => {
+    const html = EmailTemplates.getOwnerMonthlyReportTemplate({
+      ownerName: evil,
+      preparedBy: evil,
+      periodLabel: 'outubro de 2026',
+      reportUrl: 'https://app.myurbanai.com/relatorio/abc.def',
+      expiresLabel: '03/12/2026',
+      summaryLines: ['2 imóveis no relatório.', evil],
+      unsubscribeUrl: 'https://api.myurbanai.com/owner-reports/unsubscribe?token=x"><script>',
+      notice: evil,
+    });
+    expect(html).toContain('Relatório de outubro de 2026');
+    expect(html).toContain('https://app.myurbanai.com/relatorio/abc.def');
+    expect(html).toContain('03/12/2026');
+    expect(html).toContain('Deixar de receber estes relatórios');
+    expect(html).toContain('sem dado');
+    expect(html).not.toContain('<script>');
+    expect(html).not.toContain('"><script>');
+    expect(html).not.toContain('undefined');
+  });
+
+  it('e-mail ao proprietário sem nome do anfitrião usa texto neutro', () => {
+    const html = EmailTemplates.getOwnerMonthlyReportTemplate({
+      ownerName: 'Maria Souza',
+      preparedBy: null,
+      periodLabel: 'outubro de 2026',
+      reportUrl: 'https://x.test/r',
+      expiresLabel: '03/12/2026',
+      summaryLines: [],
+      unsubscribeUrl: 'https://x.test/u',
+      notice: 'aviso',
+    });
+    expect(html).toContain('O responsável pela administração dos seus imóveis compartilhou');
+    expect(html).toContain('Olá, <b>Maria</b>');
+  });
+
+  it('lembrete ao anfitrião: singular/plural e links escapados', () => {
+    const one = EmailTemplates.getOwnerReportReminderTemplate({
+      nome: 'Ana Host',
+      pendingTotal: 1,
+      ownerCount: 1,
+      resultsUrl: 'https://app/painel',
+      ownersUrl: 'https://app/proprietarios',
+      settingsUrl: 'https://app/settings',
+    });
+    expect(one).toContain('1 preço aplicado ainda sem resultado registrado');
+    expect(one).toContain('1 proprietário recebe');
+    const many = EmailTemplates.getOwnerReportReminderTemplate({
+      nome: evil,
+      pendingTotal: 4,
+      ownerCount: 2,
+      resultsUrl: 'https://app/painel?a="><script>',
+      ownersUrl: 'https://app/proprietarios',
+      settingsUrl: 'https://app/settings',
+    });
+    expect(many).toContain('4 preços aplicados ainda sem resultado registrado');
+    expect(many).toContain('2 proprietários recebem');
+    expect(many).not.toContain('<script>');
+  });
+});

@@ -5,7 +5,14 @@ import { CommunicationLogService } from 'src/communications/communication-log.se
 import { buildListUnsubscribeHeaders, UnsubscribeCategory } from 'src/communication-preferences/unsubscribe-token';
 
 /** Só e-mails NÃO transacionais passam `unsubscribe`; reset, confirmação e cobrança nunca. */
-export type NonTransactionalMailOptions = { unsubscribe?: { userId: string; category: UnsubscribeCategory } };
+export type NonTransactionalMailOptions = {
+  unsubscribe?: { userId: string; category: UnsubscribeCategory };
+  /**
+   * Cabeçalhos extras prontos (ex.: List-Unsubscribe de um destinatário que NÃO é usuário,
+   * como o proprietário do relatório mensal). `unsubscribe` tem precedência.
+   */
+  headers?: Record<string, string>;
+};
 
 @Injectable()
 export class MailerService {
@@ -57,7 +64,7 @@ export class MailerService {
   ) {
     const headers = options?.unsubscribe
       ? buildListUnsubscribeHeaders(options.unsubscribe.userId, options.unsubscribe.category) ?? undefined
-      : undefined;
+      : options?.headers;
     return this.sendBrevoEmail({ to, subject, htmlContent: html, type: 'HTML', headers });
   }
 
