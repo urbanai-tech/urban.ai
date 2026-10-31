@@ -15,7 +15,15 @@ import { deriveCategory } from './feature-engineering.service';
  * aspas duplas escapadas). Necessário porque o listings.csv do Inside Airbnb
  * tem descrições/amenities com vírgulas e newlines dentro de aspas.
  */
-export function parseCsv(text: string): string[][] {
+/** Teto do texto aceito pelo parser (o upload já limita a 25 MB; o listings.csv completo de SP cabe). */
+export const CSV_PARSE_MAX_CHARS = 200 * 1024 * 1024;
+
+export function parseCsv(input: string): string[][] {
+  // Entrada vem de upload/arquivo externo: garante string real e tamanho limitado
+  // antes de usar o comprimento como limite do laço.
+  if (typeof input !== 'string') throw new TypeError('parseCsv: entrada precisa ser texto');
+  if (input.length > CSV_PARSE_MAX_CHARS) throw new RangeError('parseCsv: arquivo grande demais');
+  const text: string = input;
   const rows: string[][] = [];
   let row: string[] = [];
   let cell = '';
