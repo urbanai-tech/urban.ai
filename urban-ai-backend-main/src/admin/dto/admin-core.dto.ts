@@ -148,3 +148,32 @@ export class SetUserActiveDto {
   @IsBoolean()
   ativo!: boolean;
 }
+
+/** Query de GET /admin/users: paginação + busca/filtros opcionais (todos em AND). */
+export class ListAdminUsersQueryDto {
+  @IsOptional() @Transform(safeNumber) @IsInt() @Min(1) @Max(100_000)
+  page?: number;
+
+  @IsOptional() @Transform(safeNumber) @IsInt() @Min(1) @Max(100)
+  limit?: number;
+
+  /** Busca por substring em e-mail, nome ou empresa. */
+  @IsOptional() @IsString() @MaxLength(120)
+  q?: string;
+
+  @IsOptional() @IsIn(['host', 'admin', 'support'])
+  role?: 'host' | 'admin' | 'support';
+
+  @IsOptional() @Transform(safeBoolean) @IsBoolean()
+  ativo?: boolean;
+
+  /** Nome do plano da assinatura (ex.: profissional, alpha, trial). */
+  @IsOptional() @IsString() @Matches(/^[\w .-]{1,64}$/)
+  plan?: string;
+
+  @IsOptional() @IsString() @Matches(DATE_ONLY)
+  createdFrom?: string;
+
+  @IsOptional() @IsString() @Matches(DATE_ONLY)
+  createdTo?: string;
+}
