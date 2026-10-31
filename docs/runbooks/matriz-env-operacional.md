@@ -195,3 +195,16 @@ O backup off-site está **falhando** hoje por credenciais inválidas no provedor
 - Ao adicionar variável no código, atualizar esta matriz e o `.env.example` do serviço no mesmo PR.
 - Para Track 3, rodar `npm run preflight:track3` em `urban-ai-backend-main` antes de smoke manual.
 - Checklist histórico de integrações em staging: [`integracoes-outcomes-calibracao.md`](./integracoes-outcomes-calibracao.md).
+
+## Cobertura de eventos auditada (ADR 0026)
+
+| Variável | Padrão | Efeito |
+| --- | --- | --- |
+| `TAVILY_API_KEY`, `SERPAPI_KEY`, `FIRECRAWL_API_KEY`, `GEMINI_API_KEY` | vazio | fontes e extração da curadoria; sem elas tudo vira candidato na fila humana |
+| `ANTHROPIC_API_KEY` / `EVENT_REFERENCE_JUDGE_MODEL` | vazio / `claude-sonnet-5-5` | juiz independente (nunca aprova sozinho) |
+| `EVENT_REFERENCE_CURATION_ENABLED` | auto | cron diário da curadoria |
+| `EVENT_REFERENCE_VENUES_FILE` | semente | lista de venues em JSON |
+| `EVENT_REFERENCE_MAX_SEARCH_CALLS/SCRAPE/LLM/JUDGE` | 30/12/60/20 | teto de chamadas por execução |
+| `EVENT_COVERAGE_METRICS_ENABLED` | true | casamento + snapshot diário |
+| `EVENT_COVERAGE_RECALL_FLOOR_PCT` | 70 | alerta de recall (0 desliga) |
+| `EVENT_COVERAGE_ALERT_MIN_SAMPLE` / `EVENT_COVERAGE_PUBLIC_MIN_SAMPLE` | 20 / 10 | amostra mínima para alertar / publicar |

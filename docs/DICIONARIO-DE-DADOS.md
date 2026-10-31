@@ -51,9 +51,9 @@ Categorias presentes no schema (detalhe coluna a coluna na seção gerada "Colun
 
 ## Resumo
 
-- Tabelas (entidades TypeORM): **50**
-- Colunas: **798**
-- Chaves estrangeiras: **77**
+- Tabelas (entidades TypeORM): **54**
+- Colunas: **856**
+- Chaves estrangeiras: **78**
 - Tabela de controle de migrations (`migrations`) não é entidade e não consta aqui.
 
 ## Tabelas por domínio
@@ -63,7 +63,7 @@ Categorias presentes no schema (detalhe coluna a coluna na seção gerada "Colun
 | Usuários e autenticação | `user`, `refresh_tokens`, `password_reset_tokens`, `email_confirmations` |
 | Assinatura e Stripe | `plans`, `payment` |
 | Imóveis, anúncios e Stays | `list`, `addresses`, `stays_accounts`, `stays_listings`, `pricing_input_history`, `portfolio_property_settings`, `portfolio_action_runs`, `portfolio_action_items`, `portfolio_daily_price_overrides`, `airbnb_pricing_attempt_logs` |
-| Eventos, ingestão e deduplicação | `events`, `event_sources`, `event_dedup_candidates`, `event_historical_multiplier`, `coverage_regions`, `external_listing`, `process_status` |
+| Eventos, ingestão e deduplicação | `events`, `event_sources`, `event_dedup_candidates`, `event_historical_multiplier`, `coverage_regions`, `external_listing`, `process_status`, `event_reference`, `event_reference_votes`, `event_coverage_snapshots`, `event_reference_fetch_cache` |
 | Precificação e análises | `analise_preco`, `analise_endereco_evento`, `pricing_rule_configs`, `pricing_decision_snapshots`, `price_updates`, `price_snapshots`, `occupancy_history`, `event_intelligence_snapshots`, `event_property_impacts`, `event_proximity_features`, `ask_urban_messages` |
 | Notificações e comunicação | `notifications`, `push_subscriptions`, `push_deliveries`, `event_alert_dispatches`, `communication_events`, `user_communication_preferences`, `pricing_recommendation_digests` |
 | Proprietários e relatório mensal | `property_owners`, `property_owner_properties`, `owner_reports`, `owner_report_links` |
@@ -522,6 +522,33 @@ Relações:
 - `IDX_event_alert_dispatches_user_day`: `user_id`, `sent_on`
 - `UQ_event_alert_dispatches_user_event` (UNIQUE): `user_id`, `event_id`
 
+### `event_coverage_snapshots`
+
+- Entidade: `EventCoverageSnapshot` (`src/entities/event-coverage-snapshot.entity.ts`)
+- Domínio: Eventos, ingestão e deduplicação
+- Descrição: Série histórica diária de recall e precisão (ADR 0026), uma linha por (dia, janela, dimensão, valor). `past30` = referências aprovadas dos últimos 30 dias já realizados (recall "de verdade"); `next90` = as dos próximos 90 dias (antecipação) e é onde fica a precisão da amostra de eventos do banco. Idempotente por dia: reexecutar reescreve.
+
+| Coluna | Propriedade | Tipo | Nulo | Padrão | Chaves | Observação |
+| --- | --- | --- | --- | --- | --- | --- |
+| `id` | `id` | varchar(36) | não |  | PK, uuid auto |  |
+| `snapshotDate` | `snapshotDate` | varchar(10) | não |  | UNIQUE (composto), IDX | Dia (São Paulo) da medição. |
+| `scope` | `scope` | varchar(12) | não |  | UNIQUE (composto) |  |
+| `dimension` | `dimension` | varchar(12) | não |  | UNIQUE (composto) |  |
+| `dimensionValue` | `dimensionValue` | varchar(120) | não | all | UNIQUE (composto) |  |
+| `referenceTotal` | `referenceTotal` | int | não | 0 |  |  |
+| `referenceMatched` | `referenceMatched` | int | não | 0 |  |  |
+| `recallPct` | `recallPct` | decimal(5,2) | sim |  |  |  |
+| `precisionSample` | `precisionSample` | int | sim |  |  |  |
+| `precisionConfirmed` | `precisionConfirmed` | int | sim |  |  |  |
+| `precisionRefuted` | `precisionRefuted` | int | sim |  |  |  |
+| `precisionPct` | `precisionPct` | decimal(5,2) | sim |  |  |  |
+| `createdAt` | `createdAt` | datetime | não | CURRENT_TIMESTAMP(6) |  |  |
+
+Índices e unicidades:
+
+- `IDX_event_coverage_snapshots_date`: `snapshotDate`
+- `UQ_event_coverage_snapshots_key` (UNIQUE): `snapshotDate`, `scope`, `dimension`, `dimensionValue`
+
 ### `event_dedup_candidates`
 
 - Entidade: `EventDedupCandidate` (`src/entities/event-dedup-candidate.entity.ts`)
@@ -724,6 +751,101 @@ Relações:
 
 - `IDX_ec0824770c9e2c1bd5498c155e`: `snapshotDate`
 - `IDX_f0c57d6f17d71db49de192d720` (UNIQUE): `list_id`, `snapshotDate`
+
+### `event_reference`
+
+- Entidade: `EventReference` (`src/entities/event-reference.entity.ts`)
+- Domínio: Eventos, ingestão e deduplicação
+- Descrição: Lista de referência ("verdade de campo") dos eventos de SP: o que deveria estar no radar. Alimentada por CSV do admin e pela curadoria por agentes (ADR 0026). Só `aprovado` entra nas métricas de recall; `conflito` e `candidato` esperam revisão humana. `fingerprint` (nome normalizado + dia + venue) impede duplicar a mesma referência.
+
+| Coluna | Propriedade | Tipo | Nulo | Padrão | Chaves | Observação |
+| --- | --- | --- | --- | --- | --- | --- |
+| `id` | `id` | varchar(36) | não |  | PK, uuid auto |  |
+| `name` | `name` | varchar(255) | não |  |  |  |
+| `normalizedName` | `normalizedName` | varchar(255) | não |  |  |  |
+| `venueKey` | `venueKey` | varchar(64) | sim |  | IDX | Chave do venue na configuração de curadoria (ex.: `allianz-parque`); null para venue fora da lista. |
+| `venueName` | `venueName` | varchar(160) | não |  |  |  |
+| `normalizedVenue` | `normalizedVenue` | varchar(255) | não |  |  |  |
+| `startsAt` | `startsAt` | datetime | não |  |  |  |
+| `dateKey` | `dateKey` | varchar(10) | não |  | IDX | Dia do evento no calendário de São Paulo (`YYYY-MM-DD`). |
+| `city` | `city` | varchar(80) | não | São Paulo |  |  |
+| `category` | `category` | varchar(64) | sim |  |  |  |
+| `size` | `size` | varchar(16) | não | medio |  |  |
+| `status` | `status` | varchar(16) | não | candidato | IDX |  |
+| `origin` | `origin` | varchar(16) | não | curadoria |  |  |
+| `fingerprint` | `fingerprint` | varchar(64) | não |  | UNIQUE |  |
+| `evidenceUrls` | `evidenceUrls` | text | sim |  |  | URLs das evidências (as mesmas dos votos), para auditoria rápida na lista. |
+| `votesSupport` | `votesSupport` | int | não | 0 |  |  |
+| `votesAgainst` | `votesAgainst` | int | não | 0 |  |  |
+| `approvedBy` | `approvedBy` | varchar(64) | sim |  |  | `auto-consenso` (agentes) ou o id do usuário admin que decidiu. |
+| `approvedAt` | `approvedAt` | datetime | sim |  |  |  |
+| `decisionNote` | `decisionNote` | varchar(500) | sim |  |  |  |
+| `conflictReason` | `conflictReason` | varchar(255) | sim |  |  |  |
+| `matchedEventId` | `matchedEventId` | varchar(36) | sim |  |  | Casamento com `events` (job diário). |
+| `matchScore` | `matchScore` | decimal(5,4) | sim |  |  |  |
+| `matchedAt` | `matchedAt` | datetime | sim |  |  |  |
+| `lastMatchCheckAt` | `lastMatchCheckAt` | datetime | sim |  |  |  |
+| `createdAt` | `createdAt` | datetime | não | CURRENT_TIMESTAMP(6) |  |  |
+| `updatedAt` | `updatedAt` | datetime | não | CURRENT_TIMESTAMP(6) |  |  |
+
+Índices e unicidades:
+
+- `IDX_event_reference_date`: `dateKey`
+- `IDX_event_reference_status`: `status`
+- `IDX_event_reference_venue_date`: `venueKey`, `dateKey`
+- `UQ_event_reference_fingerprint` (UNIQUE): `fingerprint`
+
+### `event_reference_fetch_cache`
+
+- Entidade: `EventReferenceFetchCache` (`src/entities/event-reference-fetch-cache.entity.ts`)
+- Domínio: Eventos, ingestão e deduplicação
+- Descrição: Cache por URL/consulta e dia da curadoria (teto de custo, ADR 0026): guarda o resultado já EXTRAÍDO (lista de candidatos em JSON), não o conteúdo da página. Entradas com mais de poucos dias são removidas a cada execução.
+
+| Coluna | Propriedade | Tipo | Nulo | Padrão | Chaves | Observação |
+| --- | --- | --- | --- | --- | --- | --- |
+| `id` | `id` | varchar(36) | não |  | PK, uuid auto |  |
+| `cacheKey` | `cacheKey` | varchar(64) | não |  | UNIQUE | sha1(provedor \| url-ou-consulta \| dia). |
+| `day` | `day` | varchar(10) | não |  | IDX |  |
+| `provider` | `provider` | varchar(16) | não |  |  |  |
+| `payload` | `payload` | text | não |  |  |  |
+| `createdAt` | `createdAt` | datetime | não | CURRENT_TIMESTAMP(6) |  |  |
+
+Índices e unicidades:
+
+- `IDX_event_reference_fetch_cache_day`: `day`
+- `UQ_event_reference_fetch_cache_key` (UNIQUE): `cacheKey`
+
+### `event_reference_votes`
+
+- Entidade: `EventReferenceVote` (`src/entities/event-reference-vote.entity.ts`)
+- Domínio: Eventos, ingestão e deduplicação
+- Descrição: Voto de um validador sobre uma referência. `validatorKey` é a chave de independência (`web:dominio`, `db:fonte` ou `judge:modelo`): dois votos com a mesma chave valem como um só. O trecho (`snippet`) e a URL ficam gravados para auditoria; nada de dado pessoal.
+
+| Coluna | Propriedade | Tipo | Nulo | Padrão | Chaves | Observação |
+| --- | --- | --- | --- | --- | --- | --- |
+| `id` | `id` | varchar(36) | não |  | PK, uuid auto |  |
+| `referenceId` | `referenceId` | varchar(36) | não |  | UNIQUE (composto), IDX, FK |  |
+| `validatorKey` | `validatorKey` | varchar(160) | não |  | UNIQUE (composto) |  |
+| `validatorKind` | `validatorKind` | varchar(16) | não |  |  |  |
+| `verdict` | `verdict` | varchar(16) | não |  |  |  |
+| `sourceUrl` | `sourceUrl` | text | sim |  |  |  |
+| `extractor` | `extractor` | varchar(16) | não | none |  |  |
+| `observedName` | `observedName` | varchar(255) | sim |  |  |  |
+| `observedDate` | `observedDate` | varchar(10) | sim |  |  |  |
+| `observedVenue` | `observedVenue` | varchar(160) | sim |  |  |  |
+| `snippet` | `snippet` | varchar(500) | sim |  |  |  |
+| `createdAt` | `createdAt` | datetime | não | CURRENT_TIMESTAMP(6) |  |  |
+
+Relações:
+
+| Tipo | Propriedade | Alvo | Coluna(s) FK | onDelete | onUpdate |
+| --- | --- | --- | --- | --- | --- |
+| many-to-one | `reference` | `event_reference` | referenceId | CASCADE | NO ACTION |
+
+Índices e unicidades:
+
+- `IDX_event_reference_votes_ref`: `referenceId`
+- `UQ_event_reference_votes_ref_validator` (UNIQUE): `referenceId`, `validatorKey`
 
 ### `event_sources`
 

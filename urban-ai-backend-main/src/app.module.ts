@@ -8,6 +8,7 @@ import { ProcessoModule } from './processos/processo.module';
 import { ProcessoController } from './processos/processo.controller';
 import { PropriedadeModule } from './propriedades/propriedade.module';
 import { EventoModule } from './evento/evento.module';
+import { EventReferenceModule } from './event-reference/event-reference.module';
 import { EmailModule } from './email/email.module';
 import { ProcessModule } from './process/process.module';
 import { Module } from '@nestjs/common';
@@ -118,6 +119,7 @@ const dbTimezoneOption = process.env.DB_TIMEZONE?.trim() ? { timezone: process.e
     }),
     PropriedadeModule,
     EventoModule,
+    EventReferenceModule,
     EmailModule,
     ProcessModule,
     PaymentsModule,
