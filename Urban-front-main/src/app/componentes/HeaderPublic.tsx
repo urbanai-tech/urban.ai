@@ -4,6 +4,7 @@ import NextLink from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { ArrowRight, Menu, X } from "lucide-react";
 import { PUBLIC_LOGIN_URL, PUBLIC_SIGNUP_URL } from "./PublicMarketing";
+import { BrandLogo } from "./ui/BrandLogo";
 
 const NAV = [
   { label: "Produto", href: "/#produto" },
@@ -40,8 +41,8 @@ export default function HeaderPublic() {
   return (
     <header className="public-header">
       <div className="public-header__inner">
-        <NextLink href="/" className="public-wordmark" aria-label="My Urban — página inicial">
-          <span>URBAN</span><i>AI</i>
+        <NextLink href="/" className="public-wordmark">
+          <BrandLogo variant="wordmark" priority />
         </NextLink>
 
         <nav className="public-header__nav" aria-label="Navegação principal">

@@ -1,5 +1,6 @@
 import NextLink from "next/link";
 import type { ReactNode } from "react";
+import { BrandLogo } from "./ui/BrandLogo";
 import {
   ArrowRight,
   Building2,
@@ -76,8 +77,7 @@ export function ProductPreview({ compact = false }: { compact?: boolean }) {
     >
       <div className="product-preview__chrome">
         <div className="product-preview__brand">
-          <span className="product-preview__mark">U</span>
-          <span>MY URBAN</span>
+          <BrandLogo variant="wordmark" />
         </div>
         <span className="product-preview__status"><i /> Exemplo ilustrativo</span>
       </div>

@@ -103,22 +103,31 @@ html.has-environment-banner body {
 }
 
 .public-wordmark {
+  --brand-logo-height: 26px;
   display: inline-flex;
-  align-items: baseline;
-  gap: 7px;
-  color: var(--theme-public-text);
+  align-items: center;
   text-decoration: none;
   white-space: nowrap;
-  font-family: var(--font-bebas), 'Bebas Neue', sans-serif;
-  font-size: 29px;
-  line-height: 1;
-  letter-spacing: .01em;
 }
 
-.public-wordmark i {
-  color: var(--theme-public-accent);
-  font-style: normal;
+/* Logo oficial no site público: o CSS do app (host-mobile.css) não carrega aqui,
+   então o tamanho e a troca claro/escuro do BrandLogo ficam neste escopo. */
+.public-wordmark .urban-brand-logo,
+.product-preview__brand .urban-brand-logo {
+  display: block;
+  width: auto;
+  height: var(--brand-logo-height, 16px);
+  max-width: none;
 }
+
+.public-wordmark .urban-brand-logo--on-dark,
+.product-preview__brand .urban-brand-logo--on-dark { display: none; }
+
+:root[data-theme="dark"] .public-wordmark .urban-brand-logo--on-light,
+:root[data-theme="dark"] .product-preview__brand .urban-brand-logo--on-light { display: none; }
+
+:root[data-theme="dark"] .public-wordmark .urban-brand-logo--on-dark,
+:root[data-theme="dark"] .product-preview__brand .urban-brand-logo--on-dark { display: block; }
 
 .public-header__nav,
 .public-header__actions {
@@ -163,10 +172,16 @@ html.has-environment-banner body {
 .public-header__cta:hover { transform: translateY(-1px); filter: brightness(1.08); }
 .public-header__toggle { display: none; }
 
+/* Absoluto ao header (sticky): o backdrop-filter do header vira o bloco de contenção
+   de qualquer filho fixed e colapsava o painel em ~50px (DS-06). A altura é o resto
+   da viewport abaixo do header. */
 .public-mobile-menu {
   display: none;
-  position: fixed;
-  inset: calc(72px + var(--environment-banner-height, 0px)) 0 0;
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: 100%;
+  height: calc(100vh - 100% - var(--environment-banner-height, 0px));
+  height: calc(100dvh - 100% - var(--environment-banner-height, 0px));
   padding: 18px 24px 32px;
   background: var(--theme-public-bg);
   overflow-y: auto;
@@ -345,7 +360,6 @@ html.has-environment-banner body {
 
 .product-preview__chrome { min-height: 56px; padding: 13px 18px; border-bottom: 1px solid var(--theme-public-soft); }
 .product-preview__brand { display: flex; align-items: center; gap: 9px; font-size: 11px; font-weight: 700; letter-spacing: .08em; }
-.product-preview__mark { width: 27px; height: 27px; display: grid; place-items: center; color: var(--theme-public-accent-contrast); background: var(--theme-public-accent); font-family: var(--font-bebas), sans-serif; font-size: 18px; }
 .product-preview__status { display: flex; align-items: center; gap: 7px; color: var(--theme-public-muted); font-size: 10px; font-weight: 600; }
 .product-preview__status i { width: 7px; height: 7px; border-radius: 50%; background: var(--theme-public-success); box-shadow: 0 0 0 4px var(--theme-public-success-soft); }
 .product-preview__body { padding: 19px; }
@@ -371,8 +385,8 @@ html.has-environment-banner body {
 .product-preview__reason p { margin: 0; font-size: 10px; line-height: 1.5; }
 .product-preview__reason strong { color: var(--theme-public-text); }
 .product-preview__actions { margin-top: 15px; }
-.product-preview__actions span { color: var(--theme-public-muted); font-size: 9px; }
-.product-preview__apply { color: var(--theme-public-accent-contrast); border-color: var(--theme-public-accent); background: var(--theme-public-accent); }
+.product-preview__actions > span { color: var(--theme-public-muted); font-size: 9px; }
+.product-preview__actions .product-preview__apply { color: var(--theme-public-accent-contrast); border-color: var(--theme-public-accent); background: var(--theme-public-accent); }
 .product-preview__signals { padding: 15px; }
 .product-preview__signal { display: grid; grid-template-columns: 20px 1fr; gap: 2px 8px; padding: 13px 0; border-bottom: 1px solid var(--theme-public-soft); }
 .product-preview__signal:last-child { border-bottom: 0; }
@@ -531,7 +545,6 @@ html.has-environment-banner body {
   .public-header__inner { min-height: 64px; }
   .public-header__actions { display: none; }
   .public-header__toggle { width: 44px; height: 44px; display: grid; place-items: center; border: 1px solid var(--theme-public-strong); color: var(--theme-public-text); background: transparent; cursor: pointer; }
-  .public-mobile-menu { inset-block-start: calc(64px + var(--environment-banner-height, 0px)); }
   .public-mobile-menu.is-open { display: block; }
   .public-hero { padding: 62px 0 58px; }
   .public-hero__grid { grid-template-columns: minmax(0, 1fr); gap: 48px; }
