@@ -83,7 +83,7 @@ jobs:
       - name: Start local smoke app
         run: |
           cp -r .next/static .next/standalone/.next/static
-          if [ -d public ]; then cp -r public .next/standalone/public; fi
+          if [ -d public ]; then mkdir -p .next/standalone/public && cp -r public/. .next/standalone/public/; fi
           PORT=3000 HOSTNAME=127.0.0.1 nohup node .next/standalone/server.js > /tmp/urban-next.log 2>&1 &
           for i in {1..45}; do
             if curl -fsS http://127.0.0.1:3000 >/dev/null; then
