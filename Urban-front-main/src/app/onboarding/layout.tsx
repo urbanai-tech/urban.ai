@@ -1,7 +1,9 @@
-"use client"
 import "../app.css";
 import React from 'react'
 import { BrandLogo } from '../componentes/ui/BrandLogo'
+import { appMetadata } from "../lib/pageTitle";
+
+export const metadata = appMetadata("Primeiros passos");
 
 /**
  * Casca do onboarding: faixa com o fundo oficial da marca no topo (scrim
