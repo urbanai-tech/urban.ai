@@ -15,6 +15,7 @@ import {
   AdminCardHeader,
   AdminButton,
   AdminBadge,
+  AdminConfirmDialog,
   AdminStatusDot,
   AdminMetricCard,
   AdminTable,
@@ -155,9 +156,35 @@ export default function PricingConfigPage() {
   );
 }
 
+const FIELD_LABELS: Partial<Record<keyof AdminPlanConfig, string>> = {
+  isActive: "Ativo",
+  selfServiceEnabled: "Self-service",
+  priceMonthly: "Mensal (R$/imóvel/mês)",
+  priceQuarterly: "Trimestral",
+  priceSemestral: "Semestral",
+  priceAnnualNew: "Anual",
+  discountQuarterlyPercent: "% desconto trimestral",
+  discountSemestralPercent: "% desconto semestral",
+  discountAnnualPercent: "% desconto anual",
+  minProperties: "Min. imóveis",
+  maxProperties: "Max. faixa",
+  maxCheckoutQuantity: "Max. checkout self-service",
+  propertyLimit: "Legacy propertyLimit",
+  sortOrder: "Ordem",
+  highlightBadge: "Highlight badge",
+  discountBadge: "Discount badge",
+};
+
+function formatDiffValue(value: unknown): string {
+  if (value === null || value === undefined || value === "") return "—";
+  if (typeof value === "boolean") return value ? "sim" : "não";
+  return String(value);
+}
+
 function PlanCard({ plan, onSaved }: { plan: AdminPlanConfig; onSaved: () => void }) {
   const [edited, setEdited] = useState<Partial<AdminPlanConfig>>({});
   const [busy, setBusy] = useState(false);
+  const [confirming, setConfirming] = useState(false);
   const toast = useAdminToast();
 
   function field<K extends keyof AdminPlanConfig>(key: K) {
@@ -168,8 +195,17 @@ function PlanCard({ plan, onSaved }: { plan: AdminPlanConfig; onSaved: () => voi
     setEdited((e) => ({ ...e, [key]: value }));
   }
 
+  // Diff antigo -> novo mostrado no diálogo de confirmação.
+  const changes = (Object.keys(edited) as Array<keyof AdminPlanConfig>).map((key) => ({
+    key,
+    label: FIELD_LABELS[key] ?? String(key),
+    from: formatDiffValue(plan[key]),
+    to: formatDiffValue(edited[key]),
+  }));
+
   async function save() {
     if (Object.keys(edited).length === 0) return;
+    setConfirming(false);
     setBusy(true);
     try {
       await updateAdminPlan(plan.name, edited);
@@ -384,10 +420,35 @@ function PlanCard({ plan, onSaved }: { plan: AdminPlanConfig; onSaved: () => voi
         <span className={styles.mutedNote}>
           {dirty ? "Mudanças não salvas" : ""}
         </span>
-        <AdminButton variant="primary" onClick={save} disabled={!dirty} loading={busy}>
+        <AdminButton variant="primary" onClick={() => setConfirming(true)} disabled={!dirty} loading={busy}>
           {busy ? "Salvando…" : "Salvar mudanças"}
         </AdminButton>
       </footer>
+
+      <AdminConfirmDialog
+        open={confirming}
+        onClose={() => setConfirming(false)}
+        title={`Aplicar mudanças no plano ${plan.title}?`}
+        confirmLabel="Aplicar no checkout"
+        onConfirm={save}
+        body={
+          <>
+            <p className={styles.diffIntro}>
+              Vale no checkout e em /plans assim que salvar. O valor cobrado no Stripe não muda por aqui.
+            </p>
+            <ul className={styles.diffList}>
+              {changes.map((change) => (
+                <li key={change.key} className={styles.diffRow}>
+                  <span className={styles.diffLabel}>{change.label}</span>
+                  <span className={styles.diffOld}>{change.from}</span>
+                  <span aria-hidden="true">→</span>
+                  <span className={styles.diffNew}>{change.to}</span>
+                </li>
+              ))}
+            </ul>
+          </>
+        }
+      />
     </AdminCard>
   );
 }

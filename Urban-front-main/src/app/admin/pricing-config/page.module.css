@@ -227,3 +227,40 @@
   margin-bottom: 24px;
   align-items: end;
 }
+
+/* Diff antigo -> novo do diálogo de confirmação. */
+.diffIntro.diffIntro {
+  margin: 0 0 12px;
+}
+
+.diffList.diffList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.diffRow.diffRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.diffLabel.diffLabel {
+  color: var(--admin-text);
+  font-weight: 600;
+  min-width: 150px;
+}
+
+.diffOld.diffOld {
+  color: var(--admin-text-dim);
+  text-decoration: line-through;
+}
+
+.diffNew.diffNew {
+  color: var(--admin-text);
+  font-weight: 600;
+}

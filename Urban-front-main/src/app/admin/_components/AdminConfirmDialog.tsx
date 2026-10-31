@@ -81,11 +81,11 @@ export function AdminConfirmDialog({
           {title}
         </h2>
         {body && (
-          <p
+          <div
             className={styles.body}
           >
             {body}
-          </p>
+          </div>
         )}
         <div
           className={styles.actions}
