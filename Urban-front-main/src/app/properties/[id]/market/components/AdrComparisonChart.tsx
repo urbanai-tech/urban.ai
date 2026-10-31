@@ -115,12 +115,11 @@ export function AdrComparisonChart({
     if (geometry.points.length === 0) return [];
     const n = geometry.points.length;
     const stride = Math.max(1, Math.floor((n - 1) / 4));
-    const indices = new Set<number>();
-    for (let i = 0; i < n; i += stride) indices.add(i);
-    indices.add(n - 1);
-    return Array.from(indices)
-      .sort((a, b) => a - b)
-      .map((i) => geometry.points[i]);
+    const indices: number[] = [];
+    for (let i = 0; i < n; i += stride) indices.push(i);
+    // O último ponto só entra se couber sem encostar no tick anterior (DS-19: "29 30").
+    if (n - 1 - indices[indices.length - 1] >= stride * 0.6) indices.push(n - 1);
+    return indices.map((i) => geometry.points[i]);
   }, [geometry.points]);
 
   if (!data || data.length === 0) {
