@@ -187,7 +187,7 @@ describe('alerta de recall abaixo do piso', () => {
   const many = (matched: number, total: number) =>
     Array.from({ length: total }, (_, i) =>
       ref({ id: `r${i}`, name: `Festival ${WORDS[i]} Especial`, dateKey: '2026-11-10' }),
-    ).map((r, i) => ({ ...r, _matched: i < matched }));
+    ).map((r, i) => ({ ...r, id: `r${i}`, _matched: i < matched }));
 
   function scenario(matched: number, total: number, mailer?: any) {
     const refs = many(matched, total);
