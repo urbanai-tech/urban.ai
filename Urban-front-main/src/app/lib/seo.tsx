@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { NONCE_HEADER } from "./csp";
+import { FALLBACK_PUBLIC_PRICING, jsonLdPrice, type PublicPricing } from "./publicPlans";
 
 const DEFAULT_SITE_URL = "https://myurbanai.com";
 const DEFAULT_APP_URL = "https://app.myurbanai.com";
@@ -34,6 +35,15 @@ type SeoMetadataInput = {
   noIndex?: boolean;
 };
 
+/** URL da imagem OG por página (/og): título sem o sufixo da marca + resumo. */
+export function buildOgImagePath(title: string, description: string) {
+  const query = new URLSearchParams({
+    title: title.split(" | ")[0].trim(),
+    subtitle: description,
+  });
+  return `/og?${query.toString()}`;
+}
+
 export function buildCanonical(path = "/") {
   return new URL(path, siteConfig.url).toString();
 }
@@ -42,8 +52,8 @@ export function buildSeoMetadata({
   title,
   description,
   path = "/",
-  image = DEFAULT_OG_IMAGE,
-  twitterImage = DEFAULT_TWITTER_IMAGE,
+  image = buildOgImagePath(title, description),
+  twitterImage = image,
   imageAlt = "My Urban AI - Precificação dinâmica para Airbnb",
   type = "website",
   noIndex = false,
@@ -153,7 +163,7 @@ export function websiteJsonLd(): JsonLdSchema {
   };
 }
 
-export function softwareApplicationJsonLd(): JsonLdSchema {
+export function softwareApplicationJsonLd(pricing: PublicPricing = FALLBACK_PUBLIC_PRICING): JsonLdSchema {
   return {
     "@type": "SoftwareApplication",
     "@id": `${siteConfig.url}#software`,
@@ -163,8 +173,8 @@ export function softwareApplicationJsonLd(): JsonLdSchema {
     url: siteConfig.url,
     description: siteConfig.description,
     offers: [
-      offerJsonLd("Starter", "97", "/precos", "imóvel por mês no ciclo anual"),
-      offerJsonLd("Profissional", "67", "/precos", "imóvel por mês no ciclo anual"),
+      offerJsonLd("Starter", jsonLdPrice(pricing.starter.annual), "/precos", "imóvel por mês no ciclo anual"),
+      offerJsonLd("Profissional", jsonLdPrice(pricing.profissional.annual), "/precos", "imóvel por mês no ciclo anual"),
     ],
     publisher: { "@id": `${siteConfig.url}#organization` },
   };
@@ -247,8 +257,8 @@ export function faqPageJsonLd(
   };
 }
 
-export function publicBaseJsonLd() {
-  return [organizationJsonLd(), websiteJsonLd(), softwareApplicationJsonLd()];
+export function publicBaseJsonLd(pricing: PublicPricing = FALLBACK_PUBLIC_PRICING) {
+  return [organizationJsonLd(), websiteJsonLd(), softwareApplicationJsonLd(pricing)];
 }
 
 function normalizeUrl(url: string) {
