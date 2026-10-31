@@ -235,7 +235,8 @@ test.describe('Stripe.js sob demanda (E2E-11)', () => {
   test('telas logadas sem checkout não carregam js.stripe.com', async ({ page }) => {
     const stripeRequests: string[] = [];
     page.on('request', (request) => {
-      if (/stripe\.com/.test(request.url())) stripeRequests.push(request.url());
+      const { hostname } = new URL(request.url());
+      if (hostname === 'stripe.com' || hostname.endsWith('.stripe.com')) stripeRequests.push(request.url());
     });
     await mockShell(page);
     await page.route('**/propriedades/dropdown/list', (route) => route.fulfill(json([readyProperty])));
