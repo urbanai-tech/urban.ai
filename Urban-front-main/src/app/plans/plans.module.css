@@ -24,7 +24,7 @@
 
 .grain.grain {
   position: relative;
-  padding: 120px 24px 80px;
+  padding: 64px 24px 56px;
   overflow: hidden;
 }
 
@@ -143,4 +143,58 @@
 .accentEyebrow.accentEyebrow {
   margin-bottom: 16px;
   color: var(--app-accent);
+}
+
+/* Cabeçalho mínimo do checkout: marca à esquerda, voltar à direita. */
+.checkoutHeader.checkoutHeader {
+  border-bottom: 1px solid var(--app-divider);
+  padding: 12px 24px;
+}
+
+.checkoutHeaderInner.checkoutHeaderInner {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.checkoutBrand.checkoutBrand {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+
+.checkoutBrand.checkoutBrand img {
+  height: 24px;
+  width: auto;
+}
+
+.backLink.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  color: var(--app-text);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.backLink.backLink:hover {
+  text-decoration: underline;
+}
+
+.footerLinks.footerLinks {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin: 16px 0 0;
+}
+
+.footerLink.footerLink {
+  color: var(--app-text);
+  font-size: 14px;
+  text-decoration: underline;
 }

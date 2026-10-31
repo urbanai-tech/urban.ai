@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { pickCheckoutRedirect } from "../lib/checkout";
 import type { BillingCycle, Plan } from "../service/api";
 import { createCheckoutSession, getFriendlyApiErrorMessage } from "../service/api";
@@ -47,6 +47,12 @@ async function loadStripeOnDemand() {
   return loadStripe(key);
 }
 
+function formatNextCharge(from: Date, months: number): string {
+  const next = new Date(from);
+  next.setMonth(next.getMonth() + months);
+  return next.toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
+}
+
 function clampQuantity(value: number, max: number): number {
   if (!Number.isFinite(value)) return 1;
   return Math.max(1, Math.min(max, Math.floor(value)));
@@ -78,6 +84,10 @@ export function PricingSelfServiceCalculator({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Próxima cobrança: calculada no cliente (evita divergência de hidratação).
+  const [today, setToday] = useState<Date | null>(null);
+  useEffect(() => setToday(new Date()), []);
+
   const selectedPlan = selectPlanForQuantity(sortedPlans, quantity);
   const consultPlan =
     sortedPlans.find((plan) => planMatchesQuantity(plan, quantity)) ??
@@ -85,6 +95,9 @@ export function PricingSelfServiceCalculator({
     null;
   const activePlan = selectedPlan ?? consultPlan;
   const quote = selectedPlan ? calculatePricingQuote(selectedPlan, quantity, cycle) : null;
+  const totalLabel =
+    cycle === "monthly" ? "Total por mês" : `Total a cada ${BILLING_CYCLE_META[cycle].shortLabel}`;
+  const nextCharge = today ? formatNextCharge(today, BILLING_CYCLE_META[cycle].months) : null;
   const presets = DEFAULT_PRESETS.filter((value) => value <= maxQuantity);
 
   async function handleCheckout() {
@@ -139,7 +152,7 @@ export function PricingSelfServiceCalculator({
       className={cx(styles.card, compact && styles.cardCompact, surface !== "dark" && styles.cardLight)}
     >
       <header className={styles.header}>
-        <p className={styles.eyebrow}>Self-service por imóvel</p>
+        <p className={styles.eyebrow}>Cobrança por imóvel</p>
         <h3 className={cx(styles.title, compact && styles.titleCompact)}>{title}</h3>
         <p className={styles.bodyText}>{subtitle}</p>
       </header>
@@ -196,7 +209,8 @@ export function PricingSelfServiceCalculator({
             <div className={styles.cycleGrid}>
               {BILLING_CYCLES.map((value) => {
                 const selected = cycle === value;
-                const discount = selectedPlan ? calculatePricingQuote(selectedPlan, quantity, value).discountPercent : 0;
+                const cycleQuote = selectedPlan ? calculatePricingQuote(selectedPlan, quantity, value) : null;
+                const discount = cycleQuote?.discountPercent ?? 0;
                 return (
                   <button
                     key={value}
@@ -206,8 +220,15 @@ export function PricingSelfServiceCalculator({
                   >
                     <span>{BILLING_CYCLE_META[value].label}</span>
                     <span className={cx(styles.cycleDiscount, selected && styles.cycleDiscountSelected)}>
-                      {discount > 0 ? `-${discount}%` : "base"}
+                      {cycleQuote && cycleQuote.pricePerPropertyMonthly > 0
+                        ? `${formatMoney(cycleQuote.pricePerPropertyMonthly)} por imóvel/mês`
+                        : "Sob consulta"}
                     </span>
+                    {discount > 0 && (
+                      <span className={cx(styles.cycleDiscount, selected && styles.cycleDiscountSelected)}>
+                        {`${discount}% de desconto`}
+                      </span>
+                    )}
                   </button>
                 );
               })}
@@ -216,7 +237,7 @@ export function PricingSelfServiceCalculator({
         </div>
 
         <aside className={styles.summary}>
-          <p className={styles.summaryEyebrow}>Faixa aplicada</p>
+          <p className={styles.summaryEyebrow}>Resumo do pedido</p>
           <div>
             <h4 className={styles.summaryTitle}>{activePlan?.title ?? "Sem faixa"}</h4>
             <p className={styles.summaryRange}>
@@ -226,20 +247,41 @@ export function PricingSelfServiceCalculator({
 
           {quote ? (
             <>
-              <div className={styles.quoteLines}>
-                <p className={styles.quoteLine}>
-                  Por imóvel/mês: <strong className={styles.quoteValue}>{formatMoney(quote.pricePerPropertyMonthly)}</strong>
-                </p>
-                <p className={styles.quoteLine}>
-                  Equivalente mensal: <strong className={styles.quoteValue}>{formatMoney(quote.monthlyEquivalentTotal)}</strong>
-                </p>
-              </div>
               <div>
-                <p className={styles.totalLabel}>
-                  Total no ciclo {BILLING_CYCLE_META[cycle].shortLabel}
-                </p>
+                <p className={styles.totalLabel}>{totalLabel}</p>
                 <p className={styles.totalValue}>{formatMoney(quote.cycleTotal)}</p>
               </div>
+              <dl className={styles.billingSummary} aria-label="Resumo da cobrança">
+                <div className={styles.billingRow}>
+                  <dt>Plano</dt>
+                  <dd>{activePlan?.title}</dd>
+                </div>
+                <div className={styles.billingRow}>
+                  <dt>Imóveis</dt>
+                  <dd>{quantity}</dd>
+                </div>
+                <div className={styles.billingRow}>
+                  <dt>Valor por imóvel</dt>
+                  <dd>{formatMoney(quote.pricePerPropertyMonthly)}/mês</dd>
+                </div>
+                <div className={styles.billingRow}>
+                  <dt>Equivalente mensal</dt>
+                  <dd>{formatMoney(quote.monthlyEquivalentTotal)}</dd>
+                </div>
+                <div className={styles.billingRow}>
+                  <dt>Cobrança</dt>
+                  <dd>{BILLING_CYCLE_META[cycle].label}</dd>
+                </div>
+                {nextCharge && (
+                  <div className={styles.billingRow}>
+                    <dt>Próxima cobrança</dt>
+                    <dd>{nextCharge}</dd>
+                  </div>
+                )}
+              </dl>
+              <p className={styles.cancelNote}>
+                Cancele quando quiser, sem multa. O acesso segue até o fim do período já pago.
+              </p>
             </>
           ) : (
             <p className={styles.bodyText}>

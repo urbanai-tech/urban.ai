@@ -10,6 +10,7 @@ import { BrandLogo } from "../componentes/ui/BrandLogo";
 import { api, verificarUsuarioState } from "../service/api";
 import { trackEvent } from "../service/tracking";
 import { stashPendingEmail } from "@/app/lib/auth-links";
+import { nextFromSearch } from "@/app/lib/safe-next";
 import styles from "./page.module.css";
 
 /**
@@ -81,7 +82,11 @@ export default function Login() {
           method: "password",
           user_active: !!data?.ativo,
         });
-        if (data.ativo) router.replace("/post-login");
+        if (data.ativo) {
+          // Sessão expirada em outra página: leva o `next` (só se for caminho interno seguro).
+          const next = nextFromSearch(window.location.search);
+          router.replace(next ? `/post-login?next=${encodeURIComponent(next)}` : "/post-login");
+        }
         else {
           stashPendingEmail(email);
           router.replace("/confirm-email");
@@ -128,7 +133,7 @@ export default function Login() {
             PRECIFICAÇÃO POR EVENTOS
           </p>
           <div className={`urban-enter ${styles.heroTitleEnter}`}>
-            <h1 className={`urban-display ${styles.heroTitle}`}>
+            <h2 className={`urban-display ${styles.heroTitle}`}>
               CADA NOITE
               <br />
               QUE A CIDADE
@@ -136,7 +141,7 @@ export default function Login() {
               <span className={styles.heroTitleAccent}>SE MEXE,</span>
               <br />
               VOCÊ GANHA.
-            </h1>
+            </h2>
           </div>
           <div className={`urban-enter ${styles.heroLeadEnter}`}>
             <p className={styles.heroLead}>
@@ -166,11 +171,11 @@ export default function Login() {
           <p className={`urban-app-eyebrow ${styles.formEyebrow}`}>
             ENTRAR · ANFITRIÃO
           </p>
-          <h2 className={`urban-app-display ${styles.formTitle}`}>
+          <h1 className={`urban-app-display ${styles.formTitle}`}>
             Bem-vindo
             <br />
             <span className={styles.formTitleAccent}>de volta.</span>
-          </h2>
+          </h1>
           {sessionExpired && (
             <p role="status" className={styles.sessionNotice}>
               Sua sessão expirou. Entre de novo para continuar.

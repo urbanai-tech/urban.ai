@@ -6,6 +6,7 @@ import UrbanAiLoader from '../componentes/loading';
 import { api } from '../service/api';
 import { useToastCompat } from '../componentes/ui';
 import { stashPendingEmail } from "@/app/lib/auth-links";
+import { nextFromSearch } from "@/app/lib/safe-next";
 
 function toBool(v: unknown): boolean {
   if (typeof v === 'boolean') return v;
@@ -59,7 +60,10 @@ export default function PostLoginPage() {
         const hasAddress = toBool(data.hasAddress) || data.count > 0;
 
         finished = true;
-        router.replace(hasAddress ? '/dashboard' : '/onboarding');
+        // `next` (sessão expirada) só vale para quem já concluiu o cadastro; o validador
+        // recusa externos e protocol-relative. Sem `next` seguro, mantém o destino padrão.
+        const next = nextFromSearch(window.location.search);
+        router.replace(hasAddress ? (next ?? '/dashboard') : '/onboarding');
       } catch (err: any) {
         if (cancelled) return;
         finished = true;

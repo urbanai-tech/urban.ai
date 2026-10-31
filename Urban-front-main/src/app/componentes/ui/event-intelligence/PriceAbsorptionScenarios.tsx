@@ -15,7 +15,7 @@ import styles from "./PriceAbsorptionScenarios.module.css";
 
 export function PriceAbsorptionScenarios({
   scenarios,
-  title = "Cenários de absorção",
+  title = "Cenários de preço",
 }: {
   scenarios?: PriceAbsorptionScenario[];
   title?: string;
@@ -27,7 +27,7 @@ export function PriceAbsorptionScenarios({
           PREÇO VS CHANCE
         </p>
         <p className={styles.introText}>
-          A curva de absorção ainda não está disponível para este imóvel.
+          Ainda não temos cenários de preço para este imóvel.
         </p>
       </AppCard>
     );
@@ -71,7 +71,7 @@ export function PriceAbsorptionScenarios({
 
               <div className={styles.metricList}>
                 <Metric label="Diária" value={formatCurrencyFromCents(scenario.dailyPriceCents)} strong />
-                <Metric label="Multiplicador" value={formatMultiplier(scenario.multiplier)} />
+                <Metric label="Sobre a diária atual" value={formatMultiplier(scenario.multiplier)} />
                 <Metric label="Chance de reserva" value={formatPercent(scenario.bookingProbability)} />
                 <Metric label="Receita esperada" value={formatCurrencyFromCents(scenario.expectedRevenueCents)} />
               </div>

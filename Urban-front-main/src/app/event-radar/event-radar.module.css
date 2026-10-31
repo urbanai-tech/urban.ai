@@ -256,3 +256,31 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* Códigos internos ficam recolhidos; o anfitrião vê o motivo em linguagem simples. */
+.technicalDetails.technicalDetails {
+  margin: 10px 0 0;
+  color: var(--app-text-muted);
+  font-size: 12px;
+}
+
+.technicalDetails dl {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 4px 12px;
+  margin: 8px 0 0;
+}
+
+.technicalDetails dd {
+  margin: 0;
+}
+
+.reasonList.reasonList {
+  margin: 12px 0 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 6px;
+  color: var(--app-text);
+  font-size: 14px;
+  line-height: 1.5;
+}

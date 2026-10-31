@@ -108,6 +108,7 @@
 .optionButton.cycleButton {
   display: grid;
   gap: 2px;
+  text-align: left;
 }
 
 .quantityInput.quantityInput {
@@ -127,6 +128,11 @@
   font-size: 13px;
 }
 
+/* Alvo de toque mínimo de 44 px também nos chips de quantidade. */
+.presetRow .optionButton {
+  min-width: 44px;
+}
+
 .presetRow {
   display: flex;
   gap: 8px;
@@ -136,7 +142,7 @@
 
 .cycleGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 8px;
 }
 
@@ -181,19 +187,32 @@
   font-size: 13px;
 }
 
-.quoteLines {
+.billingSummary {
   display: grid;
   gap: 6px;
+  margin: 0;
 }
 
-.quoteLine.quoteLine {
+.billingRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 14px;
+  color: var(--theme-app-text-muted);
+}
+
+.billingRow dd {
+  margin: 0;
+  color: var(--theme-app-text);
+  font-weight: 700;
+  text-align: right;
+}
+
+.cancelNote.cancelNote {
   margin: 0;
   color: var(--theme-app-text-muted);
-  font-size: 14px;
-}
-
-.quoteValue.quoteValue {
-  color: var(--theme-app-text);
+  font-size: 12px;
+  line-height: 1.5;
 }
 
 .totalLabel.totalLabel {

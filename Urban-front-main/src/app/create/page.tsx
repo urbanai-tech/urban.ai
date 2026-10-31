@@ -121,13 +121,13 @@ const Register = () => {
   // F8: durante prelaunch, /create vira waitlist em vez de signup tradicional.
   if (prelaunchLoading) {
     return (
-      <div
+      <main
         className={`urban-app ${styles.app}`}
       >
         <p className={styles.loadingText}>
           Carregando…
         </p>
-      </div>
+      </main>
     );
   }
   if (prelaunchMode) {
@@ -210,7 +210,7 @@ const Register = () => {
   };
 
   return (
-    <div
+    <main
       className={`urban-app ${styles.appBg}`}
     >
       {/* Painel esquerdo: fundo oficial da marca + lockup (mesmo split do login) */}
@@ -426,7 +426,7 @@ const Register = () => {
           </form>
         </div>
       </div>
-    </div>
+    </main>
   );
 };
 

@@ -38,7 +38,7 @@ export function EventCatalogCard({
         {typeof score === "number" && (
           <div className={styles.scoreBadge}>
             <p className={styles.scoreLabel}>
-              Score
+              Demanda
             </p>
             <p className={styles.scoreValue}>{Math.round(score)}</p>
           </div>
