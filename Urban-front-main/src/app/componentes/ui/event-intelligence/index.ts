@@ -6,6 +6,7 @@ export { PriceAbsorptionScenarios } from "./PriceAbsorptionScenarios";
 export {
   confidenceBadgeKind,
   confidenceLabel,
+  explainImpactReasons,
   formatCompactCurrencyFromCents,
   formatCurrencyFromCents,
   formatDateRange,

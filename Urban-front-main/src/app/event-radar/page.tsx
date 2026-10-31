@@ -35,6 +35,7 @@ import PropertySelect from "@/app/componentes/PropertySelect";
 import {
   confidenceBadgeKind,
   confidenceLabel,
+  explainImpactReasons,
   formatCompactCurrencyFromCents,
   formatDateRange,
   formatTime,
@@ -198,14 +199,14 @@ function EventRadarContent() {
       <AppSectionHeader
         eyebrow="RADAR DE EVENTOS"
         title="Oportunidades por evento"
-        subtitle="Veja quais eventos mexem com seus imóveis, quanto podem gerar e qual faixa de diária parece absorvível."
+        subtitle="Veja quais eventos mexem com seus imóveis, quanto podem gerar e qual faixa de diária tem mais chance de fechar."
         actions={
           response?.mock ? (
-            <AppBadge kind="warn">Mock contratual</AppBadge>
+            <AppBadge kind="warn">Dados de exemplo</AppBadge>
           ) : hasNonPersistedEvidence ? (
-            <AppBadge kind="warn">Dados derivados</AppBadge>
+            <AppBadge kind="warn">Estimativa</AppBadge>
           ) : (
-            <AppBadge kind="success">Dados auditáveis</AppBadge>
+            <AppBadge kind="success">Dados confirmados</AppBadge>
           )
         }
       />
@@ -369,7 +370,7 @@ function EventRadarContent() {
                 <AppCardHeader
                   eyebrow="PRIORIDADE"
                   title="Eventos mais importantes"
-                  subtitle="Clique para ver imóveis impactados e curva de absorção."
+                  subtitle="Clique para ver imóveis impactados e cenários de preço."
                   className={styles.priorityHeader}
                 />
               </AppCard>
@@ -449,6 +450,18 @@ function EventDetailPanel({
   const dataStatus = event.intelligence?.dataStatus ?? null;
   const jobRunId = event.intelligence?.jobRunId ?? null;
   const modelVersion = event.intelligence?.modelVersion ?? null;
+  const reasons = selectedImpact
+    ? explainImpactReasons({
+        eventName: event.name,
+        demandScore: event.demandScore,
+        distanceKm: selectedImpact.distanceKm,
+        minAbsorbablePriceCents: selectedImpact.minAbsorbablePriceCents,
+        maxAbsorbablePriceCents: selectedImpact.maxAbsorbablePriceCents,
+        recommendedPriceCents: selectedImpact.recommendedPriceCents,
+        bookingProbability: selectedImpact.bookingProbability,
+        mainDrivers: selectedImpact.mainDrivers,
+      })
+    : [];
 
   return (
     <AppCard variant="default" className={styles.detailPanelCard}>
@@ -465,12 +478,6 @@ function EventDetailPanel({
               </AppBadge>
             )}
             <AppBadge kind={dataStatusBadgeKind(dataStatus)}>{dataStatusLabel(dataStatus)}</AppBadge>
-            <AppBadge kind={jobRunId ? "neutral" : "warn"}>{jobRunId ? `job ${shortTrace(jobRunId)}` : "sem jobRunId"}</AppBadge>
-            {modelVersion && (
-              <AppBadge kind="neutral" className={styles.modelVersionBadge}>
-                {modelVersion}
-              </AppBadge>
-            )}
           </div>
           <h2 className={styles.detailTitle}>
             {event.name}
@@ -492,9 +499,24 @@ function EventDetailPanel({
       )}
       {(dataStatus !== "persisted" || !jobRunId) && (
         <p className={styles.detailDerivedWarning}>
-          Leitura derivada: ainda não há snapshot persistido com jobRunId para auditoria completa.
+          Esta leitura é uma estimativa a partir dos dados do evento; ainda não foi confirmada pelo cálculo diário.
         </p>
       )}
+      <details className={styles.technicalDetails}>
+        <summary>Detalhes técnicos</summary>
+        <dl>
+          <dt>Origem dos dados</dt>
+          <dd>{dataStatus ?? "sem status"}</dd>
+          <dt>Execução</dt>
+          <dd>{jobRunId ? shortTrace(jobRunId) : "sem registro"}</dd>
+          {modelVersion && (
+            <>
+              <dt>Versão do modelo</dt>
+              <dd>{modelVersion}</dd>
+            </>
+          )}
+        </dl>
+      </details>
 
       {sourceLinks.length > 0 && (
         <div className={styles.sourceLinksRow}>
@@ -517,15 +539,26 @@ function EventDetailPanel({
         <AppCardHeader
           eyebrow="IMÓVEIS IMPACTADOS"
           title="Onde agir"
-          subtitle="A recomendação mostra faixa e probabilidade, não promessa de ocupação."
+          subtitle="A sugestão mostra uma faixa de preço e a chance de reserva, não uma promessa de ocupação."
         />
         <EventImpactTable impacts={event.impactedProperties} onSimulate={onSimulate} />
       </div>
 
+      {selectedImpact && reasons.length > 0 && (
+        <div className={styles.detailSection} data-testid="host-event-radar-reasons">
+          <AppCardHeader eyebrow="POR QUE ESTE PREÇO" title={selectedImpact.propertyName} />
+          <ul className={styles.reasonList}>
+            {reasons.map((reason) => (
+              <li key={reason}>{reason}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       {selectedImpact && (
         <div className={styles.detailSection}>
           <PriceAbsorptionScenarios
-            title={`${selectedImpact.propertyName} - absorção inicial`}
+            title={`${selectedImpact.propertyName}: cenários de preço`}
             scenarios={selectedImpact.absorptionScenarios}
           />
           {simulating && (
@@ -571,14 +604,12 @@ function EventRadarLoading() {
 }
 
 function dataStatusLabel(status?: string | null) {
-  if (status === "persisted") return "Persistido";
-  if (status === "persisted_or_derived") return "Misto";
-  if (status === "derived_from_event_fields") return "Derivado";
-  if (status === "derived_from_analise_preco") return "Derivado";
-  if (status === "derived_from_events") return "Heatmap derivado";
-  if (status === "stub_pending_engine") return "Pendente";
-  if (status === "contract_mock") return "Mock";
-  return "Sem status";
+  if (status === "persisted") return "Confirmado";
+  if (status === "persisted_or_derived") return "Parcialmente confirmado";
+  if (status?.startsWith("derived_")) return "Estimativa";
+  if (status === "stub_pending_engine") return "Em preparação";
+  if (status === "contract_mock") return "Exemplo";
+  return "Sem informação";
 }
 
 function dataStatusBadgeKind(status?: string | null): AppBadgeKind {

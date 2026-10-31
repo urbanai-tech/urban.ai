@@ -78,3 +78,52 @@ export function riskBadgeKind(risk?: "low" | "medium" | "high"): AppBadgeKind {
   if (risk === "high") return "error";
   return "warn";
 }
+
+/**
+ * "Por que este preço": motivos em linguagem do anfitrião, só com dados que a API
+ * já devolve (evento, distância, demanda, faixa). Não recalcula nada.
+ */
+export function explainImpactReasons(input: {
+  eventName?: string | null;
+  demandScore?: number | null;
+  distanceKm?: number | null;
+  minAbsorbablePriceCents?: number | null;
+  maxAbsorbablePriceCents?: number | null;
+  recommendedPriceCents?: number | null;
+  bookingProbability?: number | null;
+  mainDrivers?: string[];
+}): string[] {
+  const reasons: string[] = [];
+  const event = input.eventName ? `"${input.eventName}"` : "O evento";
+  if (typeof input.demandScore === "number" && Number.isFinite(input.demandScore)) {
+    reasons.push(`${event} tem demanda esperada ${demandLevelLabel(input.demandScore)} (${Math.round(input.demandScore)} de 100).`);
+  }
+  if (typeof input.distanceKm === "number" && Number.isFinite(input.distanceKm)) {
+    const km = input.distanceKm.toLocaleString("pt-BR", { maximumFractionDigits: 1 });
+    reasons.push(`Seu imóvel fica a ${km} km do evento; quanto mais perto, mais hóspedes ele atrai.`);
+  }
+  const min = input.minAbsorbablePriceCents;
+  const max = input.maxAbsorbablePriceCents;
+  if (typeof min === "number" && typeof max === "number") {
+    reasons.push(`Pelo histórico de reservas na região, diárias entre ${brlWhole(min / 100)} e ${brlWhole(max / 100)} costumam fechar.`);
+  }
+  if (typeof input.bookingProbability === "number" && typeof input.recommendedPriceCents === "number") {
+    reasons.push(`No preço sugerido de ${brlWhole(input.recommendedPriceCents / 100)}, a chance de reserva estimada é de ${formatPercent(input.bookingProbability)}.`);
+  }
+  for (const driver of input.mainDrivers ?? []) {
+    if (driver && !looksTechnical(driver)) reasons.push(driver);
+  }
+  return reasons.slice(0, 5);
+}
+
+export function demandLevelLabel(score: number): string {
+  if (score >= 84) return "muito alta";
+  if (score >= 74) return "alta";
+  if (score >= 50) return "moderada";
+  return "baixa";
+}
+
+/** Códigos internos (h3, geohash, ids, snake_case) não devem chegar ao anfitrião. */
+function looksTechnical(text: string): boolean {
+  return /(h3|geohash|jobRunId|mock|snapshot)|[a-z]+_[a-z_]+|[a-f0-9]{8,}/i.test(text);
+}

@@ -44,7 +44,7 @@ export function EventImpactTable({
       >
         <thead>
           <tr>
-            {["Imóvel", "Distância", "Captura", "Diária atual", "Faixa absorvível", "Recomendado", "Chance", "Ação"].map(
+            {["Imóvel", "Distância do evento", "Atração do imóvel", "Diária atual", "Faixa de preço sugerida", "Preço sugerido", "Chance de reserva", "Ação"].map(
               (header) => (
                 <th
                   key={header}
@@ -194,12 +194,12 @@ function ImpactMobileCard({
       </div>
 
       <div className={`event-impact-mobile-metrics ${styles.mobileMetricsGrid}`}>
-        <MobileMetric label="Captura" value={String(impact.propertyCaptureScore ?? "-")} />
-        <MobileMetric label="Chance" value={formatPercent(impact.bookingProbability)} />
+        <MobileMetric label="Atração" value={String(impact.propertyCaptureScore ?? "-")} />
+        <MobileMetric label="Chance de reserva" value={formatPercent(impact.bookingProbability)} />
         <MobileMetric label="Atual" value={formatCurrencyFromCents(impact.currentPriceCents)} />
-        <MobileMetric label="Recomendado" value={formatCurrencyFromCents(impact.recommendedPriceCents)} />
+        <MobileMetric label="Sugerido" value={formatCurrencyFromCents(impact.recommendedPriceCents)} />
         <MobileMetric label="Faixa" value={formatPriceRange(impact.minAbsorbablePriceCents, impact.maxAbsorbablePriceCents)} wide />
-        <MobileMetric label="Multiplicador" value={formatMultiplier(impact.recommendedMultiplier)} />
+        <MobileMetric label="Sobre a diária atual" value={formatMultiplier(impact.recommendedMultiplier)} />
       </div>
     </AppCard>
   );

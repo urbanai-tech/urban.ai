@@ -116,14 +116,14 @@ export function EventDemandHeatmapPlaceholder({
         </div>
         <div className={styles.headerBadgeRow}>
           <AppBadge kind={cellsWithStats.length > 0 ? "accent" : "neutral"}>
-            {geoCells.length} {geoCells.length === 1 ? "célula geo" : "células geo"}
+            {geoCells.length} {geoCells.length === 1 ? "região no mapa" : "regiões no mapa"}
           </AppBadge>
           {cellsWithoutGeo.length > 0 && (
             <AppBadge kind="warn">
-              {cellsWithoutGeo.length} {cellsWithoutGeo.length === 1 ? "célula sem centro" : "células sem centro"}
+              {cellsWithoutGeo.length} {cellsWithoutGeo.length === 1 ? "região sem localização" : "regiões sem localização"}
             </AppBadge>
           )}
-          {eventsWithoutGeo.length > 0 && <AppBadge kind="warn">{eventsWithoutGeo.length} sem geo</AppBadge>}
+          {eventsWithoutGeo.length > 0 && <AppBadge kind="warn">{eventsWithoutGeo.length} sem localização</AppBadge>}
         </div>
       </div>
 
@@ -167,8 +167,8 @@ export function EventDemandHeatmapPlaceholder({
                       data-region={cell.regionLabel}
                       data-cell-code={cell.cellCode}
                       onClick={() => onSelectCell?.(cell)}
-                      title={`${cell.regionLabel}: ${cell.cellCode}, score ${cell.score}, ${cell.eventsCount} ${cell.eventsCount === 1 ? "evento" : "eventos"}`}
-                      aria-label={`${cell.regionLabel}, célula ${cell.cellCode}, score de demanda ${cell.score}, ${cell.affectedPropertiesCount} ${cell.affectedPropertiesCount === 1 ? "imóvel impactado" : "imóveis impactados"}`}
+                      title={`${cell.regionLabel}: demanda esperada ${cell.score} de 100, ${cell.eventsCount} ${cell.eventsCount === 1 ? "evento" : "eventos"}`}
+                      aria-label={`${cell.regionLabel}, demanda esperada ${cell.score} de 100, ${cell.affectedPropertiesCount} ${cell.affectedPropertiesCount === 1 ? "imóvel impactado" : "imóveis impactados"}`}
                       style={{
                         "--cell-left": `${left}%`,
                         "--cell-top": `${top}%`,
@@ -182,12 +182,6 @@ export function EventDemandHeatmapPlaceholder({
                       <span className={styles.heatCellScore}>{cell.score || "-"}</span>
                       <span className={styles.heatCellLevel}>
                         {cell.affectedPropertiesCount === 1 ? "1 imóvel" : `${cell.affectedPropertiesCount} imóveis`}
-                      </span>
-                      <span
-                        aria-hidden
-                        className={styles.heatCellRegionName}
-                      >
-                        {cell.cellKind === "h3" ? "h3" : "geo"}
                       </span>
                       <span
                         className={`event-demand-heatmap-pin-label ${styles.heatCellPinLabel}`}
@@ -372,7 +366,7 @@ function HeatLegend() {
       <span
         className={styles.heatLegendNote}
       >
-        célula h3/geohash
+        regiões do mapa
       </span>
     </div>
   );
@@ -469,7 +463,7 @@ function RegionCard({
       </div>
 
       <div className={styles.regionCardGrid}>
-        <MiniMetric label="Score" value={String(cell.score || "-")} />
+        <MiniMetric label="Demanda esperada" value={String(cell.score || "-")} />
         <MiniMetric label="Potencial" value={formatCompactCurrencyFromCents(cell.potentialCents)} />
         <MiniMetric label="Imóveis" value={String(cell.affectedPropertiesCount)} />
       </div>
@@ -518,11 +512,12 @@ function RegionCard({
 
 function CellCodePill({ cell }: { cell: CellViewModel }) {
   return (
-    <p className={styles.cellCodeLine}>
+    <details className={styles.cellCodeLine}>
+      <summary>Detalhes técnicos</summary>
       <span className={styles.cellCodeKind}>{cellKindLabel(cell.cellKind)}</span>{" "}
       <span className={styles.cellCodeValue}>{cell.cellCode}</span>
-      {!cell.hasGeo ? " - sem centro geo" : ""}
-    </p>
+      {!cell.hasGeo ? " - sem localização no mapa" : ""}
+    </details>
   );
 }
 
@@ -585,7 +580,7 @@ function ImpactedPropertiesPanel({
                   {property.name}
                 </span>
                 <span className={styles.propertyMeta}>
-                  {property.eventsCount} {property.eventsCount === 1 ? "evento" : "eventos"}, melhor score {property.bestScore || "-"}
+                  {property.eventsCount} {property.eventsCount === 1 ? "evento" : "eventos"}, demanda esperada {property.bestScore || "-"} de 100
                 </span>
               </span>
               <span className={styles.propertyValue}>
