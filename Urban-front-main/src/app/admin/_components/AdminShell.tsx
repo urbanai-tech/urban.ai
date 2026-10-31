@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useDialogFocus } from "../../componentes/ui/useDialogFocus";
 import NextLink from "next/link";
 import { usePathname } from "next/navigation";
 import { ThemeToggle } from "@/app/componentes/theme/ThemeToggle";
@@ -125,15 +126,10 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     setMobileOpen(false);
   }, [pathname]);
 
-  // ESC fecha mobile drawer
-  useEffect(() => {
-    if (!mobileOpen) return;
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setMobileOpen(false);
-    };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [mobileOpen]);
+  // Foco inicial no drawer, Tab preso, Esc fecha e o foco volta ao botão de menu.
+  const drawerRef = useRef<HTMLElement | null>(null);
+  const closeDrawer = useCallback(() => setMobileOpen(false), []);
+  useDialogFocus({ open: mobileOpen, containerRef: drawerRef, onClose: closeDrawer });
 
   const env =
     typeof process !== "undefined"
@@ -184,6 +180,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             onClick={() => setMobileOpen(false)}
           />
           <aside
+            ref={drawerRef}
+            tabIndex={-1}
             className={`urban-admin-sidebar urban-admin-drawer-panel ${styles.drawerPanel}`}
           >
             <SidebarContent

@@ -57,7 +57,11 @@ export function AdminTable<T>({
   const tableMinWidth = minWidth ?? Math.max(560, columns.length * 140);
 
   return (
+    // Região rolável precisa de foco por teclado (axe: scrollable-region-focusable) e de nome.
     <div
+      role="region"
+      tabIndex={0}
+      aria-label={typeof caption === "string" ? caption : "Tabela de dados"}
       className={`${styles.wrapper} ${maxHeight ? styles.wrapperScroll : ""}`}
       style={{ maxHeight, ...style }}
     >
@@ -80,7 +84,7 @@ export function AdminTable<T>({
                 className={`${styles.th} ${alignClass(col.align)}`}
                 style={{ width: col.width }}
               >
-                {col.header}
+                {col.header === "" ? <span className={styles.srOnly}>Ações</span> : col.header}
               </th>
             ))}
           </tr>
