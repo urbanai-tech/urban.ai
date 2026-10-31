@@ -28,6 +28,11 @@ import { CollectorStalenessService } from './collector-staleness.service';
 import { CollectorZeroYieldService } from './collector-zero-yield.service';
 import { EventCoverageReportService } from './event-coverage-report.service';
 import { EventCoverageReportController } from './event-coverage-report.controller';
+import { EventChangeHistory } from 'src/entities/event-change-history.entity';
+import { CollectorAlertState } from 'src/entities/collector-alert-state.entity';
+import { EventChangeHistoryService } from './event-change-history.service';
+import { EventChangesController } from './event-changes.controller';
+import { CollectorAlertStateService } from './collector-alert-state.service';
 import { MailerModule } from 'src/mailer/mailer.module';
 
 @Module({
@@ -42,13 +47,21 @@ import { MailerModule } from 'src/mailer/mailer.module';
       User,
       CoverageRegion,
       AdminJobRun,
+      EventChangeHistory,
+      CollectorAlertState,
     ]),
     AuthModule,
     MapsModule,
     AdminAuditModule,
     MailerModule,
   ],
-  controllers: [EventoController, EventsIngestController, CoverageController, EventCoverageReportController],
+  controllers: [
+    EventoController,
+    EventsIngestController,
+    CoverageController,
+    EventCoverageReportController,
+    EventChangesController,
+  ],
   providers: [
     EventoService,
     EventsEnrichmentService,
@@ -62,6 +75,8 @@ import { MailerModule } from 'src/mailer/mailer.module';
     CollectorStalenessService,
     CollectorZeroYieldService,
     EventCoverageReportService,
+    EventChangeHistoryService,
+    CollectorAlertStateService,
   ],
   exports: [
     EventsIngestService,

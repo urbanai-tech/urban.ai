@@ -51,9 +51,9 @@ Categorias presentes no schema (detalhe coluna a coluna na seção gerada "Colun
 
 ## Resumo
 
-- Tabelas (entidades TypeORM): **46**
-- Colunas: **759**
-- Chaves estrangeiras: **72**
+- Tabelas (entidades TypeORM): **48**
+- Colunas: **773**
+- Chaves estrangeiras: **73**
 - Tabela de controle de migrations (`migrations`) não é entidade e não consta aqui.
 
 ## Tabelas por domínio
@@ -63,7 +63,7 @@ Categorias presentes no schema (detalhe coluna a coluna na seção gerada "Colun
 | Usuários e autenticação | `user`, `refresh_tokens`, `password_reset_tokens`, `email_confirmations` |
 | Assinatura e Stripe | `plans`, `payment` |
 | Imóveis, anúncios e Stays | `list`, `addresses`, `stays_accounts`, `stays_listings`, `pricing_input_history`, `portfolio_property_settings`, `portfolio_action_runs`, `portfolio_action_items`, `portfolio_daily_price_overrides`, `airbnb_pricing_attempt_logs` |
-| Eventos, ingestão e deduplicação | `events`, `event_sources`, `event_dedup_candidates`, `event_historical_multiplier`, `coverage_regions`, `external_listing`, `process_status` |
+| Eventos, ingestão e deduplicação | `events`, `event_sources`, `event_dedup_candidates`, `event_change_history`, `collector_alert_state`, `event_historical_multiplier`, `coverage_regions`, `external_listing`, `process_status` |
 | Precificação e análises | `analise_preco`, `analise_endereco_evento`, `pricing_rule_configs`, `pricing_decision_snapshots`, `price_updates`, `price_snapshots`, `occupancy_history`, `event_intelligence_snapshots`, `event_property_impacts`, `event_proximity_features`, `ask_urban_messages` |
 | Notificações e comunicação | `notifications`, `push_subscriptions`, `push_deliveries`, `event_alert_dispatches`, `communication_events`, `user_communication_preferences`, `pricing_recommendation_digests` |
 | Administração e auditoria | `admin_audit_logs`, `admin_job_runs`, `platform_costs` |
@@ -370,6 +370,20 @@ Relações:
 - `IDX_3e14f5cfeacfb03037b56a5298`: `conversationId`
 - `IDX_cebbbcc38dbb8b6a7370874e33`: `user_id`, `createdAt`
 
+### `collector_alert_state`
+
+- Entidade: `CollectorAlertState` (`src/entities/collector-alert-state.entity.ts`)
+- Domínio: Eventos, ingestão e deduplicação
+- Descrição: Estado persistido dos alertas de fonte de eventos (antes só em memória, perdido a cada deploy). - `expected`: fonte configurada que esperamos receber; `firstExpectedAt` marca desde quando (base do "nunca entregou após X dias"); - `zero_yield` / `never_delivered`: `lastAlertAt` é o último envio, para respeitar o intervalo de realerta mesmo após reinício.
+
+| Coluna | Propriedade | Tipo | Nulo | Padrão | Chaves | Observação |
+| --- | --- | --- | --- | --- | --- | --- |
+| `source` | `source` | varchar(64) | não |  | PK |  |
+| `kind` | `kind` | varchar(24) | não |  | PK |  |
+| `firstExpectedAt` | `firstExpectedAt` | datetime | sim |  |  |  |
+| `lastAlertAt` | `lastAlertAt` | datetime | sim |  |  |  |
+| `updatedAt` | `updatedAt` | datetime | não | CURRENT_TIMESTAMP(6) |  |  |
+
 ### `communication_events`
 
 - Entidade: `CommunicationEvent` (`src/entities/communication-event.entity.ts`)
@@ -514,6 +528,36 @@ Relações:
 - `IDX_event_alert_dispatches_property_day`: `property_id`, `sent_on`
 - `IDX_event_alert_dispatches_user_day`: `user_id`, `sent_on`
 - `UQ_event_alert_dispatches_user_event` (UNIQUE): `user_id`, `event_id`
+
+### `event_change_history`
+
+- Entidade: `EventChangeHistory` (`src/entities/event-change-history.entity.ts`)
+- Domínio: Eventos, ingestão e deduplicação
+- Descrição: Histórico de mudanças de um evento: a primeira vez que entrou (`first_seen`, base do lead time) e as mudanças relevantes entre ingestões (data, venue, URL, status), além de "possivelmente cancelado" (sumiu da fonte) e "reapareceu". Só acrescenta linhas; o evento nunca é apagado nem duplicado por causa de uma mudança.
+
+| Coluna | Propriedade | Tipo | Nulo | Padrão | Chaves | Observação |
+| --- | --- | --- | --- | --- | --- | --- |
+| `id` | `id` | varchar(36) | não |  | PK, uuid auto |  |
+| `eventId` | `eventId` | varchar(36) | não |  | IDX, FK |  |
+| `changeType` | `changeType` | varchar(24) | não |  | IDX |  |
+| `field` | `field` | varchar(32) | sim |  |  | Campo afetado: dataInicio \| venue \| url \| status \| lastSeenAt. |
+| `oldValue` | `oldValue` | text | sim |  |  |  |
+| `newValue` | `newValue` | text | sim |  |  |  |
+| `source` | `source` | varchar(64) | sim |  |  | Fonte que originou a observação (quando houve). |
+| `detectedAt` | `detectedAt` | datetime | não | CURRENT_TIMESTAMP(6) | IDX |  |
+| `meta` | `meta` | text | sim |  |  |  |
+
+Relações:
+
+| Tipo | Propriedade | Alvo | Coluna(s) FK | onDelete | onUpdate |
+| --- | --- | --- | --- | --- | --- |
+| many-to-one | `event` | `events` | eventId | CASCADE | NO ACTION |
+
+Índices e unicidades:
+
+- `IDX_event_change_history_detected`: `detectedAt`
+- `IDX_event_change_history_event`: `eventId`, `detectedAt`
+- `IDX_event_change_history_type`: `changeType`, `detectedAt`
 
 ### `event_dedup_candidates`
 

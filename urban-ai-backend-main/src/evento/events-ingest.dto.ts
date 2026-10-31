@@ -69,6 +69,10 @@ export class IngestEventDto {
 
   @IsOptional() @IsUrl({ require_protocol: true }) @MaxLength(2048)
   crawledUrl?: string | null;
+
+  // Status declarado pela fonte ("cancelado", "adiado"...); opcional, alimenta o histórico de mudanças.
+  @IsOptional() @IsString() @MaxLength(40)
+  status?: string | null;
 }
 
 export class IngestEventsBatchDto {
