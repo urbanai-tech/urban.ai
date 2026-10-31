@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import "../app.css";
 import { usePathname } from "next/navigation";
