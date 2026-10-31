@@ -2,6 +2,7 @@ import React from "react";
 import { ExternalLink } from "lucide-react";
 import { AppButton, AppCard } from "./ui";
 import styles from "./Subscription.module.css";
+import { brlFromCents } from "../lib/format";
 
 export type Subscription = {
   id: string;
@@ -47,7 +48,7 @@ const statusLabels: Record<string, string> = {
 };
 
 const formatDateNatural = (timestamp?: number) => {
-  if (!timestamp) return "Inicio não informado";
+  if (!timestamp) return "Início não informado";
   return new Intl.DateTimeFormat("pt-BR", {
     day: "2-digit",
     month: "long",
@@ -67,22 +68,35 @@ function getCycleLabel(sub: Subscription) {
   return cycleLabels[cycle] || cycle;
 }
 
-function getQuantityLabel(sub: Subscription) {
+function getQuantity(sub: Subscription): number {
   const quantity = Number(sub.metadata?.urbanai_quantity);
-  if (Number.isFinite(quantity) && quantity > 0) {
-    return `${Math.floor(quantity)} imóveis contratados`;
-  }
-  return "1 imóvel contratado";
+  return Number.isFinite(quantity) && quantity > 0 ? Math.floor(quantity) : 1;
+}
+
+function getQuantityLabel(sub: Subscription) {
+  const quantity = getQuantity(sub);
+  return quantity === 1 ? "1 imóvel contratado" : `${quantity} imóveis contratados`;
+}
+
+function formatAmountCents(cents: number, currency: string) {
+  if (currency === "BRL") return brlFromCents(cents);
+  return (cents / 100).toLocaleString("pt-BR", { style: "currency", currency });
+}
+
+/** `plan.amount` do Stripe é o valor unitário (por imóvel); o total do ciclo é unitário × quantidade. */
+function getUnitAmount(sub: Subscription): number | null {
+  const amount = sub.plan?.amount;
+  return typeof amount === "number" && Number.isFinite(amount) ? amount : null;
+}
+
+function getCurrency(sub: Subscription) {
+  return (sub.plan?.currency || sub.currency || "brl").toUpperCase();
 }
 
 function getPriceLabel(sub: Subscription) {
-  const amount = sub.plan?.amount;
-  if (typeof amount === "number" && Number.isFinite(amount)) {
-    const currency = (sub.plan?.currency || sub.currency || "brl").toUpperCase();
-    return `${(amount / 100).toLocaleString("pt-BR", {
-      style: "currency",
-      currency,
-    })} / ${getCycleLabel(sub)}`;
+  const amount = getUnitAmount(sub);
+  if (amount !== null) {
+    return `${formatAmountCents(amount * getQuantity(sub), getCurrency(sub))} / ${getCycleLabel(sub)}`;
   }
 
   const quantity = sub.metadata?.urbanai_quantity;
@@ -145,6 +159,12 @@ export default function SubscriptionCards({
                 <div className={styles.infoTileGrid}>
                   <InfoTile label="Ciclo" value={getCycleLabel(sub)} />
                   <InfoTile label="Quota" value={getQuantityLabel(sub)} />
+                  {getUnitAmount(sub) !== null && getQuantity(sub) > 1 && (
+                    <InfoTile
+                      label="Valor por imóvel"
+                      value={`${formatAmountCents(getUnitAmount(sub) as number, getCurrency(sub))} / ${getCycleLabel(sub)}`}
+                    />
+                  )}
                 </div>
 
                 <p className={styles.dateLabel}>
