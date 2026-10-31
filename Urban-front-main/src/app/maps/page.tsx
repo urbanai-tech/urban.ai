@@ -36,6 +36,12 @@ const AirbnbMap = dynamic(() => import('./components/GoogleMapEmbed'), {
   ),
 });
 
+// Um evento sem coordenadas válidas derrubava a rota inteira (LatLng NaN no
+// Leaflet). Na lista ele continua aparecendo; só não vai para o mapa.
+const hasCoordinates = (event: { latitude?: unknown; longitude?: unknown }) =>
+  Number.isFinite(parseFloat(String(event.latitude))) &&
+  Number.isFinite(parseFloat(String(event.longitude)));
+
 const parseIsoDate = (s: string) => {
   const [y, m, day] = s.split('-').map(Number);
   return new Date(y, (m ?? 1) - 1, day ?? 1);
@@ -138,6 +144,7 @@ export default function MapsPage() {
     () => allEvents.filter((event) => isTodayOrFutureDate(event.dataInicio)),
     [allEvents],
   );
+  const mappableEvents = useMemo(() => eventsToDisplay.filter(hasCoordinates), [eventsToDisplay]);
   const selectedProperty = propsInfo.find((p) => p.id === propertyId);
   const hasProcessingProperties = propsInfo.some((p) => !isPropertyReady(p));
   const selectedPropertyIsProcessing = Boolean(selectedProperty && !isPropertyReady(selectedProperty));
@@ -275,7 +282,7 @@ export default function MapsPage() {
               <div className={styles.mapFrame}>
                 <AirbnbMap
                   height="500px"
-                  events={eventsToDisplay}
+                  events={mappableEvents}
                   property={
                     selectedProperty
                       ? {
